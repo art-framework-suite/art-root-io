@@ -16,6 +16,8 @@
 #include "TFile.h"
 #include "TTree.h"
 
+#include <array>
+
 namespace art {
 
   class RootIOPolicy : public MixIOPolicy {

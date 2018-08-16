@@ -90,8 +90,9 @@ find_ups_root()
 # SQLite
 cet_find_library(SQLITE3 NAMES sqlite3_ups PATHS ENV SQLITE_LIB NO_DEFAULT_PATH)
 
-# macros for making art libraries/dictionaries, etc.
+# macros for making art libraries/dictionaries, etc. and plugins
 include(ArtMake)
+include(BuildPlugins)
 
 # Plugin skeleton generators for cetskelgen.
 # add_subdirectory(perllib)

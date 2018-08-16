@@ -1,3 +1,5 @@
+include(ArtDictionary)
+
 add_subdirectory(RootDB)
 add_subdirectory(Services)
 
@@ -36,6 +38,7 @@ art_make_library(
   LIBRARIES
   art_root_io_detail_sources
   art_root_io_RootDB
+  art_Persistency_Provenance
   canvas
   cetlib)
 
@@ -62,8 +65,12 @@ art_make(EXCLUDE
   art_root_io_detail_sources
   cetlib
   canvas
+  fhiclcpp
   ${ROOT_HIST}
-  ${ROOT_TREE})
+  ${ROOT_TREE}
+  ${Boost_DATE_TIME_LIBRARY}
+  ${Boost_FILESYSTEM_LIBRARY}
+  ${Boost_SYSTEM_LIBRARY})
 
 simple_plugin(RootInput "source" art_root_io art_Framework_IO_Catalog ALLOW_UNDERSCORES)
 simple_plugin(RootOutput "module" art_root_io ALLOW_UNDERSCORES)
@@ -104,6 +111,7 @@ art_make_exec(NAME file_info_dumper
   art_Framework_Principal
   ${Boost_PROGRAM_OPTIONS_LIBRARY})
 
+include(CetMakeCompletions)
 cet_make_completions(product_sizes_dumper)
 cet_make_completions(config_dumper)
 cet_make_completions(sam_metadata_dumper)

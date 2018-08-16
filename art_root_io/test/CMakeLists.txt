@@ -2,6 +2,72 @@ cet_enable_asserts()
 
 include(CetTest)
 
+###############################################################
+# The BasicOutputOptions tests should probably go back into art
+
+####################################
+# config_ref_test
+#
+# Make reference comparisons easier.
+
+macro(config_ref_test TNAME)
+  cet_test(${TNAME}_r HANDBUILT
+    TEST_EXEC diff
+    TEST_ARGS -u ${TNAME}-ref.txt
+    ../${TNAME}_w.d/config.out
+    DATAFILES ${TNAME}-ref.txt
+    TEST_PROPERTIES DEPENDS ${TNAME}_w)
+endmacro()
+
+####################################
+# config_file_pass
+#
+# Ensure the config file has been written out to pass the test.
+
+macro(config_test_pass TNAME)
+  SET_TESTS_PROPERTIES(${TNAME}
+    PROPERTIES
+    PASS_REGULAR_EXPRESSION
+    "\\*\\* ART_DEBUG_CONFIG is defined.*\\*\\* Config output to file")
+endmacro()
+
+macro(config_test_debug_pass TNAME)
+  SET_TESTS_PROPERTIES(${TNAME}
+    PROPERTIES
+    PASS_REGULAR_EXPRESSION
+    "Config output to file")
+endmacro()
+
+
+
+# Should pass and provide config output file for comparison in
+# BasicOutputOptions_01_r against reference.  Use ART_DEBUG_CONFIG
+# environment variable instead of --debug-config to test its
+# functionality.
+cet_test(BasicOutputOptions_01_w HANDBUILT
+  TEST_EXEC art
+  TEST_ARGS --TFileName hist.root
+  -o out.root
+  --tmpdir /tmp
+  -c empty.fcl
+  TEST_PROPERTIES ENVIRONMENT ART_DEBUG_CONFIG=config.out
+  DATAFILES fcl/empty.fcl)
+config_test_pass(BasicOutputOptions_01_w)
+config_ref_test(BasicOutputOptions_01)
+
+# Specified stream name with empty outputs.
+cet_test(BasicOutputOptions_12_w HANDBUILT
+  TEST_EXEC art
+  TEST_ARGS
+  -o myOut:out.root
+  --tmpDir /tmp
+  -c empty.fcl
+  --debug-config=config.out
+  DATAFILES fcl/empty.fcl)
+config_test_debug_pass(BasicOutputOptions_12_w)
+config_ref_test(BasicOutputOptions_12)
+########################################################################
+
 cet_test(GetFileFormatVersion SOURCES test_GetFileFormatVersion.cpp
   LIBRARIES art_root_io_FileFormat)
 
@@ -488,7 +554,7 @@ cet_test(DataFlowDumper_t HANDBUILT
   fcl/data_flow_dumper_t.fcl
   TEST_PROPERTIES DEPENDS test_tiered_input_05d_t)
 
-simple_plugin(EmptyPSetRegistryChecker "module" NO_INSTALL USE_BOOST_UNIT ALLOW_UNDERSCORES)
+simple_plugin(EmptyPSetRegistryChecker "module" NO_INSTALL USE_BOOST_UNIT ALLOW_UNDERSCORES hep_concurrency)
 
 cet_test(EmptyPSetRegistryChecker_w1 HANDBUILT
   TEST_EXEC art
@@ -516,8 +582,26 @@ cet_test(EmptyPSetRegistryChecker_r2 HANDBUILT
 
 simple_plugin(FindManySpeedTestProducer "module" NO_INSTALL ALLOW_UNDERSCORES)
 simple_plugin(FindManySpeedTestAnalyzer "module" NO_INSTALL ALLOW_UNDERSCORES)
-simple_plugin(RPTest "plugin" NO_INSTALL art_Framework_Core ALLOW_UNDERSCORES)
-simple_plugin(RPTestReader "plugin" NO_INSTALL art_Framework_Core ALLOW_UNDERSCORES)
+
+simple_plugin(RPTest "plugin" NO_INSTALL ALLOW_UNDERSCORES
+  art_Framework_Core
+  art_Framework_Principal
+  canvas
+  cetlib_except
+  art_Persistency_Provenance
+  fhiclcpp
+  ${Boost_FILESYSTEM_LIBRARY}
+  ${Boost_SYSTEM_LIBRARY})
+
+simple_plugin(RPTestReader "plugin" NO_INSTALL ALLOW_UNDERSCORES
+  art_Framework_Core
+  art_Framework_Principal
+  canvas
+  cetlib_except
+  art_Persistency_Provenance
+  fhiclcpp
+  ${Boost_FILESYSTEM_LIBRARY}
+  ${Boost_SYSTEM_LIBRARY})
 
 cet_test(RPTest_conf_err_01 HANDBUILT
   TEST_EXEC art
@@ -1111,7 +1195,7 @@ cet_test(outputCommand_t.sh PREBUILT
   fcl/outputCommand_r.fcl
   fcl/messageDefaults.fcl)
 
-basic_plugin(NonPersistableProducer "module" art_Framework_Core canvas NO_INSTALL ALLOW_UNDERSCORES)
+simple_plugin(NonPersistableProducer "module" NO_INSTALL ALLOW_UNDERSCORES)
 cet_test(NonPersistableProducts_t HANDBUILT
   TEST_EXEC art
   TEST_ARGS -c non_persistable_products_t.fcl -n 1
@@ -1135,7 +1219,7 @@ cet_test(rename-histfile_t_check HANDBUILT
   TEST_ARGS -l ../rename-histfile_t_w.d/test_1_0_2_8.root
   TEST_PROPERTIES DEPENDS rename-histfile_t_w)
 
-simple_plugin(TestMetadata "plugin" NO_INSTALL art_Framework_Core fhiclcpp ALLOW_UNDERSCORES)
+simple_plugin(TestMetadata "plugin" NO_INSTALL art_Framework_Core fhiclcpp ${Boost_FILESYSTEM_LIBRARY} ${Boost_SYSTEM_LIBRARY} ALLOW_UNDERSCORES)
 cet_test(TestMetadata_plugin_t HANDBUILT
   TEST_EXEC art
   TEST_ARGS --rethrow-all -c TestMetadata_Plugin_t.fcl

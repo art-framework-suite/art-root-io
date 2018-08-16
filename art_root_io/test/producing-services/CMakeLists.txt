@@ -1,5 +1,5 @@
-simple_plugin(IntProducingService         "service" NO_INSTALL art_Framework_Principal art_Framework_Core ALLOW_UNDERSCORES)
-simple_plugin(LastDoubleProducingService  "service" NO_INSTALL art_Framework_Principal art_Framework_Core ALLOW_UNDERSCORES)
+simple_plugin(IntProducingService         "service" NO_INSTALL art_Framework_Principal art_Framework_Core art_Persistency_Provenance ALLOW_UNDERSCORES)
+simple_plugin(LastDoubleProducingService  "service" NO_INSTALL art_Framework_Principal art_Framework_Core art_Persistency_Provenance ALLOW_UNDERSCORES)
 
 cet_test(IntProducerRun_t HANDBUILT
   TEST_EXEC art

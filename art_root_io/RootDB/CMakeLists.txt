@@ -8,6 +8,10 @@ art_make_library(LIBRARY_NAME
   LIBRARIES
   art_Utilities
   canvas
+  cetlib
+  cetlib_except
+  MF_MessageLogger
+  ${CMAKE_DL_LIBS}
   ${ROOT_RIO}
   ${ROOT_CORE}
   ${SQLITE3})
