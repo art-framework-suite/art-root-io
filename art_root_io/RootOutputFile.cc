@@ -798,12 +798,10 @@ namespace art {
     for (auto const& kv : md) {
       fileCatalogMetadata.insert(kv.first, kv.second);
     }
+
     // Add our own specific information: File format and friends.
     fileCatalogMetadata.insert("file_format", "\"artroot\"");
-    fileCatalogMetadata.insert("file_format_era",
-                               cet::canonical_string(getFileFormatEra()));
-    fileCatalogMetadata.insert("file_format_version",
-                               std::to_string(getFileFormatVersion()));
+
     // File start time.
     namespace bpt = boost::posix_time;
     auto formatted_time = [](auto const& t) {
@@ -818,7 +816,7 @@ namespace art {
     // Run/subRun information.
     if (!stats.seenSubRuns().empty()) {
       auto I = find_if(md.crbegin(), md.crend(), [](auto const& p) {
-        return p.first == "run_type";
+        return p.first == "art.run_type";
       });
       if (I != md.crend()) {
         ostringstream buf;
@@ -836,17 +834,10 @@ namespace art {
     // Number of events.
     fileCatalogMetadata.insert("event_count",
                                std::to_string(stats.eventsThisFile()));
-    // first_event and last_event.
-    auto eidToTuple = [](EventID const& eid) -> string {
-      ostringstream eidStr;
-      eidStr << "[ " << eid.run() << ", " << eid.subRun() << ", " << eid.event()
-             << " ]";
-      return eidStr.str();
-    };
     fileCatalogMetadata.insert("first_event",
-                               eidToTuple(stats.lowestEventID()));
+                               std::to_string(stats.lowestEventID().event()));
     fileCatalogMetadata.insert("last_event",
-                               eidToTuple(stats.highestEventID()));
+                               std::to_string(stats.highestEventID().event()));
     // File parents.
     if (!stats.parents().empty()) {
       ostringstream pstring;
@@ -859,6 +850,24 @@ namespace art {
       pstring << " ]";
       fileCatalogMetadata.insert("parents", pstring.str());
     }
+
+    // The following need to be encapsulated in an art table
+    // first_event and last_event.
+    auto eidToTuple = [](EventID const& eid) -> string {
+      ostringstream eidStr;
+      eidStr << "[ " << eid.run() << ", " << eid.subRun() << ", " << eid.event()
+             << " ]";
+      return eidStr.str();
+    };
+    fileCatalogMetadata.insert("art.first_event",
+                               eidToTuple(stats.lowestEventID()));
+    fileCatalogMetadata.insert("art.last_event",
+                               eidToTuple(stats.highestEventID()));
+    fileCatalogMetadata.insert("art.file_format_era",
+                               cet::canonical_string(getFileFormatEra()));
+    fileCatalogMetadata.insert("art.file_format_version",
+                               std::to_string(getFileFormatVersion()));
+
     // Incoming stream-specific metadata overrides.
     for (auto const& kv : ssmd) {
       fileCatalogMetadata.insert(kv.first, kv.second);

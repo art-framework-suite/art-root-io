@@ -19,27 +19,6 @@ macro(config_ref_test TNAME)
     TEST_PROPERTIES DEPENDS ${TNAME}_w)
 endmacro()
 
-####################################
-# config_file_pass
-#
-# Ensure the config file has been written out to pass the test.
-
-macro(config_test_pass TNAME)
-  SET_TESTS_PROPERTIES(${TNAME}
-    PROPERTIES
-    PASS_REGULAR_EXPRESSION
-    "\\*\\* ART_DEBUG_CONFIG is defined.*\\*\\* Config output to file")
-endmacro()
-
-macro(config_test_debug_pass TNAME)
-  SET_TESTS_PROPERTIES(${TNAME}
-    PROPERTIES
-    PASS_REGULAR_EXPRESSION
-    "Config output to file")
-endmacro()
-
-
-
 # Should pass and provide config output file for comparison in
 # BasicOutputOptions_01_r against reference.  Use ART_DEBUG_CONFIG
 # environment variable instead of --debug-config to test its
@@ -49,10 +28,9 @@ cet_test(BasicOutputOptions_01_w HANDBUILT
   TEST_ARGS --TFileName hist.root
   -o out.root
   --tmpdir /tmp
-  -c empty.fcl
+  -c /dev/null
   TEST_PROPERTIES ENVIRONMENT ART_DEBUG_CONFIG=config.out
-  DATAFILES fcl/empty.fcl)
-config_test_pass(BasicOutputOptions_01_w)
+  PASS_REGULAR_EXPRESSION "\\*\\* ART_DEBUG_CONFIG is defined.*\\*\\* Config output to file")
 config_ref_test(BasicOutputOptions_01)
 
 # Specified stream name with empty outputs.
@@ -61,10 +39,10 @@ cet_test(BasicOutputOptions_12_w HANDBUILT
   TEST_ARGS
   -o myOut:out.root
   --tmpDir /tmp
-  -c empty.fcl
+  -c /dev/null
   --debug-config=config.out
-  DATAFILES fcl/empty.fcl)
-config_test_debug_pass(BasicOutputOptions_12_w)
+  TEST_PROPERTIES
+  PASS_REGULAR_EXPRESSION "Config output to file")
 config_ref_test(BasicOutputOptions_12)
 ########################################################################
 
@@ -107,12 +85,12 @@ set_source_files_properties(MixFilterTestETSc_module.cc
 set_source_files_properties(MixFilterTestNoStartEvent_module.cc
   PROPERTIES COMPILE_DEFINITIONS ART_TEST_NO_STARTEVENT)
 
-simple_plugin(MixAnalyzer                 "module" NO_INSTALL ALLOW_UNDERSCORES USE_BOOST_UNIT)
-simple_plugin(MixFilterTest               "module" NO_INSTALL ALLOW_UNDERSCORES USE_BOOST_UNIT art_Framework_IO_ProductMix art_root_io)
-simple_plugin(MixFilterTestETS            "module" NO_INSTALL ALLOW_UNDERSCORES USE_BOOST_UNIT art_Framework_IO_ProductMix art_root_io)
-simple_plugin(MixFilterTestETSc           "module" NO_INSTALL ALLOW_UNDERSCORES USE_BOOST_UNIT art_Framework_IO_ProductMix art_root_io)
-simple_plugin(MixFilterTestNoStartEvent   "module" NO_INSTALL ALLOW_UNDERSCORES USE_BOOST_UNIT art_Framework_IO_ProductMix art_root_io)
-simple_plugin(MixProducer                 "module" NO_INSTALL ALLOW_UNDERSCORES)
+simple_plugin(MixAnalyzer               "module" NO_INSTALL ALLOW_UNDERSCORES USE_BOOST_UNIT)
+simple_plugin(MixFilterTest             "module" NO_INSTALL ALLOW_UNDERSCORES USE_BOOST_UNIT art_Framework_IO_ProductMix art_root_io)
+simple_plugin(MixFilterTestETS          "module" NO_INSTALL ALLOW_UNDERSCORES USE_BOOST_UNIT art_Framework_IO_ProductMix art_root_io)
+simple_plugin(MixFilterTestETSc         "module" NO_INSTALL ALLOW_UNDERSCORES USE_BOOST_UNIT art_Framework_IO_ProductMix art_root_io)
+simple_plugin(MixFilterTestNoStartEvent "module" NO_INSTALL ALLOW_UNDERSCORES USE_BOOST_UNIT art_Framework_IO_ProductMix art_root_io)
+simple_plugin(MixProducer               "module" NO_INSTALL ALLOW_UNDERSCORES)
 
 simple_plugin(SeekToEventClient "service" NO_INSTALL art_root_io_RootInput_source ALLOW_UNDERSCORES)
 
@@ -128,8 +106,7 @@ endforeach()
 
 cet_test(RootOutputClosingCriteria_t
   USE_BOOST_UNIT
-  LIBRARIES
-  art_root_io)
+  LIBRARIES art_root_io)
 
 ## All ROOT-dependent tests from art/art/test/Integration
 
@@ -138,14 +115,12 @@ simple_plugin(TH1DataProducer "module" NO_INSTALL art_root_io_test_TH1Data ALLOW
 cet_test(TH1Data_t HANDBUILT
   TEST_EXEC art
   TEST_ARGS -c TH1Data_t.fcl
-  DATAFILES
-  fcl/TH1Data_t.fcl)
+  DATAFILES fcl/TH1Data_t.fcl)
 
 cet_test(EventSelectorFromFile_w HANDBUILT
   TEST_EXEC art
   TEST_ARGS --rethrow-all --config EventSelectorFromFile_w.fcl -j 4
-  DATAFILES
-  fcl/EventSelectorFromFile_w.fcl)
+  DATAFILES fcl/EventSelectorFromFile_w.fcl)
 
 set(NUM_THREADS 1 2 4 8)
 
@@ -153,16 +128,14 @@ cet_test(EventSelectorFromFile_r1 HANDBUILT
   TEST_EXEC art
   PARG_J -j ${NUM_THREADS}
   TEST_ARGS --rethrow-all --config EventSelectorFromFile_r1.fcl
-  DATAFILES
-  fcl/EventSelectorFromFile_r1.fcl
+  DATAFILES fcl/EventSelectorFromFile_r1.fcl
   TEST_PROPERTIES DEPENDS EventSelectorFromFile_w)
 
 cet_test(EventSelectorFromFile_r2 HANDBUILT
   TEST_EXEC art
   PARG_J -j ${NUM_THREADS}
   TEST_ARGS --rethrow-all --config EventSelectorFromFile_r2.fcl
-  DATAFILES
-  fcl/EventSelectorFromFile_r2.fcl
+  DATAFILES fcl/EventSelectorFromFile_r2.fcl
   TEST_PROPERTIES DEPENDS EventSelectorFromFile_w)
 
 cet_test(FileDumperOutput_w HANDBUILT
@@ -170,14 +143,12 @@ cet_test(FileDumperOutput_w HANDBUILT
   TEST_ARGS --rethrow-all -c FileDumperOutputTest_w.fcl
   TEST_PROPERTIES
   PASS_REGULAR_EXPRESSION "PROCESS NAME.*Total products \\(present, not present\\): 4 \\(4, 0\\)\\."
-  DATAFILES
-  fcl/FileDumperOutputTest_w.fcl)
+  DATAFILES fcl/FileDumperOutputTest_w.fcl)
 
 cet_test(FileDumperOutput_r HANDBUILT
   TEST_EXEC art
   TEST_ARGS --rethrow-all -c FileDumperOutputTest_r.fcl
-  DATAFILES
-  fcl/FileDumperOutputTest_r.fcl
+  DATAFILES fcl/FileDumperOutputTest_r.fcl
   TEST_PROPERTIES
   PASS_REGULAR_EXPRESSION "PROCESS NAME.*Total products \\(present, not present\\): 4 \\(3, 1\\)\\."
   DEPENDS FileDumperOutput_w)
@@ -190,16 +161,14 @@ cet_test(SelectEventsFromPreviousProcess_w HANDBUILT
   -j 4
   -n 10
   -o out.root
-  DATAFILES
-  fcl/SelectEventsFromPreviousProcess_w.fcl)
+  DATAFILES fcl/SelectEventsFromPreviousProcess_w.fcl)
 
 cet_test(SelectEventsFromPreviousProcess_t HANDBUILT
   TEST_EXEC art
   TEST_ARGS --rethrow-all --config SelectEventsFromPreviousProcess_t.fcl
   -s ../SelectEventsFromPreviousProcess_w.d/out.root
   -j 4
-  DATAFILES
-  fcl/SelectEventsFromPreviousProcess_t.fcl
+  DATAFILES fcl/SelectEventsFromPreviousProcess_t.fcl
   REQUIRED_FILES "../SelectEventsFromPreviousProcess_w.d/out.root"
   TEST_PROPERTIES DEPENDS SelectEventsFromPreviousProcess_w)
 
@@ -241,8 +210,7 @@ cet_test(testOutputRanges_dropAllEventsSubruns HANDBUILT
   TEST_PROPERTIES DEPENDS test_dropAllEventsSubruns_t.sh)
 
 cet_test(test_runSubRunNoPut_t.sh PREBUILT
-  DATAFILES
-  fcl/runSubRunNoPut_t.fcl)
+  DATAFILES fcl/runSubRunNoPut_t.fcl)
 
 add_executable(test_simple_01_verify test_simple_01_verify.cxx)
 target_link_libraries(test_simple_01_verify ${ROOT_CORE} ${ROOT_RIO} ${ROOT_TREE} ${ROOT_GRAF} ${ROOT_HIST})
@@ -264,33 +232,27 @@ cet_test(test_view_01_t.sh PREBUILT
 cet_test(PersistStdArrays_w HANDBUILT
   TEST_EXEC art
   TEST_ARGS --rethrow-all -c persistStdArrays_w.fcl -o out.root
-  DATAFILES
-  fcl/persistStdArrays_w.fcl)
+  DATAFILES fcl/persistStdArrays_w.fcl)
 
 cet_test(PersistStdArrays_r HANDBUILT
   TEST_EXEC art
   TEST_ARGS --rethrow-all -c persistStdArrays_r.fcl -s ../PersistStdArrays_w.d/out.root
-  DATAFILES
-  fcl/persistStdArrays_r.fcl
+  DATAFILES fcl/persistStdArrays_r.fcl
   REQUIRED_FILES "../PersistStdArrays_w.d/out.root"
   TEST_PROPERTIES DEPENDS PersistStdArrays_w)
 
 # TFileService file-renaming
 cet_test(TFileService_FileRenaming_w HANDBUILT
   TEST_EXEC art
-  TEST_ARGS --rethrow-all -c empty.fcl -o TFileService_FileRenaming.root
-  DATAFILES
-  fcl/empty.fcl)
+  TEST_ARGS --rethrow-all -c /dev/null -o TFileService_FileRenaming.root)
 
 cet_test(TFileService_FileRenaming_t HANDBUILT
   TEST_EXEC art
   TEST_ARGS
   --rethrow-all
-  -c empty.fcl
+  -c /dev/null
   -s ../TFileService_FileRenaming_w.d/TFileService_FileRenaming.root
   -T "hists_for_%ifb.root"
-  DATAFILES
-  fcl/empty.fcl
   REQUIRED_FILES "../TFileService_FileRenaming_w.d/TFileService_FileRenaming.root"
   TEST_PROPERTIES DEPENDS TFileService_FileRenaming_w)
 
@@ -300,14 +262,12 @@ cet_test(TFileService_FileRenaming_verify.sh PREBUILT
 cet_test(Ptrmv_w HANDBUILT
   TEST_EXEC art_ut
   TEST_ARGS -- --rethrow-all -c "Ptrmv_w.fcl"
-  DATAFILES
-  fcl/Ptrmv_w.fcl)
+  DATAFILES fcl/Ptrmv_w.fcl)
 
 cet_test(Ptrmv_r HANDBUILT
   TEST_EXEC art_ut
   TEST_ARGS -- --rethrow-all -c "Ptrmv_r.fcl"
-  DATAFILES
-  fcl/Ptrmv_r.fcl
+  DATAFILES fcl/Ptrmv_r.fcl
   TEST_PROPERTIES DEPENDS Ptrmv_w)
 
 # Use the file from Ptrmv_w to test DropOnInput and outputCommand drops.
@@ -420,8 +380,7 @@ cet_test(IntProducer_t HANDBUILT
   -c IntProducer_t.fcl
   -o out.root
   --process-name MakeInt
-  DATAFILES
-  fcl/IntProducer_t.fcl)
+  DATAFILES fcl/IntProducer_t.fcl)
 
 cet_test(DropOnOutput_IntProduct_t HANDBUILT
   TEST_EXEC art
@@ -429,8 +388,7 @@ cet_test(DropOnOutput_IntProduct_t HANDBUILT
   -c IntReaderThenProducer_t.fcl
   -s ../IntProducer_t.d/out.root
   --process-name ReadThenMakeInt
-  DATAFILES
-  fcl/IntReaderThenProducer_t.fcl
+  DATAFILES fcl/IntReaderThenProducer_t.fcl
   TEST_PROPERTIES DEPENDS IntProducer_t)
 
 # Test ProvenanceDumper for dropped products
@@ -438,8 +396,7 @@ cet_test(DropOnOutput_IntProduct_t HANDBUILT
 cet_test(ProvenanceDumper_DroppedProducts_t1 HANDBUILT
   TEST_EXEC art
   TEST_ARGS --rethrow-all -c TestProvenanceDumper.fcl -s ../DropOnOutput_IntProduct_t.d/out.root
-  DATAFILES
-  fcl/TestProvenanceDumper.fcl
+  DATAFILES fcl/TestProvenanceDumper.fcl
   REQUIRED_FILES "../DropOnOutput_IntProduct_t.d/out.root"
   TEST_PROPERTIES DEPENDS DropOnOutput_IntProduct_t)
 
@@ -448,8 +405,7 @@ cet_test(ProvenanceDumper_DroppedProducts_t1 HANDBUILT
 cet_test(ProvenanceDumper_DroppedProducts_t2 HANDBUILT
   TEST_EXEC art
   TEST_ARGS --rethrow-all -c TestProvenanceDumper.fcl -s ../DropOnOutput_wA_01.d/out.root
-  DATAFILES
-  fcl/TestProvenanceDumper.fcl
+  DATAFILES fcl/TestProvenanceDumper.fcl
   TEST_PROPERTIES DEPENDS DropOnOutput_wA_01)
 
 simple_plugin(TestReadImmediateControl "module" NO_INSTALL USE_BOOST_UNIT ALLOW_UNDERSCORES)
@@ -469,8 +425,7 @@ endforeach()
 cet_test(PtrVectorFastClone_w HANDBUILT
   TEST_EXEC art_ut
   TEST_ARGS -- -c "PtrVectorFastClone_w.fcl"
-  DATAFILES
-  fcl/PtrVectorFastClone_w.fcl
+  DATAFILES fcl/PtrVectorFastClone_w.fcl
   TEST_PROPERTIES DEPENDS Ptrmv_w)
 
 macro(seekToEventTest NEVENTS)
@@ -478,8 +433,7 @@ macro(seekToEventTest NEVENTS)
   set(SeekToEventFclPrefix "seekToEvent_${NEVENTS}_events")
   cet_test(${SeekToEventPrefix}_w HANDBUILT
     TEST_EXEC art
-    TEST_ARGS -c empty.fcl -n ${NEVENTS} -o out.root
-    DATAFILES fcl/empty.fcl)
+    TEST_ARGS -c /dev/null -n ${NEVENTS} -o out.root)
 
   cet_test(${SeekToEventPrefix}_t HANDBUILT
     TEST_EXEC art
@@ -500,8 +454,7 @@ seekToEventTest(4)
 cet_test(SeekToEvent_3_events_w HANDBUILT
   TEST_EXEC art
   TEST_ARGS -c seekToEvent_3_events_w.fcl -o out.root
-  DATAFILES
-  fcl/seekToEvent_3_events_w.fcl)
+  DATAFILES fcl/seekToEvent_3_events_w.fcl)
 
 cet_test(SeekToEvent_3_events_t HANDBUILT
   TEST_EXEC art
@@ -537,21 +490,18 @@ cet_test(SimpleDerived_02_r HANDBUILT
 cet_test(CmdLineTmpDir_w HANDBUILT
   TEST_EXEC art
   TEST_ARGS -c cmdLineTmpDir.fcl --tmpDir=tmp --debug-config=CmdLineTmpDir_w.out
-  DATAFILES
-  fcl/cmdLineTmpDir.fcl)
+  DATAFILES fcl/cmdLineTmpDir.fcl)
 
 cet_test(CmdLineTmpDir_t HANDBUILT
   TEST_EXEC diff
   TEST_ARGS cmdLineTmpDir_t-ref.txt "../CmdLineTmpDir_w.d/CmdLineTmpDir_w.out"
-  DATAFILES
-  cmdLineTmpDir_t-ref.txt
+  DATAFILES cmdLineTmpDir_t-ref.txt
   TEST_PROPERTIES DEPENDS CmdLineTmpDir_w)
 
 cet_test(DataFlowDumper_t HANDBUILT
   TEST_EXEC art
   TEST_ARGS -c data_flow_dumper_t.fcl -n 1
-  DATAFILES
-  fcl/data_flow_dumper_t.fcl
+  DATAFILES fcl/data_flow_dumper_t.fcl
   TEST_PROPERTIES DEPENDS test_tiered_input_05d_t)
 
 simple_plugin(EmptyPSetRegistryChecker "module" NO_INSTALL USE_BOOST_UNIT ALLOW_UNDERSCORES hep_concurrency)
@@ -647,8 +597,7 @@ set_tests_properties(RPTest_r2 PROPERTIES DEPENDS "RPTest_w;RPTest_w2")
 cet_test(FastCloningInitMessage_01_t HANDBUILT
   TEST_EXEC art
   TEST_ARGS --rethrow-all -c FastCloningInitMessage_01.fcl
-  DATAFILES
-  fcl/FastCloningInitMessage_01.fcl
+  DATAFILES fcl/FastCloningInitMessage_01.fcl
   TEST_PROPERTIES PASS_REGULAR_EXPRESSION "\nInitial fast cloning configuration \\(from default\\): true\n")
 
 cet_test(FastCloningInitMessage_02_t HANDBUILT
@@ -670,8 +619,7 @@ cet_test(FastCloningInitMessage_03_t HANDBUILT
 cet_test(PostCloseFileRename_Integration HANDBUILT
   TEST_EXEC art
   TEST_ARGS -c PostCloseFileRename_t.fcl
-  DATAFILES
-  fcl/PostCloseFileRename_t.fcl)
+  DATAFILES fcl/PostCloseFileRename_t.fcl)
 
 cet_test(test_compressed_simple_01_t.sh PREBUILT
   DATAFILES
@@ -688,15 +636,7 @@ cet_test(SAM_metadata HANDBUILT
   --sam-run-type "MCChallenge"
   --sam-data-tier "The one with the thickest frosting"
   --sam-group "MyGang"
-  DATAFILES
-  fcl/SAMMetadata_w.fcl)
-
-set(date_regex "[0-9][0-9][0-9][0-9]-[01][0-9]-[0-3][0-9]T[0-2][0-9]:[0-5][0-9]:[0-5][0-9](,[0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9])?")
-
-# Pipe the output of sam_metadata_dumper through the following perl
-# command to get a suitable regex:
-#
-# perl -wne 'BEGIN { print "^"; }; chomp; s&([\[\]\.])&\\\\${1}&g; s&\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:,\d{9})?&\${date_regex}&g; s&"&\\"&g; print "$_\\n"; END { print "\$\n"; }'
+  DATAFILES fcl/SAMMetadata_w.fcl)
 
 cet_test(SAM_metadata_verify_hr HANDBUILT
   TEST_EXEC sam_metadata_dumper
@@ -721,15 +661,13 @@ cet_test(SAM_metadataFromInput_01 HANDBUILT
   -o out.root
   REQUIRED_FILES "../SAM_metadata.d/out.root"
   TEST_PROPERTIES DEPENDS SAM_metadata
-  DATAFILES
-  fcl/SAMMetadata_r_passthrough1.fcl)
+  DATAFILES fcl/SAMMetadata_r_passthrough1.fcl)
 
 cet_test(SAM_metadataFromInput_01_verify HANDBUILT
   TEST_EXEC sam_metadata_dumper
   TEST_ARGS -H -s ../SAM_metadataFromInput_01.d/out.root
   TEST_PROPERTIES DEPENDS SAM_metadataFromInput_01
-  PASS_REGULAR_EXPRESSION
-  "^\nFile catalog metadata from file \\.\\./SAM_metadataFromInput_01\\.d/out\\.root:\n\n 1: process_name        \"SAMMetadataPassthrough1\"\n 2: file_type           \"MC\"\n 3: run_type            \"MCChallenge\"\n 4: data_tier           \"Chummy\"\n 5: data_stream         \"o1\"\n 6: file_format         \"artroot\"\n 7: file_format_era     \"ART_2011a\"\n 8: file_format_version 12\n 9: start_time          \"${date_regex}\"\n10: end_time            \"${date_regex}\"\n11: runs                \\[ \\[ 1, 0, \"MCChallenge\" \\] \\]\n12: event_count         1\n13: first_event         \\[ 1, 0, 1 \\]\n14: last_event          \\[ 1, 0, 1 \\]\n15: parents             \\[ \"out\\.root\" \\]\n-------------------------------\n$")
+  REF "${CMAKE_CURRENT_SOURCE_DIR}/SAM_metadataFromInput_01_verify-ref.txt")
 
 cet_test(SAM_metadataFromInput_02 HANDBUILT
   TEST_EXEC art
@@ -739,15 +677,13 @@ cet_test(SAM_metadataFromInput_02 HANDBUILT
   -s ../SAM_metadata.d/out.root
   -o out.root
   TEST_PROPERTIES DEPENDS SAM_metadata
-  DATAFILES
-  fcl/SAMMetadata_r_passthrough2.fcl)
+  DATAFILES fcl/SAMMetadata_r_passthrough2.fcl)
 
 cet_test(SAM_metadataFromInput_02_verify HANDBUILT
   TEST_EXEC sam_metadata_dumper
   TEST_ARGS -H -s ../SAM_metadataFromInput_02.d/out.root
   TEST_PROPERTIES DEPENDS SAM_metadataFromInput_02
-  PASS_REGULAR_EXPRESSION
-  "^\nFile catalog metadata from file \\.\\./SAM_metadataFromInput_02\\.d/out\\.root:\n\n 1: file_type           \"Pescadero\"\n 2: process_name        \"SAMMetadataPassthrough2\"\n 3: run_type            \"MCChallenge\"\n 4: data_tier           \"Peachy\"\n 5: data_stream         \"o1\"\n 6: file_format         \"artroot\"\n 7: file_format_era     \"ART_2011a\"\n 8: file_format_version 12\n 9: start_time          \"${date_regex}\"\n10: end_time            \"${date_regex}\"\n11: runs                \\[ \\[ 1, 0, \"MCChallenge\" \\] \\]\n12: event_count         1\n13: first_event         \\[ 1, 0, 1 \\]\n14: last_event          \\[ 1, 0, 1 \\]\n15: parents             \\[ \"out\\.root\" \\]\n-------------------------------\n$")
+  REF "${CMAKE_CURRENT_SOURCE_DIR}/SAM_metadataFromInput_02_verify-ref.txt")
 
 cet_test(SAM_metadataFromInput_03 HANDBUILT
   TEST_EXEC art
@@ -758,19 +694,17 @@ cet_test(SAM_metadataFromInput_03 HANDBUILT
   -s ../SAM_metadata.d/out.root
   -o out.root
   TEST_PROPERTIES DEPENDS SAM_metadata
-  DATAFILES
-  fcl/SAMMetadata_r_passthrough3.fcl)
+  DATAFILES fcl/SAMMetadata_r_passthrough3.fcl)
 
 cet_test(SAM_metadataFromInput_03_verify HANDBUILT
   TEST_EXEC sam_metadata_dumper
   TEST_ARGS -H -s ../SAM_metadataFromInput_03.d/out.root
   TEST_PROPERTIES DEPENDS SAM_metadataFromInput_03
-  PASS_REGULAR_EXPRESSION
-  "^\nFile catalog metadata from file \\.\\./SAM_metadataFromInput_03\\.d/out\\.root:\n\n 1: run_type            \"Trot\"\n 2: process_name        \"SAMMetadataPassthrough3\"\n 3: file_type           \"MC\"\n 4: data_tier           \"Grapey\"\n 5: data_stream         \"o1\"\n 6: file_format         \"artroot\"\n 7: file_format_era     \"ART_2011a\"\n 8: file_format_version 12\n 9: start_time          \"${date_regex}\"\n10: end_time            \"${date_regex}\"\n11: runs                \\[ \\[ 1, 0, \"Trot\" \\] \\]\n12: event_count         1\n13: first_event         \\[ 1, 0, 1 \\]\n14: last_event          \\[ 1, 0, 1 \\]\n15: parents             \\[ \"out\\.root\" \\]\n-------------------------------\n$")
+  REF "${CMAKE_CURRENT_SOURCE_DIR}/SAM_metadataFromInput_03_verify-ref.txt")
 
 cet_test(SAM_metadataFromInput_conflictingFields HANDBUILT
   TEST_EXEC art
-  TEST_ARGS -c empty.fcl
+  TEST_ARGS -c /dev/null
   --process-name "ShouldFail"
   --sam-inherit-file-type
   --sam-run-type "Canter"
@@ -778,8 +712,6 @@ cet_test(SAM_metadataFromInput_conflictingFields HANDBUILT
   -s ../SAM_metadataFromInput_01.d/out.root
   -s ../SAM_metadataFromInput_02.d/out.root
   -o out.root
-  DATAFILES
-  fcl/empty.fcl
   TEST_PROPERTIES
   PASS_REGULAR_EXPRESSION
   "  The value for 'file_type' for the current file is: \"Pescadero\", which conflicts with the value from the first input file \\(\"\"MC\"\"\\).")
@@ -790,8 +722,7 @@ set_tests_properties(SAM_metadataFromInput_conflictingFields
 cet_test(Assns_w HANDBUILT
   TEST_EXEC art_ut
   TEST_ARGS -- --rethrow-all -c "Assns_w.fcl"
-  DATAFILES
-  fcl/Assns_w.fcl)
+  DATAFILES fcl/Assns_w.fcl)
 
 foreach(num 1 2 3)
   cet_test(Assns_r${num} HANDBUILT
@@ -807,8 +738,7 @@ endforeach()
 cet_test(AssnsFastClone_w HANDBUILT
   TEST_EXEC art_ut
   TEST_ARGS -- -c "AssnsFastClone_w.fcl"
-  DATAFILES
-  fcl/AssnsFastClone_w.fcl
+  DATAFILES fcl/AssnsFastClone_w.fcl
   TEST_PROPERTIES DEPENDS Assns_w)
 
 # Write a data file containing stored products and stored random number
@@ -816,15 +746,13 @@ cet_test(AssnsFastClone_w HANDBUILT
 cet_test(RandomNumberTestEventSave_w HANDBUILT
   TEST_EXEC art_ut
   TEST_ARGS -- --rethrow-all -c "RandomNumberTestEventSave_w.fcl"
-  DATAFILES
-  fcl/RandomNumberTestEventSave_w.fcl)
+  DATAFILES fcl/RandomNumberTestEventSave_w.fcl)
 
 # Test the ability to restore random number states from data product.
 cet_test(RandomNumberTestEventSave_r1 HANDBUILT
   TEST_EXEC art_ut
   TEST_ARGS -- --rethrow-all -c "RandomNumberTestEventSave_r.fcl"
-  DATAFILES
-  fcl/RandomNumberTestEventSave_r.fcl
+  DATAFILES fcl/RandomNumberTestEventSave_r.fcl
   TEST_PROPERTIES DEPENDS RandomNumberTestEventSave_w)
 
 # Test that we get numbers out of sync. when we do *not* restore the
@@ -967,8 +895,7 @@ cet_test_assertion("outSR || inSR" ToyRawInput_t_12)
 cet_test(ToyRawInput_t_01 HANDBUILT
   TEST_EXEC art
   TEST_ARGS --rethrow-all -c ToyRawInput_01.fcl
-  DATAFILES
-  fcl/ToyRawInput_01.fcl)
+  DATAFILES fcl/ToyRawInput_01.fcl)
 
 cet_test(ToyRawInput_OutputCheck_t_01 HANDBUILT
   TEST_EXEC file_info_dumper
@@ -1016,22 +943,19 @@ SET_TESTS_PROPERTIES(ToyRawInput_t_10 PROPERTIES
 cet_test(BareString_w HANDBUILT
   TEST_EXEC art
   TEST_ARGS --rethrow-all -c BareString_w.fcl
-  DATAFILES
-  fcl/BareString_w.fcl)
+  DATAFILES fcl/BareString_w.fcl)
 
 cet_test(BareString_r HANDBUILT
   TEST_EXEC art
   TEST_ARGS --rethrow-all -c BareString_r.fcl
-  DATAFILES
-  fcl/BareString_r.fcl
+  DATAFILES fcl/BareString_r.fcl
   REQUIRED_FILES "../BareString_w.d/out.root"
   TEST_PROPERTIES DEPENDS BareString_w)
 
 cet_test(ValidHandleTester HANDBUILT
   TEST_EXEC art
   TEST_ARGS --rethrow-all -c ValidHandleTester.fcl
-  DATAFILES
-  fcl/ValidHandleTester.fcl
+  DATAFILES fcl/ValidHandleTester.fcl
   REQUIRED_FILES "../BareString_w.d/out.root"
   TEST_PROPERTIES DEPENDS BareString_w)
 
@@ -1039,16 +963,14 @@ cet_test(ValidHandleTester HANDBUILT
 cet_test(ProductMix_w HANDBUILT
   TEST_EXEC art
   TEST_ARGS --rethrow-all -c "ProductMix_w.fcl"
-  DATAFILES
-  fcl/ProductMix_w.fcl)
+  DATAFILES fcl/ProductMix_w.fcl)
 
 # Mix the events from ProductMix_w, analyzing the results and
 # writing an output file.
 cet_test(ProductMix_r1 HANDBUILT
   TEST_EXEC art_ut
   TEST_ARGS -- --rethrow-all -c "ProductMix_r1.fcl"
-  DATAFILES
-  fcl/ProductMix_r1.fcl
+  DATAFILES fcl/ProductMix_r1.fcl
   TEST_PROPERTIES DEPENDS ProductMix_w)
 
 # Mix the events from ProductMix_w, testing that things behave properly
@@ -1178,8 +1100,7 @@ cet_test(ProductMix_r1d HANDBUILT
 cet_test(ProductMix_r2 HANDBUILT
   TEST_EXEC art_ut
   TEST_ARGS -- --rethrow-all -c "ProductMix_r2.fcl"
-  DATAFILES
-  fcl/ProductMix_r2.fcl
+  DATAFILES fcl/ProductMix_r2.fcl
   TEST_PROPERTIES DEPENDS ProductMix_r1)
 
 cet_test(issue_0926_t.sh PREBUILT
@@ -1199,8 +1120,7 @@ simple_plugin(NonPersistableProducer "module" NO_INSTALL ALLOW_UNDERSCORES)
 cet_test(NonPersistableProducts_t HANDBUILT
   TEST_EXEC art
   TEST_ARGS -c non_persistable_products_t.fcl -n 1
-  DATAFILES
-  fcl/non_persistable_products_t.fcl)
+  DATAFILES fcl/non_persistable_products_t.fcl)
 
 cet_test(test_failingProducer_t.sh PREBUILT
   DATAFILES
@@ -1211,8 +1131,7 @@ cet_test(test_failingProducer_t.sh PREBUILT
 cet_test(rename-histfile_t_w HANDBUILT
   TEST_EXEC art
   TEST_ARGS --rethrow-all -c rename-histfile_t.fcl
-  DATAFILES
-  fcl/rename-histfile_t.fcl)
+  DATAFILES fcl/rename-histfile_t.fcl)
 
 cet_test(rename-histfile_t_check HANDBUILT
   TEST_EXEC ls
@@ -1223,19 +1142,16 @@ simple_plugin(TestMetadata "plugin" NO_INSTALL art_Framework_Core fhiclcpp ${Boo
 cet_test(TestMetadata_plugin_t HANDBUILT
   TEST_EXEC art
   TEST_ARGS --rethrow-all -c TestMetadata_Plugin_t.fcl
-  DATAFILES
-  fcl/TestMetadata_Plugin_t.fcl)
+  DATAFILES fcl/TestMetadata_Plugin_t.fcl)
 
 cet_test(TestMetadata_verify_hr HANDBUILT
   TEST_EXEC sam_metadata_dumper
   TEST_ARGS -H -s ../TestMetadata_plugin_t.d/out.root
   TEST_PROPERTIES DEPENDS TestMetadata_plugin_t
-  PASS_REGULAR_EXPRESSION
-  "^\nFile catalog metadata from file \\.\\./TestMetadata_plugin_t\\.d/out\\.root:\n\n 1: file_type           \"unknown\"\n 2: process_name        \"DEVEL\"\n 3: file_format         \"artroot\"\n 4: file_format_era     \"ART_2011a\"\n 5: file_format_version 12\n 6: start_time          \"${date_regex}\"\n 7: end_time            \"${date_regex}\"\n 8: event_count         1\n 9: first_event         \\[ 1, 0, 1 \\]\n10: last_event          \\[ 1, 0, 1 \\]\n11: key1                \"value1\"\n12: key2                \"value2\"\n-------------------------------\n$")
+  REF ${CMAKE_CURRENT_SOURCE_DIR}/TestMetadata_verify_hr-ref.txt)
 
 cet_test(TestMetadata_verify_JSON HANDBUILT
   TEST_EXEC sam_metadata_dumper
   TEST_ARGS -s ../TestMetadata_plugin_t.d/out.root
   TEST_PROPERTIES DEPENDS TestMetadata_plugin_t
-  PASS_REGULAR_EXPRESSION
-  "^{\n  \"out\\.root\": {\n    \"file_type\": \"unknown\",\n    \"process_name\": \"DEVEL\",\n    \"file_format\": \"artroot\",\n    \"file_format_era\": \"ART_2011a\",\n    \"file_format_version\": 12,\n    \"start_time\": \"${date_regex}\",\n    \"end_time\": \"${date_regex}\",\n    \"event_count\": 1,\n    \"first_event\": \\[ 1, 0, 1 \\],\n    \"last_event\": \\[ 1, 0, 1 \\],\n    \"key1\": \"value1\",\n    \"key2\": \"value2\"\n  }\n}\n$")
+  REF ${CMAKE_CURRENT_SOURCE_DIR}/TestMetadata_verify_JSON-ref.txt)

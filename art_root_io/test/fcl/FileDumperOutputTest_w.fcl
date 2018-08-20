@@ -28,6 +28,7 @@ physics: {
 outputs: {
   out1: {
     module_type: FileDumperOutput
+    wantProductID: true
   }
   out2: {
     module_type: RootOutput
