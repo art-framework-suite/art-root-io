@@ -7,7 +7,7 @@ File catalog metadata from file ../SAM_metadata.d/out.root:
  4: art.run_type         "MCChallenge"
  5: group                "MyGang"
  6: art.process_name     "SAMMetadataW"
- 7: art.testMetadata     "success!"
+ 7: testMetadata         "success!"
  8: data_tier            "The one with the thickest frosting"
  9: data_stream          "o1"
 10: file_format          "artroot"

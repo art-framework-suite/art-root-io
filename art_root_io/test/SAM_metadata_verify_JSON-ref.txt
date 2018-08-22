@@ -6,7 +6,7 @@
     "art.run_type": "MCChallenge",
     "group": "MyGang",
     "art.process_name": "SAMMetadataW",
-    "art.testMetadata": "success!",
+    "testMetadata": "success!",
     "data_tier": "The one with the thickest frosting",
     "data_stream": "o1",
     "file_format": "artroot",
