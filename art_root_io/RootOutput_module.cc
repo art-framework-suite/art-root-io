@@ -176,13 +176,13 @@ namespace art {
 
     // Data Members.
   private:
-    mutable RecursiveMutex mutex_;
+    mutable RecursiveMutex mutex_{"RootOutput::mutex"};
     string const catalog_;
-    bool dropAllEvents_;
+    bool dropAllEvents_{false};
     bool dropAllSubRuns_;
     string const moduleLabel_;
-    int inputFileCount_;
-    unique_ptr<RootOutputFile> rootOutputFile_;
+    int inputFileCount_{};
+    unique_ptr<RootOutputFile> rootOutputFile_{nullptr};
     FileStatsCollector fstats_;
     PostCloseFileRenamer fRenamer_;
     string const filePattern_;
@@ -195,13 +195,13 @@ namespace art {
     int const basketSize_;
     DropMetaData dropMetaData_;
     bool dropMetaDataForDroppedData_;
-    bool fastCloningEnabled_;
+    bool fastCloningEnabled_{true};
     // Set false only for cases where we are guaranteed never to need historical
     // ParameterSet information in the downstream file, such as when mixing.
     bool writeParameterSets_;
     ClosingCriteria fileProperties_;
-    ProductDescriptions productsToProduce_;
-    ProductTables producedResultsProducts_;
+    ProductDescriptions productsToProduce_{};
+    ProductTables producedResultsProducts_{ProductTables::invalid()};
     RPManager rpm_;
   };
 
@@ -209,19 +209,14 @@ namespace art {
 
   RootOutput::RootOutput(Parameters const& config)
     : OutputModule{config().omConfig, config.get_PSet()}
-    , mutex_{"RootOutput::mutex_"}
     , catalog_{config().catalog()}
-    , dropAllEvents_{false}
     , dropAllSubRuns_{config().dropAllSubRuns()}
     , moduleLabel_{config.get_PSet().get<string>("module_label")}
-    , inputFileCount_{}
-    , rootOutputFile_{nullptr}
     , fstats_{moduleLabel_, processName()}
     , fRenamer_{fstats_}
     , filePattern_{config().omConfig().fileName()}
     , tmpDir_{config().tmpDir() == default_tmpDir ? parent_path(filePattern_) :
                                                     config().tmpDir()}
-    , lastClosedFileName_{}
     , compressionLevel_{config().compressionLevel()}
     , saveMemoryObjectThreshold_{config().saveMemoryObjectThreshold()}
     , treeMaxVirtualSize_{config().treeMaxVirtualSize()}
@@ -229,15 +224,12 @@ namespace art {
     , basketSize_{config().basketSize()}
     , dropMetaData_{config().dropMetaData()}
     , dropMetaDataForDroppedData_{config().dropMetaDataForDroppedData()}
-    , fastCloningEnabled_{true}
     , writeParameterSets_{config().writeParameterSets()}
     , fileProperties_{(
         detail::validateFileNamePattern(
           config.get_PSet().has_key(config().fileProperties.name()),
           filePattern_),
         config().fileProperties())}
-    , productsToProduce_{}
-    , producedResultsProducts_{ProductTables::invalid()}
     , rpm_{config.get_PSet()}
   {
     // Setup the streamers and error handlers.
@@ -366,7 +358,7 @@ namespace art {
       sr.addToProcessHistory();
     }
     rootOutputFile_->writeSubRun(sr);
-    fstats_.recordSubRun(sr.subRunID());
+    fstats_.recordSubRun(sr.subRunID(), sr.beginTime());
   }
 
   void
@@ -384,7 +376,7 @@ namespace art {
       rp.addToProcessHistory();
     }
     rootOutputFile_->writeRun(rp);
-    fstats_.recordRun(rp.runID());
+    fstats_.recordRun(rp.runID(), rp.beginTime());
   }
 
   void
