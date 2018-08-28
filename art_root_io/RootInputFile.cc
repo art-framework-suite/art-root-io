@@ -82,7 +82,7 @@ namespace {
       switch (rc = sqlite3_step(stmt)) {
         case SQLITE_ROW:
           result = true; // Found the table.
-          FALLTHROUGH;
+          [[fallthrough]];
         case SQLITE_DONE:
           rc = SQLITE_OK; // No such table.
           break;
@@ -1253,7 +1253,7 @@ namespace art {
   unique_ptr<SubRunPrincipal>
   RootInputFile::readCurrentSubRun(
     EntryNumbers const& entryNumbers,
-    cet::exempt_ptr<RunPrincipal const> rp[[gnu::unused]])
+    cet::exempt_ptr<RunPrincipal const> rp[[maybe_unused]])
   {
     subRunRangeSetHandler_ = fillAuxiliary_SubRun(entryNumbers);
     assert(subRunAux_.subRunID() == fiIter_->eventID_.subRunID());

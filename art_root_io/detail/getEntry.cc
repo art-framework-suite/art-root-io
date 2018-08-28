@@ -32,7 +32,7 @@ namespace art {
     Int_t
     getEntry(TBranch* branch,
              EntryNumber entryNumber,
-             unsigned long long& ticks[[gnu::unused]])
+             unsigned long long& ticks[[maybe_unused]])
     {
       InputSourceMutexSentry sentry;
       try {
@@ -69,7 +69,7 @@ namespace art {
     Int_t
     getEntry(TTree* tree,
              EntryNumber entryNumber,
-             unsigned long long& ticks[[gnu::unused]])
+             unsigned long long& ticks[[maybe_unused]])
     {
       InputSourceMutexSentry sentry;
       try {

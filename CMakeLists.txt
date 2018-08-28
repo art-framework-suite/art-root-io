@@ -83,7 +83,6 @@ find_ups_product(cppunit)
 find_ups_product(hep_concurrency)
 find_ups_product(cetbuildtools v6_00_00) # LIBRARY_OUTPUT_DIRECTORY, etc.
 find_ups_product(sqlite)
-find_ups_product(range)
 find_ups_boost()
 find_ups_root()
 
@@ -93,9 +92,6 @@ cet_find_library(SQLITE3 NAMES sqlite3_ups PATHS ENV SQLITE_LIB NO_DEFAULT_PATH)
 # macros for making art libraries/dictionaries, etc. and plugins
 include(ArtMake)
 include(BuildPlugins)
-
-# Plugin skeleton generators for cetskelgen.
-# add_subdirectory(perllib)
 
 # source
 add_subdirectory(art_root_io)
