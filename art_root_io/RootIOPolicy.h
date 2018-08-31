@@ -14,9 +14,10 @@
 #include "cetlib/value_ptr.h"
 
 #include "TFile.h"
-#include "TTree.h"
 
 #include <array>
+
+class TTree;
 
 namespace art {
 
