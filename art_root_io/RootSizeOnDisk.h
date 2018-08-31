@@ -1,5 +1,5 @@
-#ifndef art_Framework_IO_Root_RootSizeOnDisk_h
-#define art_Framework_IO_Root_RootSizeOnDisk_h
+#ifndef art_root_io_RootSizeOnDisk_h
+#define art_root_io_RootSizeOnDisk_h
 //
 // Collect information about the disk space used by the top tier and second
 // tier objects inside an art format root event-data file.
@@ -155,7 +155,7 @@ namespace art {
 
 } // namespace art
 
-#endif /* art_Framework_IO_Root_RootSizeOnDisk_h */
+#endif /* art_root_io_RootSizeOnDisk_h */
 
 // Local Variables:
 // mode: c++

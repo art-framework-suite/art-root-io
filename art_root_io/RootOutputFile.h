@@ -1,5 +1,5 @@
-#ifndef art_Framework_IO_Root_RootOutputFile_h
-#define art_Framework_IO_Root_RootOutputFile_h
+#ifndef art_root_io_RootOutputFile_h
+#define art_root_io_RootOutputFile_h
 // vim: set sw=2 expandtab :
 
 #include "art/Framework/Core/Frameworkfwd.h"
@@ -183,4 +183,4 @@ namespace art {
 // Local Variables:
 // mode: c++
 // End:
-#endif /* art_Framework_IO_Root_RootOutputFile_h */
+#endif /* art_root_io_RootOutputFile_h */

@@ -1,5 +1,5 @@
-#ifndef art_Framework_IO_Root_RootDB_tkeyvfs_h
-#define art_Framework_IO_Root_RootDB_tkeyvfs_h
+#ifndef art_root_io_RootDB_tkeyvfs_h
+#define art_root_io_RootDB_tkeyvfs_h
 
 /*
  * Save db to root file on close.
@@ -23,7 +23,7 @@ int tkeyvfs_open_v2(const char* filename,
 );
 }
 
-#endif /* art_Framework_IO_Root_RootDB_tkeyvfs_h */
+#endif /* art_root_io_RootDB_tkeyvfs_h */
 
 // Local Variables:
 // mode: c++

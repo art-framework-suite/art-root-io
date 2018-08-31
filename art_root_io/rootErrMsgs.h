@@ -1,5 +1,5 @@
-#ifndef art_Framework_IO_Root_rootErrMsgs_h
-#define art_Framework_IO_Root_rootErrMsgs_h
+#ifndef art_root_io_rootErrMsgs_h
+#define art_root_io_rootErrMsgs_h
 
 #include <string>
 
@@ -16,7 +16,7 @@ namespace art {
 
 } // namespace art
 
-#endif /* art_Framework_IO_Root_rootErrMsgs_h */
+#endif /* art_root_io_rootErrMsgs_h */
 
 // Local Variables:
 // mode: c++

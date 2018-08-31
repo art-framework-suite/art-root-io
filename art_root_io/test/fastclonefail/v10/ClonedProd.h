@@ -1,5 +1,5 @@
-#ifndef art_test_Framework_IO_Root_fastclonefail_v10_ClonedProd_h
-#define art_test_Framework_IO_Root_fastclonefail_v10_ClonedProd_h
+#ifndef art_root_io_test_fastclonefail_v10_ClonedProd_h
+#define art_root_io_test_fastclonefail_v10_ClonedProd_h
 // vim: set sw=2 expandtab :
 
 #include "canvas/Persistency/Common/Wrapper.h"
@@ -17,7 +17,7 @@ namespace arttest {
 
 } // namespace arttest
 
-#endif /* art_test_Framework_IO_Root_fastclonefail_v10_ClonedProd_h */
+#endif /* art_root_io_test_fastclonefail_v10_ClonedProd_h */
 
 // Local Variables:
 // mode: c++

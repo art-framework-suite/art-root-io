@@ -1,5 +1,5 @@
-#ifndef art_Framework_IO_Root_RootInputFileSequence_h
-#define art_Framework_IO_Root_RootInputFileSequence_h
+#ifndef art_root_io_RootInputFileSequence_h
+#define art_root_io_RootInputFileSequence_h
 // vim: set sw=2:
 
 #include "art/Framework/Core/Frameworkfwd.h"
@@ -281,4 +281,4 @@ namespace art {
 // Local Variables:
 // mode: c++
 // End:
-#endif /* art_Framework_IO_Root_RootInputFileSequence_h */
+#endif /* art_root_io_RootInputFileSequence_h */

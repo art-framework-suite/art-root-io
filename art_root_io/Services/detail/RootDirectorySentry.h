@@ -1,5 +1,5 @@
-#ifndef art_Framework_IO_Root_Services_detail_RootDirectorySentry_h
-#define art_Framework_IO_Root_Services_detail_RootDirectorySentry_h
+#ifndef art_root_io_Services_detail_RootDirectorySentry_h
+#define art_root_io_Services_detail_RootDirectorySentry_h
 // vim: set sw=2 expandtab :
 
 //=================================================================
@@ -32,7 +32,7 @@ namespace art {
   } // namespace detail
 } // namespace art
 
-#endif /* art_Framework_IO_Root_Services_detail_RootDirectorySentry_h */
+#endif /* art_root_io_Services_detail_RootDirectorySentry_h */
 
 /// Local Variables: -
 /// mode: c++ -

@@ -1,5 +1,5 @@
-#ifndef art_Framework_IO_Root_RootBranchInfoList_h
-#define art_Framework_IO_Root_RootBranchInfoList_h
+#ifndef art_root_io_RootBranchInfoList_h
+#define art_root_io_RootBranchInfoList_h
 
 #include "art_root_io/RootBranchInfo.h"
 #include "art/Utilities/fwd.h"
@@ -38,7 +38,7 @@ art::RootBranchInfoList::findBranchInfo(InputTag const& tag,
   return findBranchInfo(TypeID{typeid(PROD)}, tag, rbInfo);
 }
 
-#endif /* art_Framework_IO_Root_RootBranchInfoList_h */
+#endif /* art_root_io_RootBranchInfoList_h */
 
 // Local Variables:
 // mode: c++

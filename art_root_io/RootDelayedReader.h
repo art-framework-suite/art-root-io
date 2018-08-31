@@ -1,5 +1,5 @@
-#ifndef art_Framework_IO_Root_RootDelayedReader_h
-#define art_Framework_IO_Root_RootDelayedReader_h
+#ifndef art_root_io_RootDelayedReader_h
+#define art_root_io_RootDelayedReader_h
 // vim: set sw=2 expandtab :
 
 #include "art_root_io/Inputfwd.h"
@@ -76,4 +76,4 @@ namespace art {
 // Local Variables:
 // mode: c++
 // End:
-#endif /* art_Framework_IO_Root_RootDelayedReader_h */
+#endif /* art_root_io_RootDelayedReader_h */

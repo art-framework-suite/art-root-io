@@ -1,5 +1,5 @@
-#ifndef art_Framework_IO_Root_RootInput_h
-#define art_Framework_IO_Root_RootInput_h
+#ifndef art_root_io_RootInput_h
+#define art_root_io_RootInput_h
 // vim: set sw=2 expandtab :
 
 #include "art/Framework/Core/DecrepitRelicInputSourceImplementation.h"
@@ -257,4 +257,4 @@ namespace art {
 // Local Variables:
 // mode: c++
 // End:
-#endif /* art_Framework_IO_Root_RootInput_h */
+#endif /* art_root_io_RootInput_h */

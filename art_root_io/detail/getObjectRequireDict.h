@@ -1,5 +1,5 @@
-#ifndef art_Framework_IO_Root_detail_getObjectRequireDict_h
-#define art_Framework_IO_Root_detail_getObjectRequireDict_h
+#ifndef art_root_io_detail_getObjectRequireDict_h
+#define art_root_io_detail_getObjectRequireDict_h
 
 #include "canvas/Utilities/TypeID.h"
 
@@ -21,7 +21,7 @@ namespace art {
   } // namespace root
 } // namespace art
 
-#endif /* art_Framework_IO_Root_detail_getObjectRequireDict_h */
+#endif /* art_root_io_detail_getObjectRequireDict_h */
 
 // Local Variables:
 // mode: c++

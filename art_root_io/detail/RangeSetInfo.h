@@ -1,5 +1,5 @@
-#ifndef art_Framework_IO_Root_detail_RangeSetInfo_h
-#define art_Framework_IO_Root_detail_RangeSetInfo_h
+#ifndef art_root_io_detail_RangeSetInfo_h
+#define art_root_io_detail_RangeSetInfo_h
 
 #include "canvas/Persistency/Provenance/EventRange.h"
 #include "canvas/Persistency/Provenance/IDNumber.h"
@@ -40,7 +40,7 @@ namespace art {
   }
 }
 
-#endif /* art_Framework_IO_Root_detail_RangeSetInfo_h */
+#endif /* art_root_io_detail_RangeSetInfo_h */
 
 // Local variables:
 // mode: c++

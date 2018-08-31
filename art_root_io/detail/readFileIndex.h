@@ -1,5 +1,5 @@
-#ifndef art_Framework_IO_Root_detail_readFileIndex_h
-#define art_Framework_IO_Root_detail_readFileIndex_h
+#ifndef art_root_io_detail_readFileIndex_h
+#define art_root_io_detail_readFileIndex_h
 
 #include "art/Framework/Core/InputSourceMutex.h"
 #include "art_root_io/Inputfwd.h"
@@ -50,7 +50,7 @@ namespace art {
 
 } // namespace art
 
-#endif /* art_Framework_IO_Root_detail_readFileIndex_h */
+#endif /* art_root_io_detail_readFileIndex_h */
 
 // Local Variables:
 // mode: c++

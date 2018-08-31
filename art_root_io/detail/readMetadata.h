@@ -1,5 +1,5 @@
-#ifndef art_Framework_IO_Root_detail_readMetadata_h
-#define art_Framework_IO_Root_detail_readMetadata_h
+#ifndef art_root_io_detail_readMetadata_h
+#define art_root_io_detail_readMetadata_h
 
 #include "TBranch.h"
 #include "art/Framework/Core/InputSourceMutex.h"
@@ -44,7 +44,7 @@ namespace art {
   } // namespace detail
 } // namespace art
 
-#endif /* art_Framework_IO_Root_detail_readMetadata_h */
+#endif /* art_root_io_detail_readMetadata_h */
 
 // Local Variables:
 // mode: c++
