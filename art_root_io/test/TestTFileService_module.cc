@@ -5,8 +5,8 @@
 
 #include "art/Framework/Core/ModuleMacros.h"
 #include "art/Framework/Core/SharedAnalyzer.h"
-#include "art_root_io/Services/TFileService.h"
 #include "art/Framework/Services/Registry/ServiceHandle.h"
+#include "art_root_io/TFileService.h"
 #include "fhiclcpp/ParameterSet.h"
 #include <string>
 

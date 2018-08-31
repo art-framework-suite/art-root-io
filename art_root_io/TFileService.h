@@ -1,13 +1,13 @@
-#ifndef art_root_io_Services_TFileService_h
-#define art_root_io_Services_TFileService_h
+#ifndef art_root_io_TFileService_h
+#define art_root_io_TFileService_h
 // vim: set sw=2 expandtab :
 
 #include "art/Framework/Core/OutputFileGranularity.h"
 #include "art/Framework/IO/ClosingCriteria.h"
 #include "art/Framework/IO/FileStatsCollector.h"
 #include "art/Framework/IO/PostCloseFileRenamer.h"
-#include "art_root_io/Services/TFileDirectory.h"
 #include "art/Framework/Services/Registry/ServiceMacros.h"
+#include "art_root_io/TFileDirectory.h"
 #include "fhiclcpp/types/Atom.h"
 #include "fhiclcpp/types/Name.h"
 #include "fhiclcpp/types/OptionalTable.h"
@@ -112,7 +112,7 @@ namespace art {
 
 DECLARE_ART_SERVICE(art::TFileService, LEGACY)
 
-#endif /* art_root_io_Services_TFileService_h */
+#endif /* art_root_io_TFileService_h */
 
 // Local Variables:
 // mode: c++

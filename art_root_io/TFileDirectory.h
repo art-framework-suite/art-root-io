@@ -1,8 +1,8 @@
-#ifndef art_root_io_Services_TFileDirectory_h
-#define art_root_io_Services_TFileDirectory_h
+#ifndef art_root_io_TFileDirectory_h
+#define art_root_io_TFileDirectory_h
 // vim: set sw=2 expandtab :
 
-#include "art_root_io/Services/detail/RootDirectorySentry.h"
+#include "art_root_io/detail/RootDirectorySentry.h"
 
 #include "TDirectory.h"
 
@@ -121,7 +121,7 @@ namespace art {
 
 } // namespace art
 
-#endif /* art_root_io_Services_TFileDirectory_h */
+#endif /* art_root_io_TFileDirectory_h */
 
 // Local Variables: -
 // mode: c++ -

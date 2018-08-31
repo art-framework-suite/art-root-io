@@ -1,4 +1,4 @@
-#include "art_root_io/Services/TFileService.h"
+#include "art_root_io/TFileService.h"
 // vim: set sw=2 expandtab :
 
 #include "art/Framework/IO/PostCloseFileRenamer.h"
