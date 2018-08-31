@@ -66,6 +66,9 @@ cet_test(FastCloningInitMessage_03_t HANDBUILT
   fcl/FastCloningInitMessage_03.fcl
   TEST_PROPERTIES PASS_REGULAR_EXPRESSION "\nInitial fast cloning configuration \\(user-set\\): false\n")
 
+simple_plugin(IntArrayAnalyzer "module" NO_INSTALL ALLOW_UNDERSCORES)
+simple_plugin(IntArrayProducer "module" NO_INSTALL ALLOW_UNDERSCORES)
+
 cet_test(PersistStdArrays_w HANDBUILT
   TEST_EXEC art
   TEST_ARGS --rethrow-all -c persistStdArrays_w.fcl -o out.root

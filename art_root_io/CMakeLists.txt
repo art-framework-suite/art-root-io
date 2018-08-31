@@ -45,6 +45,7 @@ art_make_library(
   setup.cc
   LIBRARIES
   art_Framework_Core
+  art_Framework_Principal
   art_Framework_IO
   art_Framework_IO_Catalog
   art_Framework_IO_detail
@@ -56,6 +57,8 @@ art_make_library(
   cetlib
   canvas
   fhiclcpp
+  ${Boost_DATE_TIME_LIBRARY}
+  ${Boost_SYSTEM_LIBRARY}
   ${ROOT_HIST}
   ${ROOT_TREE})
 
@@ -87,6 +90,7 @@ art_make_exec(NAME product_sizes_dumper
   LIBRARIES
   art_root_io
   cetlib
+  ${Boost_FILESYSTEM_LIBRARY}
   ${Boost_PROGRAM_OPTIONS_LIBRARY})
 
 art_make_exec(NAME config_dumper
