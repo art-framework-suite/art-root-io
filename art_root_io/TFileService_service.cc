@@ -102,7 +102,7 @@ namespace art {
       std::lock_guard<std::recursive_mutex> lock{mutex_};
       currentGranularity_ = Granularity::SubRun;
       fp_.update_subRun(status_);
-      fstats_.recordSubRun(sr.id(), sr.beginTime());
+      fstats_.recordSubRun(sr.id());
       if (requestsToCloseFile_()) {
         maybeSwitchFiles_();
       }
@@ -111,7 +111,7 @@ namespace art {
       std::lock_guard<std::recursive_mutex> lock{mutex_};
       currentGranularity_ = Granularity::Run;
       fp_.update_run(status_);
-      fstats_.recordRun(r.id(), r.beginTime());
+      fstats_.recordRun(r.id());
       if (requestsToCloseFile_()) {
         maybeSwitchFiles_();
       }

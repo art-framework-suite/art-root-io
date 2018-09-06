@@ -358,7 +358,7 @@ namespace art {
       sr.addToProcessHistory();
     }
     rootOutputFile_->writeSubRun(sr);
-    fstats_.recordSubRun(sr.subRunID(), sr.beginTime());
+    fstats_.recordSubRun(sr.subRunID());
   }
 
   void
@@ -376,7 +376,7 @@ namespace art {
       rp.addToProcessHistory();
     }
     rootOutputFile_->writeRun(rp);
-    fstats_.recordRun(rp.runID(), rp.beginTime());
+    fstats_.recordRun(rp.runID());
   }
 
   void
