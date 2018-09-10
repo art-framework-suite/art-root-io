@@ -308,14 +308,14 @@ namespace {
     if (pFile->saveToRootFile) {
 #if TKEYVFS_TRACE
       fprintf(
-        stderr, "fileSize: 0x%016lx\n", (unsigned long long)pFile->fileSize);
+        stderr, "fileSize: 0x%016lx\n", pFile->fileSize);
 #endif // TKEYVFS_TRACE
-      /* Create a tkey which will contain the contents
-      ** of the database in the root file */
+      // Create a tkey which will contain the contents
+      // of the database in the root file
       auto k = new TKey{pFile->zPath,
                         "sqlite3 database file",
                         TKey::Class(),
-                        pFile->fileSize /*nbytes*/,
+                        static_cast<int>(pFile->fileSize) /*nbytes*/,
                         pFile->rootFile /*dir*/};
 #if TKEYVFS_TRACE
       //  Ask the key for the size of the database file it contains.
@@ -424,14 +424,14 @@ namespace {
 #endif // TKEYVFS_TRACE
             return SQLITE_IOERR_WRITE;
           }
-          (void)memset(
+          memset(
             pNewBuf + pFile->fileSize, 0, (size_t)(nAlloc - pFile->fileSize));
           pFile->pBuf = pNewBuf;
           pFile->bufAllocated = nAlloc;
         } else {
-          (void)memset(pFile->pBuf + pFile->fileSize,
-                       0,
-                       (size_t)(nSize - pFile->fileSize));
+          memset(pFile->pBuf + pFile->fileSize,
+                 0,
+                 (size_t)(nSize - pFile->fileSize));
         }
         pFile->fileSize = nSize;
       }
