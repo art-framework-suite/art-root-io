@@ -1,26 +1,20 @@
 #ifndef art_root_io_RootDB_tkeyvfs_h
 #define art_root_io_RootDB_tkeyvfs_h
 
-/*
- * Save db to root file on close.
- */
-
-#ifndef TKEYVFS_NO_ROOT
-#include "TFile.h"
-#endif // TKEYVFS_NO_ROOT
-
+// Save db to root file on close.
 #include <sqlite3.h>
 
+class TFile;
+
 extern "C" {
-int tkeyvfs_init(void);
-int tkeyvfs_open_v2(const char* filename,
+int tkeyvfs_init();
+int tkeyvfs_open_v2_noroot(char const* filename,
+                           sqlite3** ppDb,
+                           int flags);
+int tkeyvfs_open_v2(char const* filename,
                     sqlite3** ppDb,
-                    int flags
-#ifndef TKEYVFS_NO_ROOT
-                    ,
-                    TFile* rootFile
-#endif // TKEYVFS_NO_ROOT
-);
+                    int flags,
+                    TFile* rootFile);
 }
 
 #endif /* art_root_io_RootDB_tkeyvfs_h */

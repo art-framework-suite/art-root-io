@@ -1,9 +1,3 @@
-#pragma GCC diagnostic ignored "-Wmissing-field-initializers"
-
-#ifdef __clang__
-#pragma clang diagnostic ignored "-Wc++11-narrowing"
-#endif
-
 extern "C" {
 #include <sqlite3.h>
 }
@@ -14,13 +8,9 @@ extern "C" {
 
 #define SQLITE_FCNTL_DB_UNCHANGED 0xca093fa0
 
-#define ArraySize(X) ((int)(sizeof(X) / sizeof(X[0])))
-
 using i64 = sqlite_int64;
 
-/*
- * Save db to root file on close.
- */
+// Save db to root file on close.
 
 #ifndef TKEYVFS_NO_ROOT
 #include "TFile.h"
@@ -45,21 +35,35 @@ extern "C" {
 #include <unistd.h>
 }
 
-/*
- *  Debug tracing.
- */
-
+// Debug tracing
 #define TKEYVFS_TRACE 0
 
-/*
- * Externally provided ROOT file, must be open.
- */
+namespace {
 
+  class Trace {
+  public:
+    constexpr Trace(char const* str) noexcept
+    : str_{str}
+    {
+#if TKEYVFS_TRACE
+      fprintf(stderr, "Begin %s ...\n", str_);
+#endif
+    }
+    ~Trace() noexcept
+    {
+#if TKEYVFS_TRACE
+      fprintf(stderr, "End   %s ...\n", str_);
+#endif
+    }
+  private:
+    char const* str_ [[maybe_unused]];
+  };
+
+  // Externally provided ROOT file, must be open.
 #ifndef TKEYVFS_NO_ROOT
-static TFile* gRootFile;
+  TFile* gRootFile;
 #endif // TKEYVFS_NO_ROOT
 
-namespace {
   constexpr i64 mem_page{2048};            // Memory page size
   constexpr std::size_t max_pathname{512}; // Maximum supported path-length
   constexpr int sqlite_default_sector_size{512};
@@ -103,7 +107,7 @@ namespace {
   int unixGetTempname(int nBuf, char* zBuf);
   int fcntlSizeHint(unixFile* pFile, i64 nByte);
   int seekAndRead(unixFile* id, sqlite3_int64 offset, void* pBuf, int cnt);
-  int seekAndWrite(unixFile* id, i64 offset, const void* pBuf, int cnt);
+  int seekAndWrite(unixFile* id, i64 offset, void const* pBuf, int cnt);
 
   int unixOpen(sqlite3_vfs* pVfs,
                char const* zPath,
@@ -122,7 +126,7 @@ namespace {
                        char* zOut);
   void* unixDlOpen(sqlite3_vfs* NotUsed, char const* zFilename);
   void unixDlError(sqlite3_vfs* NotUsed, int nBuf, char* zBufOut);
-  void (*unixDlSym(sqlite3_vfs* NotUsed, void* p, char const* zSym))(void);
+  void (*unixDlSym(sqlite3_vfs* NotUsed, void* p, char const* zSym))();
   void unixDlClose(sqlite3_vfs* NotUsed, void* pHandle);
   int unixRandomness(sqlite3_vfs* NotUsed, int nBuf, char* zBuf);
   int unixSleep(sqlite3_vfs* NotUsed, int microseconds);
@@ -145,19 +149,14 @@ namespace {
   int
   nolockClose(sqlite3_file* id)
   {
-#if TKEYVFS_TRACE
-    fprintf(stderr, "Begin nolockClose ...\n");
-#endif // TKEYVFS_TRACE
+    Trace t{"nolockClose"};
     int val = closeUnixFile(id);
-#if TKEYVFS_TRACE
-    fprintf(stderr, "End   nolockClose ...\n");
-#endif // TKEYVFS_TRACE
     return val;
   }
 
   int unixRead(sqlite3_file* id, void* pBuf, int amt, sqlite3_int64 offset);
   int unixWrite(sqlite3_file* id,
-                const void* pBuf,
+                void const* pBuf,
                 int amt,
                 sqlite3_int64 offset);
   int unixTruncate(sqlite3_file* id, i64 nByte);
@@ -170,7 +169,7 @@ namespace {
   int unixSectorSize(sqlite3_file*);
   int unixDeviceCharacteristics(sqlite3_file*);
 
-  static const sqlite3_io_methods nolockIoMethods = {
+  sqlite3_io_methods const nolockIoMethods{
     1,                         //  iVersion
     nolockClose,               //  xClose
     unixRead,                  //  xRead
@@ -184,12 +183,12 @@ namespace {
     unixFileControl,           //  xFileControl
     unixSectorSize,            //  xSectorSize
     unixDeviceCharacteristics, //  xDeviceCapabilities
-#if 0
-  0,                          //  xShmMap
-  0,                          //  xShmLock
-  0,                          //  xShmBarrier
-  0                           //  xShmUnmap
-#endif // 0
+    nullptr,                   //  v2, xShmMap
+    nullptr,                   //  v2, xShmLock
+    nullptr,                   //  v2, xShmBarrier
+    nullptr,                   //  v2, xShmUnmap
+    nullptr,                   //  v3, xFetch
+    nullptr                    //  v3, xUnfetch
   };
 
   sqlite3_io_methods const*
@@ -198,31 +197,30 @@ namespace {
     return &nolockIoMethods;
   }
 
-// This function - unixLogError_x(), is only ever called via the macro
-// unixLogError().
-//
-// It is invoked after an error occurs in an OS function and errno has been
-// set. It logs a message using sqlite3_log() containing the current value of
-// errno and, if possible, the human-readable equivalent from strerror() or
-// strerror_r().
-//
-// The first argument passed to the macro should be the error code that
-// will be returned to SQLite (e.g. SQLITE_IOERR_DELETE, SQLITE_CANTOPEN).
-// The two subsequent arguments should be the name of the OS function that
-// failed (e.g. "unlink", "open") and the the associated file-system path,
-// if any.
+  // This function - unixLogError_x(), is only ever called via the
+  // macro unixLogError().
+  //
+  // It is invoked after an error occurs in an OS function and errno
+  // has been set. It logs a message using sqlite3_log() containing
+  // the current value of errno and, if possible, the human-readable
+  // equivalent from strerror() or strerror_r().
+  //
+  // The first argument passed to the macro should be the error code
+  // that will be returned to SQLite (e.g. SQLITE_IOERR_DELETE,
+  // SQLITE_CANTOPEN).  The two subsequent arguments should be the
+  // name of the OS function that failed (e.g. "unlink", "open") and
+  // the the associated file-system path, if any.
 #define unixLogError(a, b, c) unixLogErrorAtLine(a, b, c, __LINE__)
   int
   unixLogErrorAtLine(int errcode,       //  SQLite error code
                      char const* zFunc, //  Name of OS function that failed
                      char const* zPath, //  File path associated with error
-                     int iLine //  Source line number where error occurred
+                     int const iLine //  Source line number where error occurred
   )
   {
-    char* zErr;         //  Message from strerror() or equivalent
-    int iErrno = errno; //  Saved syscall error number
-    zErr = strerror(iErrno);
-    if (zPath == 0) {
+    int const iErrno = errno; //  Saved syscall error number
+    char* zErr = strerror(iErrno);
+    if (zPath == nullptr) {
       zPath = "";
     }
     fprintf(stderr,
@@ -235,22 +233,15 @@ namespace {
     return errcode;
   }
 
-  /*
-  ** Retry open() calls that fail due to EINTR
-  */
+  // Retry open() calls that fail due to EINTR
   int
-  robust_open(char const* z, int f, int m)
+  robust_open(char const* z, int const f, int const m)
   {
+    Trace tr{"robust_open"};
     int rc;
-#if TKEYVFS_TRACE
-    fprintf(stderr, "Begin robust_open ...\n");
-#endif // TKEYVFS_TRACE
     do {
       rc = open(z, f, m);
     } while (rc < 0 && errno == EINTR);
-#if TKEYVFS_TRACE
-    fprintf(stderr, "End   robust_open ...\n");
-#endif // TKEYVFS_TRACE
     return rc;
   }
 
@@ -266,21 +257,16 @@ namespace {
   // So we don't even try to recover from an EINTR.  Just log the error
   // and move on.
   void
-  robust_close(unixFile* pFile, int h, int lineno)
+  robust_close(unixFile* pFile, int const h, int const lineno)
   {
-#if TKEYVFS_TRACE
-    fprintf(stderr, "Begin robust_close ...\n");
-#endif // TKEYVFS_TRACE
+    Trace tr{"robust_close"};
     if (close(h)) {
       if (pFile) {
         unixLogErrorAtLine(SQLITE_IOERR_CLOSE, "close", pFile->zPath, lineno);
       } else {
-        unixLogErrorAtLine(SQLITE_IOERR_CLOSE, "close", 0, lineno);
+        unixLogErrorAtLine(SQLITE_IOERR_CLOSE, "close", nullptr, lineno);
       }
     }
-#if TKEYVFS_TRACE
-    fprintf(stderr, "End   robust_close ...\n");
-#endif // TKEYVFS_TRACE
   }
 
   // This function performs the parts of the "close file" operation
@@ -319,16 +305,16 @@ namespace {
                         pFile->rootFile /*dir*/};
 #if TKEYVFS_TRACE
       //  Ask the key for the size of the database file it contains.
-      int objlen = k->GetObjlen();
+      int const objlen = k->GetObjlen();
       fprintf(stderr, "objlen: %d\n", objlen);
 #endif // TKEYVFS_TRACE
       //  Add the new key to the root file toplevel directory.
       //  Note: The tkey is now owned by the root file.
-      int cycle = pFile->rootFile->AppendKey(k);
+      int const cycle = pFile->rootFile->AppendKey(k);
       //  Get a pointer to the i/o buffer inside the tkey.
       char* p = k->GetBuffer();
       //  Copy the entire in-memory database file into the tkey i/o buffer.
-      memcpy(p, pFile->pBuf, (size_t)pFile->fileSize);
+      std::memcpy(p, pFile->pBuf, (size_t)pFile->fileSize);
       //  Write the tkey contents to the root file.
       /* Note: This has not yet written the top-level directory entry for the
        * key.
@@ -355,7 +341,7 @@ namespace {
     if (pFile->zPath != nullptr) {
       free((void*)pFile->zPath);
     }
-    memset(pFile, 0, sizeof(unixFile));
+    std::memset(pFile, 0, sizeof(unixFile));
 #if TKEYVFS_TRACE
     fprintf(stderr, "End   closeUnixFile ...\n");
 #endif // TKEYVFS_TRACE
@@ -370,20 +356,15 @@ namespace {
   int
   unixGetTempname(int nBuf, char* zBuf)
   {
+    Trace tr{"unixGetTempname"};
     static const unsigned char zChars[] = "abcdefghijklmnopqrstuvwxyz"
                                           "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
                                           "0123456789";
     unsigned int i, j;
-#if TKEYVFS_TRACE
-    fprintf(stderr, "Begin unixGetTempname ...\n");
-#endif // TKEYVFS_TRACE
     // Check that the output buffer is large enough for the temporary file
     // name. If it is not, return SQLITE_ERROR.
     constexpr char const* sqlite_temp_file_prefix{"etilqs_"};
     if ((strlen(sqlite_temp_file_prefix) + 17) >= (size_t)nBuf) {
-#if TKEYVFS_TRACE
-      fprintf(stderr, "End   unixGetTempname ...\n");
-#endif // TKEYVFS_TRACE
       return SQLITE_ERROR;
     }
     sqlite3_snprintf(nBuf - 17, zBuf, sqlite_temp_file_prefix);
@@ -393,9 +374,6 @@ namespace {
       zBuf[j] = (char)zChars[((unsigned char)zBuf[j]) % (sizeof(zChars) - 1)];
     }
     zBuf[j] = 0;
-#if TKEYVFS_TRACE
-    fprintf(stderr, "End   unixGetTempname ...\n");
-#endif // TKEYVFS_TRACE
     return SQLITE_OK;
   }
 
@@ -408,9 +386,7 @@ namespace {
   int
   fcntlSizeHint(unixFile* pFile, i64 const nByte)
   {
-#if TKEYVFS_TRACE
-    fprintf(stderr, "Begin fcntlSizeHint ...\n");
-#endif // TKEYVFS_TRACE
+    Trace tr{"fcntlSizeHint"};
     if (pFile->szChunk) {
       i64 nSize = ((nByte + (pFile->szChunk - 1)) / pFile->szChunk) *
                   pFile->szChunk; // Required file size
@@ -419,62 +395,46 @@ namespace {
         if (nAlloc > pFile->bufAllocated) {
           char* pNewBuf = (char*)realloc(pFile->pBuf, (size_t)nAlloc);
           if (pNewBuf == nullptr) {
-#if TKEYVFS_TRACE
-            fprintf(stderr, "End   fcntlSizeHint ...\n");
-#endif // TKEYVFS_TRACE
             return SQLITE_IOERR_WRITE;
           }
-          memset(
+          std::memset(
             pNewBuf + pFile->fileSize, 0, (size_t)(nAlloc - pFile->fileSize));
           pFile->pBuf = pNewBuf;
           pFile->bufAllocated = nAlloc;
         } else {
-          memset(pFile->pBuf + pFile->fileSize,
-                 0,
-                 (size_t)(nSize - pFile->fileSize));
+          std::memset(pFile->pBuf + pFile->fileSize,
+                      0,
+                      (size_t)(nSize - pFile->fileSize));
         }
         pFile->fileSize = nSize;
       }
     }
-#if TKEYVFS_TRACE
-    fprintf(stderr, "End   fcntlSizeHint ...\n");
-#endif // TKEYVFS_TRACE
     return SQLITE_OK;
   }
 
-  /*
-  ** Seek to the offset passed as the second argument, then read cnt
-  ** bytes into pBuf. Return the number of bytes actually read.
-  **
-  ** NB:  If you define USE_PREAD or USE_PREAD64, then it might also
-  ** be necessary to define _XOPEN_SOURCE to be 500.  This varies from
-  ** one system to another.  Since SQLite does not define USE_PREAD
-  ** any any form by default, we will not attempt to define _XOPEN_SOURCE.
-  ** See tickets #2741 and #2681.
-  **
-  ** To avoid stomping the errno value on a failed read the lastErrno value
-  ** is set before returning.
-  */
+  // Seek to the offset passed as the second argument, then read cnt
+  // bytes into pBuf. Return the number of bytes actually read.
+  //
+  // NB:  If you define USE_PREAD or USE_PREAD64, then it might also
+  // be necessary to define _XOPEN_SOURCE to be 500.  This varies from
+  // one system to another.  Since SQLite does not define USE_PREAD
+  // any any form by default, we will not attempt to define _XOPEN_SOURCE.
+  // See tickets #2741 and #2681.
+  //
+  // To avoid stomping the errno value on a failed read the lastErrno value
+  // is set before returning.
   int
   seekAndRead(unixFile* id, sqlite3_int64 offset, void* pBuf, int cnt)
   {
-#if TKEYVFS_TRACE
-    fprintf(stderr, "Begin seekAndRead ...\n");
-#endif // TKEYVFS_TRACE
+    Trace tr{"seekAndRead"};
     if (offset >= id->fileSize) {
       id->lastErrno = 0;
-#if TKEYVFS_TRACE
-      fprintf(stderr, "End   seekAndRead ...\n");
-#endif // TKEYVFS_TRACE
       return 0;
     }
     if ((offset + cnt) > id->fileSize) {
       cnt = (offset + cnt) - id->fileSize;
     }
-    memcpy(pBuf, id->pBuf + offset, (size_t)cnt);
-#if TKEYVFS_TRACE
-    fprintf(stderr, "End   seekAndRead ...\n");
-#endif // TKEYVFS_TRACE
+    std::memcpy(pBuf, id->pBuf + offset, (size_t)cnt);
     return cnt;
   }
 
@@ -484,12 +444,10 @@ namespace {
   // To avoid stomping the errno value on a failed write the lastErrno value
   // is set before returning.
   int
-  seekAndWrite(unixFile* id, i64 offset, const void* pBuf, int cnt)
+  seekAndWrite(unixFile* id, i64 offset, void const* pBuf, int cnt)
   {
+    Trace tr{"seekAndWrite"};
     unixFile* pFile = (unixFile*)id;
-#if TKEYVFS_TRACE
-    fprintf(stderr, "Begin seekAndWrite ...\n");
-#endif // TKEYVFS_TRACE
     if ((offset + cnt) > id->bufAllocated) {
       i64 nByte = offset + static_cast<i64>(cnt);
       if (pFile->szChunk) {
@@ -500,25 +458,19 @@ namespace {
       char* pNewBuf = (char*)realloc(id->pBuf, (size_t)(newBufSize));
       if (pNewBuf == nullptr) {
         id->lastErrno = errno;
-#if TKEYVFS_TRACE
-        fprintf(stderr, "End   seekAndWrite ...\n");
-#endif // TKEYVFS_TRACE
         return 0;
       }
       if ((offset + (i64)cnt) < newBufSize) {
         i64 zeroCnt = newBufSize - (offset + (i64)cnt);
-        memset((pNewBuf + offset + (i64)cnt), 0, (size_t)zeroCnt);
+        std::memset((pNewBuf + offset + (i64)cnt), 0, (size_t)zeroCnt);
       }
       id->pBuf = pNewBuf;
       id->bufAllocated = newBufSize;
     }
-    memcpy((id->pBuf + offset), pBuf, (size_t)cnt);
+    std::memcpy((id->pBuf + offset), pBuf, (size_t)cnt);
     if ((offset + (i64)cnt) > id->fileSize) {
       id->fileSize = offset + (i64)cnt;
     }
-#if TKEYVFS_TRACE
-    fprintf(stderr, "End   seekAndWrite ...\n");
-#endif // TKEYVFS_TRACE
     return cnt;
   }
 
@@ -535,8 +487,8 @@ namespace {
     int got;
 #if TKEYVFS_TRACE
     fprintf(stderr, "Begin unixRead ...\n");
-    if (((unixFile*)id)->zPath) {
-      fprintf(stderr, "filename: %s\n", ((unixFile*)id)->zPath);
+    if (pFile->zPath) {
+      fprintf(stderr, "filename: %s\n", pFile->zPath);
     }
     fprintf(stderr,
             "offset: 0x%016lx  amt: 0x%08x\n",
@@ -558,7 +510,7 @@ namespace {
     } else {
       pFile->lastErrno = 0; //  not a system error
       //  Unread parts of the buffer must be zero-filled
-      memset(&((char*)pBuf)[got], 0, amt - got);
+      std::memset(&((char*)pBuf)[got], 0, amt - got);
 #if TKEYVFS_TRACE
       fprintf(stderr, "End   unixRead ...\n");
 #endif // TKEYVFS_TRACE
@@ -569,18 +521,18 @@ namespace {
   // Write data from a buffer into a file.  Return SQLITE_OK on success
   // or some other error code on failure.
   int
-  unixWrite(sqlite3_file* id, const void* pBuf, int amt, sqlite3_int64 offset)
+  unixWrite(sqlite3_file* id, void const* pBuf, int amt, sqlite3_int64 offset)
   {
     unixFile* pFile = (unixFile*)id;
     int wrote = 0;
 #if TKEYVFS_TRACE
     fprintf(stderr, "Begin unixWrite ...\n");
-    if (((unixFile*)id)->zPath) {
-      fprintf(stderr, "filename: %s\n", ((unixFile*)id)->zPath);
+    if (pFile->zPath) {
+      fprintf(stderr, "filename: %s\n", pFile->zPath);
     }
     fprintf(stderr,
             "offset: 0x%016lx  amt: 0x%08x\n",
-            (unsigned long long)offset,
+            offset,
             amt);
 #endif // TKEYVFS_TRACE
     /* If we are doing a normal write to a database file (as opposed to
@@ -636,8 +588,8 @@ namespace {
     unixFile* pFile = (unixFile*)id;
 #if TKEYVFS_TRACE
     fprintf(stderr, "Begin unixTruncate ...\n");
-    if (((unixFile*)id)->zPath) {
-      fprintf(stderr, "filename: %s\n", ((unixFile*)id)->zPath);
+    if (pFile->zPath) {
+      fprintf(stderr, "filename: %s\n", pFile->zPath);
     }
     fprintf(stderr, "nByte: 0x%016lx\n", (unsigned long long)nByte);
 #endif // TKEYVFS_TRACE
@@ -674,7 +626,7 @@ namespace {
 #endif // TKEYVFS_TRACE
         return unixLogError(SQLITE_IOERR_TRUNCATE, "ftruncate", pFile->zPath);
       }
-      memset((pNewBuf + nByte), 0, (size_t)zeroCnt);
+      std::memset((pNewBuf + nByte), 0, (size_t)zeroCnt);
       pFile->pBuf = pNewBuf;
       pFile->bufAllocated = newBufSize;
       pFile->fileSize = nByte;
@@ -804,18 +756,20 @@ namespace {
   int
   unixFileControl(sqlite3_file* id, int op, void* pArg)
   {
+    auto uFile = reinterpret_cast<unixFile*>(id);
+    auto op_l = static_cast<long int>(op);
 #if TKEYVFS_TRACE
     fprintf(stderr, "Begin unixFileControl ...\n");
-    if (((unixFile*)id)->zPath) {
-      fprintf(stderr, "filename: %s\n", ((unixFile*)id)->zPath);
+    if (uFile->zPath) {
+      fprintf(stderr, "filename: %s\n", uFile->zPath);
     }
 #endif // TKEYVFS_TRACE
-    switch (op) {
+    switch (op_l) {
       case SQLITE_FCNTL_LOCKSTATE: {
 #if TKEYVFS_TRACE
         fprintf(stderr, "op: LOCKSTATE\n");
 #endif // TKEYVFS_TRACE
-        *(int*)pArg = ((unixFile*)id)->eFileLock;
+        *(int*)pArg = uFile->eFileLock;
         // SQLITE_LOCK_NONE
 #if TKEYVFS_TRACE
         fprintf(stderr, "End   unixFileControl ...\n");
@@ -826,7 +780,7 @@ namespace {
 #if TKEYVFS_TRACE
         fprintf(stderr, "op: LAST_ERRNO\n");
 #endif // TKEYVFS_TRACE
-        *(int*)pArg = ((unixFile*)id)->lastErrno;
+        *(int*)pArg = uFile->lastErrno;
 #if TKEYVFS_TRACE
         fprintf(stderr, "End   unixFileControl ...\n");
 #endif // TKEYVFS_TRACE
@@ -837,7 +791,7 @@ namespace {
         fprintf(stderr, "op: CHUNK_SIZE\n");
         fprintf(stderr, "szChunk: %d\n", *(int*)pArg);
 #endif // TKEYVFS_TRACE
-        ((unixFile*)id)->szChunk = *(int*)pArg;
+        uFile->szChunk = *(int*)pArg;
 #if TKEYVFS_TRACE
         fprintf(stderr, "End   unixFileControl ...\n");
 #endif // TKEYVFS_TRACE
@@ -848,7 +802,7 @@ namespace {
         fprintf(stderr, "op: SIZE_HINT\n");
         fprintf(stderr, "hint: 0x%016lx\n", *(i64*)pArg);
 #endif // TKEYVFS_TRACE
-        int val = fcntlSizeHint((unixFile*)id, *(i64*)pArg);
+        int val = fcntlSizeHint(uFile, *(i64*)pArg);
 #if TKEYVFS_TRACE
         fprintf(stderr, "End   unixFileControl ...\n");
 #endif // TKEYVFS_TRACE
@@ -863,7 +817,7 @@ namespace {
 #if TKEYVFS_TRACE
         fprintf(stderr, "op: DB_UNCHANGED\n");
 #endif // TKEYVFS_TRACE
-        ((unixFile*)id)->dbUpdate = 0;
+        uFile->dbUpdate = 0;
 #if TKEYVFS_TRACE
         fprintf(stderr, "End   unixFileControl ...\n");
 #endif // TKEYVFS_TRACE
@@ -883,41 +837,26 @@ namespace {
     return SQLITE_NOTFOUND;
   }
 
-  /*
-  ** Return the sector size in bytes of the underlying block device for
-  ** the specified file. This is almost always 512 bytes, but may be
-  ** larger for some devices.
-  **
-  ** SQLite code assumes this function cannot fail. It also assumes that
-  ** if two files are created in the same file-system directory (i.e.
-  ** a database and its journal file) that the sector size will be the
-  ** same for both.
-  */
+  // Return the sector size in bytes of the underlying block device for
+  // the specified file. This is almost always 512 bytes, but may be
+  // larger for some devices.
+  //
+  // SQLite code assumes this function cannot fail. It also assumes that
+  // if two files are created in the same file-system directory (i.e.
+  // a database and its journal file) that the sector size will be the
+  // same for both.
   int
   unixSectorSize(sqlite3_file*)
   {
-#if TKEYVFS_TRACE
-    fprintf(stderr, "Begin unixSectorSize ...\n");
-#endif // TKEYVFS_TRACE
-#if TKEYVFS_TRACE
-    fprintf(stderr, "End   unixSectorSize ...\n");
-#endif // TKEYVFS_TRACE
+    Trace tr{"unixSectorSize"};
     return sqlite_default_sector_size;
   }
 
-  /*
-  ** Return the device characteristics for the file. This is always 0 for unix.
-  */
   int
   unixDeviceCharacteristics(sqlite3_file*)
   {
-#if TKEYVFS_TRACE
-    fprintf(stderr, "Begin unixDeviceCharacteristics ...\n");
-#endif // TKEYVFS_TRACE
-#if TKEYVFS_TRACE
-    fprintf(stderr, "End   unixDeviceCharacteristics ...\n");
-#endif // TKEYVFS_TRACE
-    return 0;
+    Trace tr{"unixDeviceCharacteristics"};
+    return 0;  // Always 0 for unix.
   }
 
   // Find the current time (in Universal Coordinated Time).  Write into *piNow
@@ -930,17 +869,12 @@ namespace {
   int
   unixCurrentTimeInt64(sqlite3_vfs*, sqlite3_int64* piNow)
   {
+    Trace tr{"unixCurrentTimeInt64"};
     constexpr sqlite3_int64 unixEpoch = 24405875 * (sqlite3_int64)8640000;
     struct timeval sNow;
-#if TKEYVFS_TRACE
-    fprintf(stderr, "Begin unixCurrentTimeInt64 ...\n");
-#endif // TKEYVFS_TRACE
     gettimeofday(&sNow, 0);
     *piNow =
       unixEpoch + 1000 * (sqlite3_int64)sNow.tv_sec + sNow.tv_usec / 1000;
-#if TKEYVFS_TRACE
-    fprintf(stderr, "End   unixCurrentTimeInt64 ...\n");
-#endif // TKEYVFS_TRACE
     return 0;
   }
 
@@ -992,7 +926,7 @@ namespace {
       fprintf(stderr, "filename: %s\n", zPath);
     }
 #endif // TKEYVFS_TRACE
-    memset(p, 0, sizeof(unixFile));
+    std::memset(p, 0, sizeof(unixFile));
     if (pOutFlags) {
       *pOutFlags = flags;
     }
@@ -1062,7 +996,7 @@ namespace {
 #ifndef TKEYVFS_NO_ROOT
       /* Copy the entire database file from the tkey i/o buffer
       ** into our in-memory database. */
-      memcpy(p->pBuf, pKeyBuf, (size_t)nBytes);
+      std::memcpy(p->pBuf, pKeyBuf, (size_t)nBytes);
 #endif // TKEYVFS_NO_ROOT
       p->bufAllocated = nAlloc;
       p->fileSize = nBytes;
@@ -1194,13 +1128,8 @@ namespace {
   void*
   unixDlOpen(sqlite3_vfs*, char const* zFilename)
   {
-#if TKEYVFS_TRACE
-    fprintf(stderr, "Begin unixFullPathName ...\n");
-#endif // TKEYVFS_TRACE
+    Trace tr{"unixFullPathName"};
     void* p = dlopen(zFilename, RTLD_NOW | RTLD_GLOBAL);
-#if TKEYVFS_TRACE
-    fprintf(stderr, "End   unixFullPathName ...\n");
-#endif // TKEYVFS_TRACE
     return p;
   }
 
@@ -1214,21 +1143,16 @@ namespace {
   void
   unixDlError(sqlite3_vfs*, int nBuf, char* zBufOut)
   {
-    char const* zErr;
-#if TKEYVFS_TRACE
-    fprintf(stderr, "Begin unixDlError ...\n");
-#endif // TKEYVFS_TRACE
-    zErr = dlerror();
+    Trace tr{"unixDlError"};
+    char const* zErr = dlerror();
     if (zErr) {
       sqlite3_snprintf(nBuf, zBufOut, "%s", zErr);
     }
-#if TKEYVFS_TRACE
-    fprintf(stderr, "End   unixDlError ...\n");
-#endif // TKEYVFS_TRACE
   }
 
-  void (*unixDlSym(sqlite3_vfs*, void* p, char const* zSym))(void)
+  void (*unixDlSym(sqlite3_vfs*, void* p, char const* zSym))()
   {
+    Trace tr{"unixDlSym"};
     /*
     ** GCC with -pedantic-errors says that C90 does not allow a void* to be
     ** cast into a pointer to a function.  And yet the library dlsym() routine
@@ -1246,24 +1170,15 @@ namespace {
     ** other hand, dlsym() will not work on such a system either, so we have
     ** not really lost anything.
     */
-    void (*(*x)(void*, char const*))(void);
-#if TKEYVFS_TRACE
-    fprintf(stderr, "Begin unixDlSym ...\n");
-#endif // TKEYVFS_TRACE
-    x = (void (*(*)(void*, char const*))(void))dlsym;
+    auto x = (void (*(*)(void*, char const*))())dlsym;
     return (*x)(p, zSym);
   }
 
   void
   unixDlClose(sqlite3_vfs*, void* pHandle)
   {
-#if TKEYVFS_TRACE
-    fprintf(stderr, "Begin unixDlClose ...\n");
-#endif // TKEYVFS_TRACE
+    Trace tr{"unixDlClose"};
     dlclose(pHandle);
-#if TKEYVFS_TRACE
-    fprintf(stderr, "End   unixDlClose ...\n");
-#endif // TKEYVFS_TRACE
   }
 
   // Write nBuf bytes of random data to the supplied buffer zBuf.
@@ -1285,15 +1200,15 @@ namespace {
     // When testing, initializing zBuf[] to zero is all we do.  That means
     // that we always use the same random number sequence.  This makes the
     // tests repeatable.
-    memset(zBuf, 0, nBuf);
+    std::memset(zBuf, 0, nBuf);
     {
       int fd = robust_open("/dev/urandom", O_RDONLY, 0);
       if (fd < 0) {
         time_t t;
         time(&t);
-        memcpy(zBuf, &t, sizeof(t));
+        std::memcpy(zBuf, &t, sizeof(t));
         int pid = getpid();
-        memcpy(&zBuf[sizeof(t)], &pid, sizeof(pid));
+        std::memcpy(&zBuf[sizeof(t)], &pid, sizeof(pid));
         assert(sizeof(t) + sizeof(pid) <= (size_t)nBuf);
         nBuf = sizeof(t) + sizeof(pid);
       } else {
@@ -1316,15 +1231,10 @@ namespace {
   // might be greater than or equal to the argument, but not less
   // than the argument.
   int
-  unixSleep(sqlite3_vfs*, int microseconds)
+  unixSleep(sqlite3_vfs*, int const microseconds)
   {
-#if TKEYVFS_TRACE
-    fprintf(stderr, "Begin unixSleep ...\n");
-#endif // TKEYVFS_TRACE
+    Trace tr{"unixSleep"};
     usleep(microseconds);
-#if TKEYVFS_TRACE
-    fprintf(stderr, "End   unixSleep ...\n");
-#endif // TKEYVFS_TRACE
     return microseconds;
   }
 
@@ -1334,15 +1244,10 @@ namespace {
   int
   unixCurrentTime(sqlite3_vfs*, double* prNow)
   {
+    Trace tr{"unixCurrentTime"};
     sqlite3_int64 i;
-#if TKEYVFS_TRACE
-    fprintf(stderr, "Begin unixCurrentTime ...\n");
-#endif // TKEYVFS_TRACE
     unixCurrentTimeInt64(0, &i);
     *prNow = i / 86400000.0;
-#if TKEYVFS_TRACE
-    fprintf(stderr, "End   unixCurrentTime ...\n");
-#endif // TKEYVFS_TRACE
     return 0;
   }
 
@@ -1354,10 +1259,7 @@ namespace {
   int
   unixGetLastError(sqlite3_vfs*, int, char*)
   {
-#if TKEYVFS_TRACE
-    fprintf(stderr, "Begin unixGetLastError ...\n");
-    fprintf(stderr, "End   unixGetLastError ...\n");
-#endif // TKEYVFS_TRACE
+    Trace tr{"unixGetLastError"};
     return 0;
   }
 
@@ -1375,44 +1277,52 @@ int
 tkeyvfs_init()
 {
   static sqlite3_vfs vfs{
-    1,                      /* iVersion */
-    sizeof(unixFile),       /* szOsFile */
-    max_pathname,           /* mxPathname */
-    0,                      /* pNext */
-    "tkeyvfs",              /* zName */
-    (void*)&nolockIoFinder, /* pAppData */
-    unixOpen,               /* xOpen */
-    unixDelete,             /* xDelete */
-    unixAccess,             /* xAccess */
-    unixFullPathname,       /* xFullPathname */
-    unixDlOpen,             /* xDlOpen */
-    unixDlError,            /* xDlError */
-    unixDlSym,              /* xDlSym */
-    unixDlClose,            /* xDlClose */
-    unixRandomness,         /* xRandomness */
-    unixSleep,              /* xSleep */
-    unixCurrentTime,        /* xCurrentTime */
-    unixGetLastError,       /* xGetLastError */
-    /* unixCurrentTimeInt64, v2, xCurrentTimeInt64 */
-    /* unixSetSystemCall,    v3, xSetSystemCall */
-    /* unixGetSystemCall,    v3, xGetSystemCall */
-    /* unixNextSystemCall,   v3, xNextSystemCall */
+    1,                      // iVersion
+    sizeof(unixFile),       // szOsFile
+    max_pathname,           // mxPathname
+    0,                      // pNext
+    "tkeyvfs",              // zName
+    (void*)&nolockIoFinder, // pAppData
+    unixOpen,               // xOpen
+    unixDelete,             // xDelete
+    unixAccess,             // xAccess
+    unixFullPathname,       // xFullPathname
+    unixDlOpen,             // xDlOpen
+    unixDlError,            // xDlError
+    unixDlSym,              // xDlSym
+    unixDlClose,            // xDlClose
+    unixRandomness,         // xRandomness
+    unixSleep,              // xSleep
+    unixCurrentTime,        // xCurrentTime
+    unixGetLastError,       // xGetLastError
+    nullptr,                // v2, xCurrentTimeInt64
+    nullptr,                // v3, xSetSystemCall
+    nullptr,                // v3, xGetSystemCall
+    nullptr                 // v3, xNextSystemCall
   };
   sqlite3_vfs_register(&vfs, 0);
   return SQLITE_OK;
 }
 
 int
-tkeyvfs_open_v2(char const* filename, // Database filename (UTF-8)
-                sqlite3** ppDb,       // OUT: SQLite db handle
-                int flags             // Flags
-#ifndef TKEYVFS_NO_ROOT
-                ,
-                TFile* rootFile // IN-OUT: Root file, must be already open.
-#endif                          // TKEYVFS_NO_ROOT
+tkeyvfs_open_v2_noroot(char const* filename, // Database filename (UTF-8)
+                       sqlite3** ppDb,       // OUT: SQLite db handle
+                       int const flags       // Flags
 )
 {
-#ifndef TKEYVFS_NO_ROOT
+  return sqlite3_open_v2(filename,
+                         ppDb,
+                         flags,
+                         nullptr);
+}
+
+int
+tkeyvfs_open_v2(char const* filename, // Database filename (UTF-8)
+                sqlite3** ppDb,       // OUT: SQLite db handle
+                int const flags,      // Flags
+                TFile* rootFile       // IN-OUT: Root file, must be already open.
+)
+{
   RootFileSentry rfs{rootFile};
   // Note that the sentry *is* the correct thing to do, here:
   // gRootFile is required in unixOpen(), which is called as part of
@@ -1420,15 +1330,9 @@ tkeyvfs_open_v2(char const* filename, // Database filename (UTF-8)
   // call. By the time we return from sqlite3_open_v2() then, we no
   // longer require gRootFile and the sentry can do the job of
   // cleaning up when it goes out of scope.
-#endif // TKEYVFS_NO_ROOT
   return sqlite3_open_v2(filename,
                          ppDb,
                          flags,
-#ifdef TKEYVFS_NO_ROOT
-                         nullptr
-#else
-                         "tkeyvfs"
-#endif
-  );
+                         "tkeyvfs");
 }
 }

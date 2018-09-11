@@ -8,9 +8,12 @@ extern "C" {
 #include <cstdlib>
 #include <cstring>
 
-#ifndef TKEYVFS_NO_ROOT
 #include "TFile.h"
-#endif
+
+namespace {
+  constexpr bool no_root{TKEYVFS_NO_ROOT};
+  constexpr bool use_root {!no_root};
+}
 
 using namespace std;
 
@@ -31,8 +34,8 @@ callback(void*, int cnt, char** vals, char** col_name)
 int
 main(int argc, char** argv)
 {
-  sqlite3* db = 0;
-  char* error_msg = 0;
+  sqlite3* db = nullptr;
+  char* error_msg = nullptr;
   int err = 0;
   if (argc < 4 || argc > 5) {
     fprintf(stderr,
@@ -41,55 +44,34 @@ main(int argc, char** argv)
     exit(1);
   }
   tkeyvfs_init();
-#ifndef TKEYVFS_NO_ROOT
-  TFile* rootFile = 0;
-#endif
+  TFile* rootFile = nullptr;
+  int flags{};
   if (!strcmp(argv[1], "r")) {
-#ifndef TKEYVFS_NO_ROOT
-    rootFile = new TFile(argv[2]);
-    err = tkeyvfs_open_v2(argv[3],
-#else
-    err = tkeyvfs_open_v2(argv[2],
-#endif
-                          &db,
-                          SQLITE_OPEN_READONLY
-#ifndef TKEYVFS_NO_ROOT
-                          ,
-                          rootFile
-#endif
-    );
+    if (use_root) {
+      rootFile = new TFile(argv[2]);
+    }
+    flags = SQLITE_OPEN_READONLY;
   } else if (!strcmp(argv[1], "u")) {
-#ifndef TKEYVFS_NO_ROOT
-    rootFile = new TFile(argv[2], "UPDATE");
-    err = tkeyvfs_open_v2(argv[3],
-#else
-    err = tkeyvfs_open_v2(argv[2],
-#endif
-                          &db,
-                          SQLITE_OPEN_READWRITE
-#ifndef TKEYVFS_NO_ROOT
-                          ,
-                          rootFile
-#endif
-    );
+    if (use_root) {
+      rootFile = new TFile(argv[2], "UPDATE");
+    }
+    flags = SQLITE_OPEN_READWRITE;
   } else if (!strcmp(argv[1], "w")) {
-#ifndef TKEYVFS_NO_ROOT
-    rootFile = new TFile(argv[2], "RECREATE");
-    err = tkeyvfs_open_v2(argv[3],
-#else
-    err = tkeyvfs_open_v2(argv[2],
-#endif
-                          &db,
-                          SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE
-#ifndef TKEYVFS_NO_ROOT
-                          ,
-                          rootFile
-#endif
-    );
+    if (use_root) {
+      rootFile = new TFile(argv[2], "RECREATE");
+    }
+    flags = SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE;
   } else {
     fprintf(stderr, "Unrecognized file mode designator %s", argv[1]);
     exit(1);
   }
+
+  if (use_root) {
+    err = tkeyvfs_open_v2(argv[3], &db, flags, rootFile);
+  } else {
+    err = tkeyvfs_open_v2_noroot(argv[2], &db, flags);
+  }
+
   if (err) {
     fprintf(stderr, "Can't open database: %s\n", sqlite3_errmsg(db));
     sqlite3_close(db);
@@ -98,7 +80,7 @@ main(int argc, char** argv)
   if (argc == 5) {
     err = sqlite3_exec(db, argv[4], callback, 0, &error_msg);
   } else {
-    char* buf = 0;
+    char* buf = nullptr;
     size_t n = 0;
     getline(&buf, &n, stdin);
     err = sqlite3_exec(db, buf, callback, 0, &error_msg);
@@ -109,5 +91,4 @@ main(int argc, char** argv)
     sqlite3_free(error_msg);
   }
   sqlite3_close(db);
-  return 0;
 }

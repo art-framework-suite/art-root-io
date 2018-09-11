@@ -250,11 +250,15 @@ namespace {
   // where 'x' represent a dummy product.  Upon aggregating D and E,
   // we obtain the correctly formed A+B+C product.
   template <BranchType BT>
-  enable_if_t<RangeSetsSupported<BT>::value, art::RangeSet>
+  art::RangeSet
   getRangeSet(art::OutputHandle const& oh,
               art::RangeSet const& principalRS,
               bool const producedInThisProcess)
   {
+    if constexpr (!RangeSetsSupported<BT>::value) {
+      return art::RangeSet::invalid();
+    }
+
     auto rs = oh.isValid() ? oh.rangeOfValidity() : art::RangeSet::invalid();
     // Because a user can specify (e.g.):
     //   r.put(move(myProd), art::runFragment(myRangeSet));
@@ -273,29 +277,16 @@ namespace {
   }
 
   template <BranchType BT>
-  enable_if_t<!RangeSetsSupported<BT>::value, art::RangeSet>
-  getRangeSet(art::OutputHandle const&,
-              art::RangeSet const& /*principalRS*/,
-              bool const /*producedInThisProcess*/)
-  {
-    return art::RangeSet::invalid();
-  }
-
-  template <BranchType BT>
-  enable_if_t<!RangeSetsSupported<BT>::value>
-  setProductRangeSetID(art::RangeSet const& /*rs*/,
-                       sqlite3*,
-                       art::EDProduct*,
-                       map<unsigned, unsigned>& /*checksumToIndexLookup*/)
-  {}
-
-  template <BranchType BT>
-  enable_if_t<RangeSetsSupported<BT>::value>
+  void
   setProductRangeSetID(art::RangeSet const& rs,
                        sqlite3* db,
                        art::EDProduct* product,
                        map<unsigned, unsigned>& checksumToIndexLookup)
   {
+    if constexpr (!RangeSetsSupported<BT>::value) {
+      return;
+    }
+
     if (!rs.is_valid()) { // Invalid range-sets not written to DB
       return;
     }

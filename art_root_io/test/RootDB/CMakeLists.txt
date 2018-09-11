@@ -40,7 +40,7 @@ cet_test(tkeyvfs_t_02r HANDBUILT
 
 cet_test(tkeyvfs_t_03 NO_AUTO
   SOURCES test3.cc tkeyvfs_noroot.cc
-  LIBRARIES ${SQLITE3} ${CMAKE_DL_LIBS})
+  LIBRARIES art_root_io_RootDB ${SQLITE3} ${ROOT_CORE} ${CMAKE_DL_LIBS})
 
 cet_test(tkeyvfs_t_03w HANDBUILT
   TEST_EXEC dbtest_wrap_sql
