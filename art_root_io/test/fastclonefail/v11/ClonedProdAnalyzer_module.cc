@@ -13,8 +13,7 @@ namespace arttest {
 
   class ClonedProdAnalyzer : public EDAnalyzer {
   public:
-    struct Config {
-    };
+    struct Config {};
     using Parameters = Table<Config>;
     explicit ClonedProdAnalyzer(Parameters const&);
     void analyze(Event const&) override;

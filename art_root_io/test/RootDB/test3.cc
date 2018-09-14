@@ -12,7 +12,7 @@ extern "C" {
 
 namespace {
   constexpr bool no_root{TKEYVFS_NO_ROOT};
-  constexpr bool use_root {!no_root};
+  constexpr bool use_root{!no_root};
 }
 
 using namespace std;

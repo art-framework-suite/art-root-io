@@ -46,7 +46,6 @@ namespace art {
     using Parameters = fhicl::WrappedTable<Config, Config::KeysToIgnore>;
 
   private:
-
     class AccessState {
     public:
       enum State {

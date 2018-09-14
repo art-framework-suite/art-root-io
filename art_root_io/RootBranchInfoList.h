@@ -1,8 +1,8 @@
 #ifndef art_root_io_RootBranchInfoList_h
 #define art_root_io_RootBranchInfoList_h
 
-#include "art_root_io/RootBranchInfo.h"
 #include "art/Utilities/fwd.h"
+#include "art_root_io/RootBranchInfo.h"
 #include "canvas/Utilities/TypeID.h"
 
 #include <vector>

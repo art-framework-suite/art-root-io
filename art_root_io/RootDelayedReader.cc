@@ -3,9 +3,9 @@
 
 #include "art/Framework/Core/InputSourceMutex.h"
 #include "art/Framework/Core/SharedResourcesRegistry.h"
+#include "art/Framework/Principal/Principal.h"
 #include "art_root_io/RootInputFile.h"
 #include "art_root_io/detail/resolveRangeSet.h"
-#include "art/Framework/Principal/Principal.h"
 #include "canvas/Persistency/Provenance/BranchDescription.h"
 #include "canvas/Persistency/Provenance/Compatibility/BranchIDList.h"
 #include "canvas/Persistency/Provenance/ProductProvenance.h"

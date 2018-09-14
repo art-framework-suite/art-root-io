@@ -1,5 +1,5 @@
-#include "art_root_io/RootDB/tkeyvfs.h"
 #include "art_root_io/setup.h"
+#include "art_root_io/RootDB/tkeyvfs.h"
 #include "canvas/Utilities/Exception.h"
 #include "canvas_root_io/Streamers/BranchDescriptionStreamer.h"
 #include "canvas_root_io/Streamers/CacheStreamers.h"

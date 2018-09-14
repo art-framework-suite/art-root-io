@@ -4,14 +4,14 @@
 #include "TFile.h"
 #include "art/Framework/IO/Catalog/FileCatalog.h"
 #include "art/Framework/IO/Catalog/InputFileCatalog.h"
-#include "art_root_io/RootFileBlock.h"
-#include "art_root_io/RootInputFile.h"
-#include "art_root_io/setup.h"
 #include "art/Framework/IO/detail/logFileAction.h"
 #include "art/Framework/Principal/EventPrincipal.h"
 #include "art/Framework/Principal/RunPrincipal.h"
 #include "art/Framework/Principal/SubRunPrincipal.h"
 #include "art/Utilities/Globals.h"
+#include "art_root_io/RootFileBlock.h"
+#include "art_root_io/RootInputFile.h"
+#include "art_root_io/setup.h"
 #include "cetlib/container_algorithms.h"
 #include "fhiclcpp/ParameterSet.h"
 #include "messagefacility/MessageLogger/MessageLogger.h"
@@ -388,7 +388,7 @@ namespace art {
                             catalog_.currentFile().fileName());
       filePtr.reset(TFile::Open(catalog_.currentFile().fileName().c_str()));
     }
-    catch (cet::exception & e) {
+    catch (cet::exception& e) {
       if (!skipBadFiles) {
         throw art::Exception(art::errors::FileOpenError)
           << e.explain_self()
@@ -459,7 +459,7 @@ namespace art {
       detail::logFileAction("Attempting  to open secondary input file ", name);
       filePtr.reset(TFile::Open(name.c_str()));
     }
-    catch (cet::exception & e) {
+    catch (cet::exception& e) {
       throw art::Exception(art::errors::FileOpenError)
         << e.explain_self()
         << "\nRootInputFileSequence::openSecondaryFile(): Input file " << name

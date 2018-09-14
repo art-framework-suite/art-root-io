@@ -8,9 +8,7 @@ class TFile;
 
 extern "C" {
 int tkeyvfs_init();
-int tkeyvfs_open_v2_noroot(char const* filename,
-                           sqlite3** ppDb,
-                           int flags);
+int tkeyvfs_open_v2_noroot(char const* filename, sqlite3** ppDb, int flags);
 int tkeyvfs_open_v2(char const* filename,
                     sqlite3** ppDb,
                     int flags,

@@ -2,8 +2,8 @@
 #define art_root_io_RootDelayedReader_h
 // vim: set sw=2 expandtab :
 
-#include "art_root_io/Inputfwd.h"
 #include "art/Persistency/Common/DelayedReader.h"
+#include "art_root_io/Inputfwd.h"
 #include "canvas/Persistency/Provenance/BranchType.h"
 #include "canvas/Persistency/Provenance/Compatibility/BranchIDList.h"
 #include "canvas/Persistency/Provenance/EventID.h"

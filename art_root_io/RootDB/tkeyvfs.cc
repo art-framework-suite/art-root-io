@@ -42,8 +42,7 @@ namespace {
 
   class Trace {
   public:
-    constexpr Trace(char const* str) noexcept
-    : str_{str}
+    constexpr Trace(char const* str) noexcept : str_{str}
     {
 #if TKEYVFS_TRACE
       fprintf(stderr, "Begin %s ...\n", str_);
@@ -55,8 +54,9 @@ namespace {
       fprintf(stderr, "End   %s ...\n", str_);
 #endif
     }
+
   private:
-    char const* str_ [[maybe_unused]];
+    char const* str_[[maybe_unused]];
   };
 
   // Externally provided ROOT file, must be open.
@@ -293,8 +293,7 @@ namespace {
 #ifndef TKEYVFS_NO_ROOT
     if (pFile->saveToRootFile) {
 #if TKEYVFS_TRACE
-      fprintf(
-        stderr, "fileSize: 0x%016lx\n", pFile->fileSize);
+      fprintf(stderr, "fileSize: 0x%016lx\n", pFile->fileSize);
 #endif // TKEYVFS_TRACE
       // Create a tkey which will contain the contents
       // of the database in the root file
@@ -502,7 +501,7 @@ namespace {
 #endif // TKEYVFS_TRACE
       return SQLITE_OK;
     } else if (got < 0) {
-    //  lastErrno set by seekAndRead
+      //  lastErrno set by seekAndRead
 #if TKEYVFS_TRACE
       fprintf(stderr, "End   unixRead ...\n");
 #endif // TKEYVFS_TRACE
@@ -530,10 +529,7 @@ namespace {
     if (pFile->zPath) {
       fprintf(stderr, "filename: %s\n", pFile->zPath);
     }
-    fprintf(stderr,
-            "offset: 0x%016lx  amt: 0x%08x\n",
-            offset,
-            amt);
+    fprintf(stderr, "offset: 0x%016lx  amt: 0x%08x\n", offset, amt);
 #endif // TKEYVFS_TRACE
     /* If we are doing a normal write to a database file (as opposed to
     ** doing a hot-journal rollback or a write to some file other than a
@@ -560,7 +556,7 @@ namespace {
     }
     if (amt > 0) {
       if (wrote < 0) {
-      //  lastErrno set by seekAndWrite
+        //  lastErrno set by seekAndWrite
 #if TKEYVFS_TRACE
         fprintf(stderr, "End   unixWrite ...\n");
 #endif // TKEYVFS_TRACE
@@ -856,7 +852,7 @@ namespace {
   unixDeviceCharacteristics(sqlite3_file*)
   {
     Trace tr{"unixDeviceCharacteristics"};
-    return 0;  // Always 0 for unix.
+    return 0; // Always 0 for unix.
   }
 
   // Find the current time (in Universal Coordinated Time).  Write into *piNow
@@ -1310,17 +1306,14 @@ tkeyvfs_open_v2_noroot(char const* filename, // Database filename (UTF-8)
                        int const flags       // Flags
 )
 {
-  return sqlite3_open_v2(filename,
-                         ppDb,
-                         flags,
-                         nullptr);
+  return sqlite3_open_v2(filename, ppDb, flags, nullptr);
 }
 
 int
 tkeyvfs_open_v2(char const* filename, // Database filename (UTF-8)
                 sqlite3** ppDb,       // OUT: SQLite db handle
                 int const flags,      // Flags
-                TFile* rootFile       // IN-OUT: Root file, must be already open.
+                TFile* rootFile // IN-OUT: Root file, must be already open.
 )
 {
   RootFileSentry rfs{rootFile};
@@ -1330,9 +1323,6 @@ tkeyvfs_open_v2(char const* filename, // Database filename (UTF-8)
   // call. By the time we return from sqlite3_open_v2() then, we no
   // longer require gRootFile and the sentry can do the job of
   // cleaning up when it goes out of scope.
-  return sqlite3_open_v2(filename,
-                         ppDb,
-                         flags,
-                         "tkeyvfs");
+  return sqlite3_open_v2(filename, ppDb, flags, "tkeyvfs");
 }
 }

@@ -6,8 +6,8 @@ namespace art {
   void checkDictionaries(BranchDescription const& productDesc);
 } // namespace art
 
-  // Local variables:
-  // mode: c++
-  // End:
+// Local variables:
+// mode: c++
+// End:
 
 #endif /* art_root_io_checkDictionaries_h */
