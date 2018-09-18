@@ -122,15 +122,9 @@ namespace art {
     template <BranchType>
     void fillBranches(Principal const&, std::vector<ProductProvenance>*);
     template <BranchType BT>
-    std::enable_if_t<!detail::RangeSetsSupported<BT>::value, EDProduct const*>
-    getProduct(OutputHandle const&,
-               RangeSet const& productRS,
-               std::string const& wrappedName);
-    template <BranchType BT>
-    std::enable_if_t<detail::RangeSetsSupported<BT>::value, EDProduct const*>
-    getProduct(OutputHandle const&,
-               RangeSet const& productRS,
-               std::string const& wrappedName);
+    EDProduct const* getProduct(OutputHandle const&,
+                                RangeSet const& productRS,
+                                std::string const& wrappedName);
 
   private: // MEMBER DATA
     mutable hep::concurrency::RecursiveMutex mutex_;

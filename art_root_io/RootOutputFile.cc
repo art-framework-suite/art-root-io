@@ -208,8 +208,6 @@ namespace {
     }
   }
 
-  using art::detail::RangeSetsSupported;
-
   // The purpose of 'maybeInvalidateRangeSet' is to support the
   // following situation.  Suppose process 1 creates three files with
   // one Run product each, all corresponding to the same Run.  Let's
@@ -255,7 +253,7 @@ namespace {
               art::RangeSet const& principalRS,
               bool const producedInThisProcess)
   {
-    if constexpr (!RangeSetsSupported<BT>::value) {
+    if constexpr (!art::detail::range_sets_supported(BT)) {
       return art::RangeSet::invalid();
     }
 
@@ -283,7 +281,7 @@ namespace {
                        art::EDProduct* product,
                        map<unsigned, unsigned>& checksumToIndexLookup)
   {
-    if constexpr (!RangeSetsSupported<BT>::value) {
+    if constexpr (!art::detail::range_sets_supported(BT)) {
       return;
     }
 
@@ -947,29 +945,19 @@ namespace art {
   }
 
   template <BranchType BT>
-  enable_if_t<!RangeSetsSupported<BT>::value, EDProduct const*>
-  RootOutputFile::getProduct(OutputHandle const& oh,
-                             RangeSet const&,
-                             string const& wrappedName)
-  {
-    RecursiveMutexSentry sentry{mutex_, __func__};
-    if (oh.isValid()) {
-      return oh.wrapper();
-    }
-    return dummyProductCache_.product(wrappedName);
-  }
-
-  template <BranchType BT>
-  enable_if_t<RangeSetsSupported<BT>::value, EDProduct const*>
+  EDProduct const*
   RootOutputFile::getProduct(OutputHandle const& oh,
                              RangeSet const& prunedProductRS,
                              string const& wrappedName)
   {
     RecursiveMutexSentry sentry{mutex_, __func__};
-    if (oh.isValid() && prunedProductRS.is_valid()) {
-      return oh.wrapper();
+    if constexpr (detail::range_sets_supported(BT)) {
+      if (!prunedProductRS.is_valid()) {
+        return dummyProductCache_.product(wrappedName);
+      }
     }
-    return dummyProductCache_.product(wrappedName);
+    return oh.isValid() ? oh.wrapper() :
+                          dummyProductCache_.product(wrappedName);
   }
 
   template <BranchType BT>
@@ -1066,7 +1054,7 @@ namespace art {
         // able to get a pointer to it from the passed principal and
         // write it out.
         auto const& rs = getRangeSet<BT>(oh, principalRS, produced);
-        if (RangeSetsSupported<BT>::value && !rs.is_valid()) {
+        if (detail::range_sets_supported(BT) && !rs.is_valid()) {
           // At this point we are now going to write out a dummy product
           // whose Wrapper present flag is false because the range set
           // got invalidated to present double counting when combining
