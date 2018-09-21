@@ -1,6 +1,5 @@
-extern "C" {
-#include <sqlite3.h>
-}
+#include "art_root_io/RootDB/tkeyvfs.h"
+#include "cetlib/compiler_macros.h"
 
 #define SQLITE_FCNTL_SIZE_HINT 5
 #define SQLITE_FCNTL_CHUNK_SIZE 6
@@ -56,7 +55,7 @@ namespace {
     }
 
   private:
-    char const* str_[[maybe_unused]];
+    char const* str_ UNUSED_PRIVATE_FIELD;
   };
 
   // Externally provided ROOT file, must be open.
