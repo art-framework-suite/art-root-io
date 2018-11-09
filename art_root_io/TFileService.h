@@ -27,11 +27,10 @@ namespace art {
   class ModuleDescription;
 
   class TFileService : public TFileDirectory {
-  public: // TYPES
+  public:
     static constexpr const char* default_tmpDir = "<parent-path-of-filename>";
     using Callback_t = TFileDirectory::Callback_t;
 
-  public: // TYPES -- Configuration
     struct Config {
       fhicl::Atom<bool> closeFileFast{fhicl::Name("closeFileFast"), true};
       fhicl::Atom<std::string> fileName{fhicl::Name("fileName")};
@@ -41,7 +40,6 @@ namespace art {
     };
     using Parameters = ServiceTable<Config>;
 
-  public: // Special Member Functions
     ~TFileService();
     TFileService(Parameters const&, ActivityRegistry&);
     TFileService(TFileService const&) = delete;
@@ -49,7 +47,6 @@ namespace art {
     TFileService& operator=(TFileService const&) = delete;
     TFileService& operator=(TFileService&&) = delete;
 
-    // API for user
     static std::string const&
     resource_name()
     {
@@ -64,7 +61,7 @@ namespace art {
     TFile&
     file() const
     {
-      std::lock_guard<std::recursive_mutex> lock{mutex_};
+      std::lock_guard lock{mutex_};
       return *file_;
     }
 
@@ -80,7 +77,6 @@ namespace art {
     std::string fileNameAtOpen_();
     std::string fileNameAtClose_(std::string const&);
 
-  private: // Member data -- Implementation details
     bool const closeFileFast_;
     FileStatsCollector fstats_;
     PostCloseFileRenamer fRenamer_{fstats_};
@@ -88,7 +84,7 @@ namespace art {
     std::string uniqueFilename_;
     std::string tmpDir_;
 
-  private: // Member data -- File-switching mechanics
+    // File-switching mechanics
     std::string lastClosedFile_{};
     Granularity currentGranularity_{Granularity::Unset};
     std::chrono::steady_clock::time_point beginTime_{};
@@ -104,13 +100,13 @@ namespace art {
   void
   TFileService::registerFileSwitchCallback(T* provider, void (T::*f)())
   {
-    std::lock_guard<std::recursive_mutex> lock{mutex_};
+    std::lock_guard lock{mutex_};
     registerFileSwitchCallback([provider, f] { return (provider->*f)(); });
   }
 
 } // namespace art
 
-DECLARE_ART_SERVICE(art::TFileService, LEGACY)
+DECLARE_ART_SERVICE(art::TFileService, GLOBAL)
 
 #endif /* art_root_io_TFileService_h */
 
