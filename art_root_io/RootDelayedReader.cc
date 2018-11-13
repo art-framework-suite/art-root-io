@@ -2,9 +2,9 @@
 // vim: sw=2 expandtab :
 
 #include "art/Framework/Core/InputSourceMutex.h"
-#include "art/Framework/Core/SharedResourcesRegistry.h"
 #include "art/Framework/Principal/Principal.h"
 #include "art/Framework/Principal/RangeSetsSupported.h"
+#include "art/Utilities/SharedResourcesRegistry.h"
 #include "art_root_io/RootInputFile.h"
 #include "art_root_io/detail/resolveRangeSet.h"
 #include "canvas/Persistency/Provenance/BranchDescription.h"

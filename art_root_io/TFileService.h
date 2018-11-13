@@ -47,13 +47,6 @@ namespace art {
     TFileService& operator=(TFileService const&) = delete;
     TFileService& operator=(TFileService&&) = delete;
 
-    static std::string const&
-    resource_name()
-    {
-      static std::string const name{"TFileService"};
-      return name;
-    }
-
     void registerFileSwitchCallback(Callback_t);
     template <typename T>
     void registerFileSwitchCallback(T* provider, void (T::*)());

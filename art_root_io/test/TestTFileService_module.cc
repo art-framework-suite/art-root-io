@@ -6,6 +6,7 @@
 #include "art/Framework/Core/ModuleMacros.h"
 #include "art/Framework/Core/SharedAnalyzer.h"
 #include "art/Framework/Services/Registry/ServiceHandle.h"
+#include "art/Utilities/SharedResource.h"
 #include "art_root_io/TFileService.h"
 #include "fhiclcpp/ParameterSet.h"
 #include <string>
@@ -45,7 +46,7 @@ TestTFileService::TestTFileService(Parameters const& p,
                                    ProcessingFrame const& frame)
   : SharedAnalyzer{p}
 {
-  serialize(TFileService::resource_name());
+  serialize(art::SharedResource<TFileService>);
   auto const fs = frame.serviceHandle<TFileService>();
   fs->registerFileSwitchCallback(this, &TestTFileService::setRootObjects);
   setRootObjects();
