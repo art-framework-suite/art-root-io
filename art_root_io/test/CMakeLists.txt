@@ -126,3 +126,10 @@ foreach(NUM 1 5 6) # N.B. No 'RANGE' for these two tests
     DATAFILES TFileService_r_0${NUM}_input.txt
     TEST_PROPERTIES DEPENDS TFileService_t_0${NUM})
 endforeach()
+
+simple_plugin(XRootDRetry "module" NO_INSTALL ALLOW_UNDERSCORES ${ROOT_CORE} ${ROOT_RIO} art_root_io)
+
+cet_test(XRootDRetry_t HANDBUILT
+  TEST_EXEC art
+  TEST_ARGS -c xrootd_retry_t.fcl -n 1
+  DATAFILES fcl/xrootd_retry_t.fcl)

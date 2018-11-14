@@ -1,10 +1,8 @@
 #ifndef art_root_io_setup_h
 #define art_root_io_setup_h
 
-namespace art {
-  namespace root {
-    void setup();
-  }
+namespace art::root {
+  void setup();
 }
 
 // ======================================================================
