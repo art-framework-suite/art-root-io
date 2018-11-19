@@ -656,7 +656,7 @@ namespace {
   // the directory entry for the journal was never created) and the transaction
   // will not roll back - possibly leading to database corruption.
   int
-  unixSync(sqlite3_file* id[[maybe_unused]], int)
+  unixSync(sqlite3_file* id [[maybe_unused]], int)
   {
 #if TKEYVFS_TRACE
     fprintf(stderr, "Begin unixSync ...\n");
@@ -715,7 +715,7 @@ namespace {
   }
 
   int
-  nolockUnlock(sqlite3_file* id[[maybe_unused]], int)
+  nolockUnlock(sqlite3_file* id [[maybe_unused]], int)
   {
 #if TKEYVFS_TRACE
     fprintf(stderr, "Begin nolockUnlock ...\n");
@@ -1097,7 +1097,7 @@ namespace {
   ** this buffer before returning.
   */
   int
-  unixFullPathname(sqlite3_vfs* pVfs[[maybe_unused]], //  Pointer to vfs object
+  unixFullPathname(sqlite3_vfs* pVfs [[maybe_unused]], //  Pointer to vfs object
                    char const* zPath, //  Possibly relative input path
                    int nOut,          //  Size of output buffer in bytes
                    char* zOut         //  Output buffer
