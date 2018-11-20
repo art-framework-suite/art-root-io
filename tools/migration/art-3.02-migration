@@ -32,7 +32,7 @@ if (!defined $top_level_dir) {
 }
 
 sub usage {
-    print("Usage: art-3.02-migration -d=<top-level directory> [--dry-run]\n");
+    print("Usage: art-3.02-migration -d <top-level directory> [--dry-run]\n");
 }
 
 sub help_message {
