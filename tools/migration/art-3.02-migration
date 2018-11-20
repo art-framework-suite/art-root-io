@@ -8,11 +8,38 @@ use vars qw(%library_list);
 BEGIN {
   %header_list = (
     "art/Framework/Services/Optional/TFileService.h" => "art_root_io/TFileService.h",
-    "art/Framework/Services/Optional/TFileDirectory.h" => "art_root_io/TFileDirectory.h"
+    "art/Framework/Services/Optional/TFileDirectory.h" => "art_root_io/TFileDirectory.h",
+    "art/Framework/IO/Root/checkDictionaries.h" => "art/Framework/IO/Root/checkDictionaries.h",
+    "art/Framework/IO/Root/detail/DummyProductCache.h" => "art/Framework/IO/Root/detail/DummyProductCache.h",
+    "art/Framework/IO/Root/detail/getObjectRequireDict.h" => "art/Framework/IO/Root/detail/getObjectRequireDict.h",
+    "art/Framework/IO/Root/detail/KeptProvenance.h" => "art/Framework/IO/Root/detail/KeptProvenance.h",
+    "art/Framework/IO/Root/detail/rootOutputConfigurationTools.h" => "art/Framework/IO/Root/detail/rootOutputConfigurationTools.h",
+    "art/Framework/IO/Root/DropMetaData.h" => "art/Framework/IO/Root/DropMetaData.h",
+    "art/Framework/IO/Root/GetFileFormatEra.h" => "art/Framework/IO/Root/GetFileFormatEra.h",
+    "art/Framework/IO/Root/GetFileFormatVersion.h" => "art/Framework/IO/Root/GetFileFormatVersion.h",
+    "art/Framework/IO/Root/RootDB/SQLErrMsg.h" => "art/Framework/IO/Root/RootDB/SQLErrMsg.h",
+    "art/Framework/IO/Root/RootDB/SQLite3Wrapper.h" => "art/Framework/IO/Root/RootDB/SQLite3Wrapper.h",
+    "art/Framework/IO/Root/RootDB/tkeyvfs.h" => "art/Framework/IO/Root/RootDB/tkeyvfs.h",
+    "art/Framework/IO/Root/RootDB/TKeyVFSOpenPolicy.h" => "art/Framework/IO/Root/RootDB/TKeyVFSOpenPolicy.h",
+    "art/Framework/IO/Root/RootFileBlock.h" => "art/Framework/IO/Root/RootFileBlock.h",
+    "art/Framework/IO/Root/RootInput.h" => "art/Framework/IO/Root/RootInput.h",
+    "art/Framework/IO/Root/RootOutputTree.h" => "art/Framework/IO/Root/RootOutputTree.h",
   );
   %library_list = (
+    # Bare link-line variables
     "art_Framework_Services_Optional_TFileService_service" => "art_root_io_TFileService_service",
-    "ART_FRAMEWORK_SERVICES_OPTIONAL_TFILESERVICE_SERVICE" => "ART_ROOT_IO_TFILESERVICE_SERVICE"
+    "art_Framework_IO_Root" => "art_root_io",
+    "art_Framework_IO_Root_detail_sources" => "art_root_io_detail",
+    "art_Framework_IO_Root_RootDB" => "art_root_io_RootDB",
+    "art_Framework_IO_Root_RootInput_source" => "art_root_io_RootInput_source",
+    "art_Framework_IO_RootVersion" => "art_root_io",
+    # CMake link-line variables
+    "ART_FRAMEWORK_SERVICES_OPTIONAL_TFILESERVICE_SERVICE" => "ART_ROOT_IO_TFILESERVICE_SERVICE",
+    "ART_FRAMEWORK_IO_ROOT" => "ART_ROOT_IO",
+    "ART_FRAMEWORK_IO_ROOT_DETAIL_SOURCES" => "ART_ROOT_IO_DETAIL",
+    "ART_FRAMEWORK_IO_ROOT_ROOTDB" => "ART_ROOT_IO_ROOTDB",
+    "ART_FRAMEWORK_IO_ROOT_ROOTINPUT_SOURCE" => "ART_ROOT_IO_ROOTINPUT_SOURCE",
+    "ART_FRAMEWORK_IO_ROOTVERSION" => "ART_ROOT_IO"
   );
 }
 
@@ -67,22 +94,22 @@ sub replace_in_files {
 }
 
 # Replace C++ header dependencies
+my $cpp_files_str = `find $top_level_dir \\( \\( -name .svn -o -name .git -o -name CVS \\) -prune \\) -o \\( -name '*.c' -o -name '*.cxx' -o -name '*.cc' -o -name '*.cpp' -o -name '*.C' -o -name '*.h' -o -name '*.hxx' -o -name '*.hh' -o -name '*.hpp' -o -name '*.[it]cc' -o -name '*.H*' \\) -print`;
+my @cpp_files = split /^/m, $cpp_files_str;
 foreach my $old_inc (sort keys %header_list) {
-  my $new_inc = $header_list{$old_inc};
   print "Checking for files using $old_inc\n";
-  my $cpp_files_str = `find $top_level_dir \\( \\( -name .svn -o -name .git -o -name CVS \\) -prune \\) -o \\( -name '*.c' -o -name '*.cxx' -o -name '*.cc' -o -name '*.cpp' -o -name '*.C' -o -name '*.h' -o -name '*.hxx' -o -name '*.hh' -o -name '*.hpp' -o -name '*.[it]cc' -o -name '*.H*' \\) -print`;
-  my @cpp_files = split /^/m, $cpp_files_str;
+  my $new_inc = $header_list{$old_inc};
   # This pattern also removes trailing whitespace
-  my $old_pattern = '^\\(#include\\s\\+\\"\\)' . $old_inc . '[^\\s]*$';
-  my $new_pattern = '\\1' . $new_inc;
+  my $old_pattern = '^\\(#include\\s\\+[\\"<]\\)' . $old_inc . '\\([\\">]\\)[^\\s]*$';
+  my $new_pattern = '\\1' . $new_inc . '\\2';
   replace_in_files(\@cpp_files, $old_pattern, $new_pattern, $dry_run);
 }
 
 # Replace Library link lines
+my $cmake_files_str = `find $top_level_dir \\( \\( -name .svn -o -name .git -o -name CVS \\) -prune \\) -o \\( -name 'CMakeLists.txt' -o -name '*.cmake' -o -name 'SConscript' \\) -print`;
+my @cmake_files = split /^/m, $cmake_files_str;
 foreach my $old_lib (sort keys %library_list) {
-  my $new_lib = $library_list{$old_lib};
   print "Checking for uses of $old_lib\n";
-  my $cmake_files_str = `find $top_level_dir \\( \\( -name .svn -o -name .git -o -name CVS \\) -prune \\) -o \\( -name 'CMakeLists.txt' -o -name '*.cmake' -o -name 'SConscript' \\) -print`;
-  my @cmake_files = split /^/m, $cmake_files_str;
+  my $new_lib = $library_list{$old_lib};
   replace_in_files(\@cmake_files, $old_lib, $new_lib, $dry_run);
 }
