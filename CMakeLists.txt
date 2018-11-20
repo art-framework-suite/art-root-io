@@ -99,5 +99,8 @@ add_subdirectory(art_root_io)
 # ups - table and config files
 add_subdirectory(ups)
 
+# tools - migration scripts
+add_subdirectory(tools)
+
 # packaging utility
 include(UseCPack)

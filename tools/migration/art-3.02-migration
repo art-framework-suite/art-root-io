@@ -16,13 +16,38 @@ BEGIN {
   );
 }
 
-my $top_level_dir = '.';
-my $dry_run = 0;
-if (scalar @ARGV > 0) {
-  $top_level_dir = $ARGV[0];
+use Getopt::Long qw(:config no_ignore_case bundling);
+
+my $top_level_dir;
+my $dry_run;
+GetOptions("help|h|?" => \&help_message,
+           "top-level-dir|d=s" => \$top_level_dir,
+           "dry-run|n" => \$dry_run)
+    or die_while_processing_options();
+
+if (!defined $top_level_dir) {
+    print("The 'top-level-dir|d' command-line option is required:\n  ");
+    usage();
+    exit(1);
 }
-if (scalar @ARGV > 1) {
-  $dry_run = $ARGV[1];
+
+sub usage {
+    print("Usage: art-3.02-migration -d=<top-level directory> [--dry-run]\n");
+}
+
+sub help_message {
+    print("\n");
+    usage();
+    print("\nOptions:\n\n");
+    print("  -d [--top-level-dir] arg   Top-level directory to apply migration script.\n");
+    print("  -n [--dry-run]             Show what files would be changed.\n\n");
+    exit(0);
+}
+
+sub die_while_processing_options {
+    usage();
+    print("Type 'art-3.02-migration --help' for more information.\n");
+    exit(1);
 }
 
 sub replace_in_files {
