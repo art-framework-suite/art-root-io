@@ -442,10 +442,13 @@ namespace art {
     auto productList =
       detail::readMetadata<ProductRegistry>(metaDataTree, false).productList_;
 
+    auto const branchChildren =
+      detail::readMetadata<BranchChildren>(metaDataTree);
+
     // Create product table for present products
-    auto const& descriptions = make_product_descriptions(productList);
-    presentProducts_ = ProductTables{descriptions};
-    dropOnInput(groupSelectorRules, dropDescendants, presentProducts_);
+    presentProducts_ = ProductTables{make_product_descriptions(productList)};
+    dropOnInput(
+      groupSelectorRules, branchChildren, dropDescendants, presentProducts_);
 
     // Adjust validity of BranchDescription objects: if the branch
     // does not exist in the input file, but its BranchDescription is
@@ -1407,24 +1410,23 @@ namespace art {
     }
     bool const lastInSubRun{(iter == fiEnd_) ||
                             (iter->eventID_.subRun() != eid.subRun())};
-    return pair<EntryNumbers, bool>{enumbers, lastInSubRun};
+    return pair{enumbers, lastInSubRun};
   }
 
   void
   RootInputFile::dropOnInput(GroupSelectorRules const& rules,
+                             BranchChildren const& children,
                              bool const dropDescendants,
                              ProductTables& tables)
   {
     auto dropOnInputForBranchType =
-      [this, &rules, dropDescendants, &tables](BranchType const bt) {
+      [this, &rules, &children, dropDescendants, &tables](BranchType const bt) {
         auto& prodList = tables.get(bt).descriptions;
 
         // This is the selector for drop on input.
         GroupSelector const groupSelector{rules, prodList};
         // Do drop on input. On the first pass, just fill in a set of
-        // branches to be dropped.  Use the BranchChildren class to
-        // assemble list of children to drop.
-        BranchChildren children;
+        // branches to be dropped.
         set<ProductID> branchesToDrop;
         for (auto const& prod : prodList) {
           auto const& pd = prod.second;

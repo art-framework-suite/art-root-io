@@ -48,10 +48,13 @@ namespace art {
     void mergeAuxiliary(RunAuxiliary& left, RunAuxiliary const& right);
     void mergeAuxiliary(SubRunAuxiliary& left, SubRunAuxiliary const& right);
   } // namespace detail
+
+  class BranchChildren;
   class DuplicateChecker;
   class EventRangeHandler;
   class GroupSelectorRules;
   class UpdateOutputCallbacks;
+
   class RootInputFile {
   private: // TYPES
     class RootInputTree {
@@ -191,6 +194,7 @@ namespace art {
     void overrideRunNumber(SubRunID& id);
     void overrideRunNumber(EventID& id, bool isRealData);
     void dropOnInput(GroupSelectorRules const& rules,
+                     BranchChildren const& branchChildren,
                      bool dropDescendants,
                      ProductTables& tables);
     void readParentageTree(unsigned int treeCacheSize);
