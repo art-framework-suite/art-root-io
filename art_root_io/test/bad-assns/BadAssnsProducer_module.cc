@@ -14,6 +14,7 @@
 #include "art/Framework/Principal/Run.h"
 #include "art/Framework/Principal/SubRun.h"
 #include "art/test/TestObjects/ToyProducts.h"
+#include "art_root_io/test/bad-assns/DummyA.h"
 #include "canvas/Utilities/InputTag.h"
 #include "fhiclcpp/ParameterSet.h"
 #include "messagefacility/MessageLogger/MessageLogger.h"
@@ -45,13 +46,13 @@ private:
 arttest::BadAssnsProducer::BadAssnsProducer(fhicl::ParameterSet const& ps)
   : EDProducer{ps}
 {
-  produces<art::Assns<StringProduct, DummyProduct>>();
+  produces<art::Assns<DummyA, DummyProduct>>();
 }
 
 void
 arttest::BadAssnsProducer::produce(art::Event& e)
 {
-  e.put(std::make_unique<art::Assns<StringProduct, DummyProduct>>());
+  e.put(std::make_unique<art::Assns<DummyA, DummyProduct>>());
 }
 
 DEFINE_ART_MODULE(arttest::BadAssnsProducer)

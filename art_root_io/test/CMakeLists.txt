@@ -4,8 +4,9 @@ include(CetTest)
 
 cet_make_library(LIBRARY_NAME art_root_io_test_TH1Data
   SOURCE TH1Data.cc
-  LIBRARIES ${ROOT_HIST} ${ROOT_CORE})
-art_dictionary(DICTIONARY_LIBRARIES art_root_io_test_TH1Data)
+  LIBRARIES ${ROOT_HIST} ${ROOT_CORE}
+  NO_INSTALL)
+art_dictionary(DICTIONARY_LIBRARIES art_root_io_test_TH1Data NO_INSTALL)
 
 add_subdirectory(bad-assns)
 add_subdirectory(fastclonefail)
