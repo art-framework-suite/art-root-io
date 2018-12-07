@@ -117,6 +117,16 @@ cet_test(TFileService_t_07 HANDBUILT
   TEST_PROPERTIES
   PASS_REGULAR_EXPRESSION "can be used only when 1 thread and 1 schedule are specified.")
 
+cet_test(TFileService_t_08 HANDBUILT
+  TEST_EXEC art
+  TEST_ARGS --rethrow-all --config TFileService_t_08.fcl
+  DATAFILES fcl/TFileService_t_08.fcl)
+
+cet_test(TFileService_r_08 SOURCE TFileService_r_08.cxx
+  LIBRARIES ${ROOT_CORE} ${ROOT_RIO} ${ROOT_GRAF} ${ROOT_HIST}
+  REQUIRED_FILES ../TFileService_t_08.d/tfile_output.root
+  TEST_PROPERTIES DEPENDS TFileService_t_08)
+
 add_executable(TestTFileService_r TestTFileService_r.cxx)
 target_link_libraries(TestTFileService_r ${ROOT_CORE} ${ROOT_RIO} ${ROOT_HIST})
 
