@@ -58,7 +58,6 @@ art_make_library(
   canvas
   fhiclcpp
   ${Boost_DATE_TIME_LIBRARY}
-  ${Boost_SYSTEM_LIBRARY}
   ${ROOT_HIST}
   ${ROOT_TREE})
 
