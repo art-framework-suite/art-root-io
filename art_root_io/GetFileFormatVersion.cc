@@ -38,6 +38,8 @@
 //                 have a representation of an empty list of EventRanges.
 //                 They now have one element with an EventRange that is
 //                 used to represent a full run.
+// ART_2011a  13   The BranchListIndexes data member has been removed
+//                 from the History class.
 //
 ////////////////////////////////////////////////////////////////////////
 
@@ -45,6 +47,6 @@ namespace art {
   int
   getFileFormatVersion()
   {
-    return 12;
+    return 13;
   }
 } // namespace art
