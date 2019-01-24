@@ -4,6 +4,7 @@ art_make_library(LIBRARY_NAME
   SQLErrMsg.cc
   SQLite3Wrapper.cc
   TKeyVFSOpenPolicy.cc
+  have_table.cc
   tkeyvfs.cc
   LIBRARIES
   art_Utilities

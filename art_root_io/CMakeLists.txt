@@ -9,6 +9,7 @@ art_make_library(
   SOURCE
   detail/DummyProductCache.cc
   detail/RangeSetInfo.cc
+  detail/dropBranch.cc
   detail/getEntry.cc
   detail/getObjectRequireDict.cc
   detail/rangeSetFromFileIndex.cc
@@ -83,6 +84,19 @@ simple_plugin(TFileService "service"
 
 simple_plugin(RootInput "source" art_root_io art_Framework_IO_Catalog ALLOW_UNDERSCORES)
 simple_plugin(RootOutput "module" art_root_io ALLOW_UNDERSCORES)
+simple_plugin(SamplingInput "source"
+  art_root_io
+  ${ROOT_RIO}
+  ${ROOT_TREE}
+  SOURCE
+  SamplingInput_source.cc
+  detail/DataSetBroker.cc
+  detail/DataSetSampler.cc
+  detail/SamplingDelayedReader.cc
+  detail/SamplingInputFile.cc
+  detail/event_start.cc
+  ALLOW_UNDERSCORES)
+
 
 art_make_exec(NAME product_sizes_dumper
   SOURCE product_sizes_dumper.cc RootSizeOnDisk.cc
