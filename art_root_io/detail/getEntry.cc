@@ -36,15 +36,7 @@ namespace art {
     {
       InputSourceMutexSentry sentry;
       try {
-        // unsigned tsc_begin_cpuidx = 0;
-        // auto tsc_begin = getTSCP(tsc_begin_cpuidx);
-        // unsigned tsc_end_cpuidx = tsc_begin_cpuidx;
-        // auto tsc_end = tsc_begin;
         auto ret = branch->GetEntry(entryNumber);
-        // tsc_end = getTSCP(tsc_end_cpuidx);
-        // ticks = tsc_end - tsc_begin;
-        // Show the amount of time spent doing the I/O.
-        // cerr << "-----> " << __func__ << ": ticks: " << ticks << "\n";
         return ret;
       }
       catch (cet::exception& e) {
@@ -73,15 +65,7 @@ namespace art {
     {
       InputSourceMutexSentry sentry;
       try {
-        // unsigned tsc_begin_cpuidx = 0;
-        // auto tsc_begin = getTSCP(tsc_begin_cpuidx);
-        // unsigned tsc_end_cpuidx = tsc_begin_cpuidx;
-        // auto tsc_end = tsc_begin;
         auto ret = tree->GetEntry(entryNumber);
-        // tsc_end = getTSCP(tsc_end_cpuidx);
-        // ticks = tsc_end - tsc_begin;
-        // Show the amount of time spent doing the I/O.
-        // cerr << "-----> " << __func__ << ": ticks: " << ticks << "\n";
         return ret;
       }
       catch (cet::exception& e) {
