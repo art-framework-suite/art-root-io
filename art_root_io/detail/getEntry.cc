@@ -34,15 +34,7 @@ namespace art {
              EntryNumber entryNumber,
              unsigned long long& ticks [[maybe_unused]])
     {
-      InputSourceMutexSentry sentry;
-      try {
-        auto ret = branch->GetEntry(entryNumber);
-        return ret;
-      }
-      catch (cet::exception& e) {
-        throw art::Exception(art::errors::FileReadError)
-          << e.explain_self() << "\n";
-      }
+      return getEntry(branch, entryNumber);
     }
 
     Int_t
@@ -63,15 +55,7 @@ namespace art {
              EntryNumber entryNumber,
              unsigned long long& ticks [[maybe_unused]])
     {
-      InputSourceMutexSentry sentry;
-      try {
-        auto ret = tree->GetEntry(entryNumber);
-        return ret;
-      }
-      catch (cet::exception& e) {
-        throw art::Exception(art::errors::FileReadError)
-          << e.explain_self() << "\n";
-      }
+      return getEntry(tree, entryNumber);
     }
 
   } // namespace input
