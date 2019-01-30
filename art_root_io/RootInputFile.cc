@@ -3,6 +3,16 @@
 
 #include "art/Framework/Core/GroupSelector.h"
 #include "art/Framework/Core/UpdateOutputCallbacks.h"
+#include "art/Framework/Principal/ClosedRangeSetHandler.h"
+#include "art/Framework/Principal/EventPrincipal.h"
+#include "art/Framework/Principal/OpenRangeSetHandler.h"
+#include "art/Framework/Principal/RunPrincipal.h"
+#include "art/Framework/Principal/SubRunPrincipal.h"
+#include "art/Framework/Services/Registry/ServiceHandle.h"
+#include "art/Framework/Services/Registry/ServiceRegistry.h"
+#include "art/Framework/Services/System/DatabaseConnection.h"
+#include "art/Framework/Services/System/FileCatalogMetadata.h"
+#include "art/Persistency/Provenance/ProcessHistoryRegistry.h"
 #include "art_root_io/DuplicateChecker.h"
 #include "art_root_io/FastCloningInfoProvider.h"
 #include "art_root_io/GetFileFormatEra.h"
@@ -15,16 +25,6 @@
 #include "art_root_io/detail/readFileIndex.h"
 #include "art_root_io/detail/readMetadata.h"
 #include "art_root_io/detail/resolveRangeSet.h"
-#include "art/Framework/Principal/ClosedRangeSetHandler.h"
-#include "art/Framework/Principal/EventPrincipal.h"
-#include "art/Framework/Principal/OpenRangeSetHandler.h"
-#include "art/Framework/Principal/RunPrincipal.h"
-#include "art/Framework/Principal/SubRunPrincipal.h"
-#include "art/Framework/Services/Registry/ServiceHandle.h"
-#include "art/Framework/Services/Registry/ServiceRegistry.h"
-#include "art/Framework/Services/System/DatabaseConnection.h"
-#include "art/Framework/Services/System/FileCatalogMetadata.h"
-#include "art/Persistency/Provenance/ProcessHistoryRegistry.h"
 #include "canvas/Persistency/Common/EDProduct.h"
 #include "canvas/Persistency/Provenance/BranchChildren.h"
 #include "canvas/Persistency/Provenance/BranchDescription.h"
@@ -82,7 +82,7 @@ namespace {
       switch (rc = sqlite3_step(stmt)) {
         case SQLITE_ROW:
           result = true; // Found the table.
-          FALLTHROUGH;
+          [[fallthrough]];
         case SQLITE_DONE:
           rc = SQLITE_OK; // No such table.
           break;
@@ -442,10 +442,13 @@ namespace art {
     auto productList =
       detail::readMetadata<ProductRegistry>(metaDataTree, false).productList_;
 
+    auto const branchChildren =
+      detail::readMetadata<BranchChildren>(metaDataTree);
+
     // Create product table for present products
-    auto const& descriptions = make_product_descriptions(productList);
-    presentProducts_ = ProductTables{descriptions};
-    dropOnInput(groupSelectorRules, dropDescendants, presentProducts_);
+    presentProducts_ = ProductTables{make_product_descriptions(productList)};
+    dropOnInput(
+      groupSelectorRules, branchChildren, dropDescendants, presentProducts_);
 
     // Adjust validity of BranchDescription objects: if the branch
     // does not exist in the input file, but its BranchDescription is
@@ -1251,9 +1254,9 @@ namespace art {
   }
 
   unique_ptr<SubRunPrincipal>
-  RootInputFile::readCurrentSubRun(
-    EntryNumbers const& entryNumbers,
-    cet::exempt_ptr<RunPrincipal const> rp[[gnu::unused]])
+  RootInputFile::readCurrentSubRun(EntryNumbers const& entryNumbers,
+                                   cet::exempt_ptr<RunPrincipal const> rp
+                                   [[maybe_unused]])
   {
     subRunRangeSetHandler_ = fillAuxiliary_SubRun(entryNumbers);
     assert(subRunAux_.subRunID() == fiIter_->eventID_.subRunID());
@@ -1407,24 +1410,23 @@ namespace art {
     }
     bool const lastInSubRun{(iter == fiEnd_) ||
                             (iter->eventID_.subRun() != eid.subRun())};
-    return pair<EntryNumbers, bool>{enumbers, lastInSubRun};
+    return pair{enumbers, lastInSubRun};
   }
 
   void
   RootInputFile::dropOnInput(GroupSelectorRules const& rules,
+                             BranchChildren const& children,
                              bool const dropDescendants,
                              ProductTables& tables)
   {
     auto dropOnInputForBranchType =
-      [this, &rules, dropDescendants, &tables](BranchType const bt) {
+      [this, &rules, &children, dropDescendants, &tables](BranchType const bt) {
         auto& prodList = tables.get(bt).descriptions;
 
         // This is the selector for drop on input.
         GroupSelector const groupSelector{rules, prodList};
         // Do drop on input. On the first pass, just fill in a set of
-        // branches to be dropped.  Use the BranchChildren class to
-        // assemble list of children to drop.
-        BranchChildren children;
+        // branches to be dropped.
         set<ProductID> branchesToDrop;
         for (auto const& prod : prodList) {
           auto const& pd = prod.second;

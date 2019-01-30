@@ -1,5 +1,5 @@
-#ifndef art_Framework_IO_Root_detail_InfoDumperInputFile_h
-#define art_Framework_IO_Root_detail_InfoDumperInputFile_h
+#ifndef art_root_io_detail_InfoDumperInputFile_h
+#define art_root_io_detail_InfoDumperInputFile_h
 
 #include "TBranch.h"
 #include "TFile.h"
@@ -56,7 +56,7 @@ namespace art {
   } // namespace detail
 } // namespace art
 
-#endif /* art_Framework_IO_Root_detail_InfoDumperInputFile_h */
+#endif /* art_root_io_detail_InfoDumperInputFile_h */
 
 // Local variables:
 // mode: c++

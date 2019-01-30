@@ -1,5 +1,5 @@
-#ifndef art_Framework_IO_Root_RootInput_h
-#define art_Framework_IO_Root_RootInput_h
+#ifndef art_root_io_RootInput_h
+#define art_root_io_RootInput_h
 // vim: set sw=2 expandtab :
 
 #include "art/Framework/Core/DecrepitRelicInputSourceImplementation.h"
@@ -25,8 +25,7 @@
 namespace art {
 
   class RootInput final : public DecrepitRelicInputSourceImplementation {
-
-  public: // CONFIGURATION
+  public:
     struct Config {
 
       fhicl::Atom<std::string> module_type{fhicl::Name("module_type")};
@@ -46,10 +45,9 @@ namespace art {
 
     using Parameters = fhicl::WrappedTable<Config, Config::KeysToIgnore>;
 
-  private: // TYPES
+  private:
     class AccessState {
-
-    public: // TYPES
+    public:
       enum State {
         SEQUENTIAL = 0,
         SEEKING_FILE,   // 1
@@ -58,9 +56,7 @@ namespace art {
         SEEKING_EVENT   // 4
       };
 
-    public:
       ~AccessState();
-
       AccessState();
 
       State state() const;
@@ -90,20 +86,16 @@ namespace art {
 
     using EntryNumber = input::EntryNumber;
 
-  public: // MEMBER FUNCTIONS -- Special Member Functions
+  public:
+    RootInput(Parameters const&, InputSourceDescription&);
     ~RootInput();
 
-    RootInput(Parameters const&, InputSourceDescription&);
-
     RootInput(RootInput const&) = delete;
-
     RootInput(RootInput&&) = delete;
 
     RootInput& operator=(RootInput const&) = delete;
-
     RootInput& operator=(RootInput&&) = delete;
 
-  public:
     // Find the requested event and set the system up to read run and
     // subRun records where appropriate. Note the corresponding
     // seekToEvent function must exist in RootInputFileSequence to
@@ -111,88 +103,37 @@ namespace art {
     template <typename T>
     bool seekToEvent(T eventSpec, bool exact = false);
 
-  private: // MEMBER FUNCTIONS -- Serial Interface
+  private:
     void finish() override;
 
-    virtual input::ItemType nextItemType() override;
+    input::ItemType nextItemType() override;
 
-    virtual std::unique_ptr<FileBlock> readFile() override;
-
-    // Not Implemented
-    // virtual
-    // void
-    // closeFile() = 0;
-
-    virtual std::unique_ptr<RunPrincipal> readRun() override;
-
-    virtual std::unique_ptr<SubRunPrincipal> readSubRun(
+    std::unique_ptr<FileBlock> readFile() override;
+    std::unique_ptr<RunPrincipal> readRun() override;
+    std::unique_ptr<SubRunPrincipal> readSubRun(
       cet::exempt_ptr<RunPrincipal const>) override;
-
-    virtual std::unique_ptr<EventPrincipal> readEvent(
+    std::unique_ptr<EventPrincipal> readEvent(
       cet::exempt_ptr<SubRunPrincipal const>) override;
 
-    virtual std::unique_ptr<RangeSetHandler> runRangeSetHandler() override;
+    std::unique_ptr<RangeSetHandler> runRangeSetHandler() override;
+    std::unique_ptr<RangeSetHandler> subRunRangeSetHandler() override;
 
-    virtual std::unique_ptr<RangeSetHandler> subRunRangeSetHandler() override;
+    void endJob() override;
 
-  private: // MEMBER FUNCTIONS -- Job Interface
-    // Not Implemented.
-    // virtual
-    // void
-    // doBeginJob() override;
-
-    virtual void endJob() override;
-
-  private: // MEMBER FUNCTIONS -- Random Access Interface
-    // Note: This pulls in:
-    //      virtual
-    //      std::unique_ptr<EventPrincipal>
-    //      readEvent(EventID const&) override;
     using DecrepitRelicInputSourceImplementation::readEvent;
 
-    // Not Implemented.
-    // virtual
-    // void
-    // skipEvents(int n);
-
-    // Not Implemented.
-    // virtual
-    // void
-    // rewind() override;
-
-  private
-    : // MEMBER FUNCTIONS -- Required by DecrepitRelicInputSourceImplementation
-    virtual input::ItemType getNextItemType() override;
-
-    virtual std::unique_ptr<RunPrincipal> readRun_() override;
-
-    virtual std::unique_ptr<SubRunPrincipal> readSubRun_(
+    input::ItemType getNextItemType() override;
+    std::unique_ptr<RunPrincipal> readRun_() override;
+    std::unique_ptr<SubRunPrincipal> readSubRun_(
       cet::exempt_ptr<RunPrincipal const>) override;
+    std::unique_ptr<EventPrincipal> readEvent_() override;
+    std::unique_ptr<FileBlock> readFile_() override;
+    void closeFile_() override;
+    void rewind_() override;
 
-    virtual std::unique_ptr<EventPrincipal> readEvent_() override;
-
-  private
-    : // MEMBER FUNCTIONS -- DecrepitRelicInputSourceImplementation Interface
-    virtual std::unique_ptr<FileBlock> readFile_() override;
-
-    virtual void closeFile_() override;
-
-    virtual void rewind_() override;
-
-  private: // MEMBER FUNCTIONS
     std::unique_ptr<EventPrincipal> readEvent_(
       cet::exempt_ptr<SubRunPrincipal const>);
 
-  private:
-    template <typename T>
-    std::enable_if_t<std::is_convertible<T, off_t>::value, EventID>
-    postSeekChecks(EventID const& foundID, T eventSpec);
-
-    template <typename T>
-    std::enable_if_t<!std::is_convertible<T, off_t>::value, EventID>
-    postSeekChecks(EventID const& foundID, T eventSpec);
-
-  private:
     InputFileCatalog catalog_;
     std::unique_ptr<RootInputFileSequence> primaryFileSequence_;
     AccessState accessState_{};
@@ -200,7 +141,7 @@ namespace art {
 
   template <typename T>
   bool
-  RootInput::seekToEvent(T eventSpec, bool exact)
+  RootInput::seekToEvent(T const eventSpec, bool const exact)
   {
     if (accessState_.state()) {
       throw Exception(errors::LogicError)
@@ -212,7 +153,17 @@ namespace art {
     if (!foundID.isValid()) {
       return false;
     }
-    foundID = postSeekChecks(foundID, eventSpec);
+    if constexpr (std::is_convertible_v<T, off_t>) {
+      if (eventSpec == 0 && foundID == accessState_.lastReadEventID()) {
+        // We're supposed to be reading the "next" event but it's a
+        // duplicate of the current one: skip it.
+        mf::LogWarning("DuplicateEvent")
+          << "Duplicate Events found: "
+          << "both events were " << foundID << ".\n"
+          << "The duplicate will be skipped.\n";
+        foundID = primaryFileSequence_->seekToEvent(1, false);
+      }
+    }
     accessState_.setWantedEventID(foundID);
     if (primaryFileSequence_->rootFile() !=
         accessState_.rootFileForLastReadEvent()) {
@@ -228,33 +179,10 @@ namespace art {
     return true;
   }
 
-  template <typename T>
-  std::enable_if_t<std::is_convertible<T, off_t>::value, EventID>
-  RootInput::postSeekChecks(EventID const& foundID, T eventspec)
-  {
-    if (eventspec == 0 && foundID == accessState_.lastReadEventID()) {
-      // We're supposed to be reading the, "next" event but it's a
-      // duplicate of the current one: skip it.
-      mf::LogWarning("DuplicateEvent")
-        << "Duplicate Events found: "
-        << "both events were " << foundID << ".\n"
-        << "The duplicate will be skipped.\n";
-      return primaryFileSequence_->seekToEvent(1, false);
-    }
-    return foundID;
-  }
-
-  template <typename T>
-  std::enable_if_t<!std::is_convertible<T, off_t>::value, EventID>
-  RootInput::postSeekChecks(EventID const& foundID, T)
-  {
-    // Default implementation is NOP.
-    return foundID;
-  }
-
 } // namespace art
 
 // Local Variables:
 // mode: c++
 // End:
-#endif /* art_Framework_IO_Root_RootInput_h */
+
+#endif /* art_root_io_RootInput_h */

@@ -1,5 +1,5 @@
-#ifndef art_Framework_IO_Root_detail_resolveRangeSet_h
-#define art_Framework_IO_Root_detail_resolveRangeSet_h
+#ifndef art_root_io_detail_resolveRangeSet_h
+#define art_root_io_detail_resolveRangeSet_h
 
 #include "art_root_io/detail/RangeSetInfo.h"
 #include "canvas/Persistency/Provenance/BranchType.h"
@@ -30,7 +30,7 @@ namespace art {
   }
 }
 
-#endif /* art_Framework_IO_Root_detail_resolveRangeSet_h */
+#endif /* art_root_io_detail_resolveRangeSet_h */
 
 // Local variables:
 // mode: c++

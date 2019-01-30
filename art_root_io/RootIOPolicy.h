@@ -1,5 +1,5 @@
-#ifndef art_Framework_IO_Root_RootIOPolicy_h
-#define art_Framework_IO_Root_RootIOPolicy_h
+#ifndef art_root_io_RootIOPolicy_h
+#define art_root_io_RootIOPolicy_h
 
 ////////////////////////////////////////////////////////////////////////
 // RootIOPolicy
@@ -14,7 +14,10 @@
 #include "cetlib/value_ptr.h"
 
 #include "TFile.h"
-#include "TTree.h"
+
+#include <array>
+
+class TTree;
 
 namespace art {
 
@@ -64,7 +67,7 @@ namespace art {
     std::map<ProductID, RootBranchInfo> branchInfos_{};
   };
 }
-#endif /* art_Framework_IO_Root_RootIOPolicy_h */
+#endif /* art_root_io_RootIOPolicy_h */
 
 // Local Variables:
 // mode: c++

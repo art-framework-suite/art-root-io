@@ -1,21 +1,17 @@
 process_name: DumperTest
 
-source:
-{
+source: {
   module_type: RootInput
-  fileNames: [ "../test_tiered_input_05/test_tiered_input_05c_t.d/f3.root" ]
+  fileNames: [ "../secondary-input-files/t_05/test_tiered_input_05c_t.d/f3.root" ]
 }
 
-outputs:
-{
-  o1 :
-  {
+outputs: {
+  o1: {
     module_type: DataFlowDumper
     debuglevel: 1
   }
 }
 
-physics:
-{
+physics: {
   e1: [ o1 ]
 }

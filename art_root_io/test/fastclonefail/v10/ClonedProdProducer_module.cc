@@ -15,8 +15,7 @@ namespace arttest {
 
   class ClonedProdProducer : public EDProducer {
   public:
-    struct Config {
-    };
+    struct Config {};
     using Parameters = Table<Config>;
     explicit ClonedProdProducer(Parameters const&);
 

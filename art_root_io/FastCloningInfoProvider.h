@@ -1,5 +1,5 @@
-#ifndef art_Framework_IO_Root_FastCloningInfoProvider_h
-#define art_Framework_IO_Root_FastCloningInfoProvider_h
+#ifndef art_root_io_FastCloningInfoProvider_h
+#define art_root_io_FastCloningInfoProvider_h
 
 #include "cetlib/exempt_ptr.h"
 #include <unistd.h>
@@ -30,7 +30,7 @@ art::FastCloningInfoProvider::fastCloningPermitted() const
   return !input_.empty();
 }
 
-#endif /* art_Framework_IO_Root_FastCloningInfoProvider_h */
+#endif /* art_root_io_FastCloningInfoProvider_h */
 
 // Local Variables:
 // mode: c++

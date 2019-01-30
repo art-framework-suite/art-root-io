@@ -1,5 +1,5 @@
-#ifndef art_Framework_IO_Root_RootOutputTree_h
-#define art_Framework_IO_Root_RootOutputTree_h
+#ifndef art_root_io_RootOutputTree_h
+#define art_root_io_RootOutputTree_h
 // vim: set sw=2:
 
 // Used by ROOT output modules.
@@ -137,4 +137,4 @@ namespace art {
 // Local Variables:
 // mode: c++
 // End:
-#endif /* art_Framework_IO_Root_RootOutputTree_h */
+#endif /* art_root_io_RootOutputTree_h */

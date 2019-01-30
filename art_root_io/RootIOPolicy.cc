@@ -8,6 +8,8 @@
 #include "canvas_root_io/Streamers/RefCoreStreamer.h"
 #include "canvas_root_io/Utilities/DictionaryChecker.h"
 
+#include "TTree.h"
+
 namespace {
   std::array<cet::exempt_ptr<TTree>, art::NumBranchTypes>
   initDataTrees(cet::value_ptr<TFile> const& currentFile)

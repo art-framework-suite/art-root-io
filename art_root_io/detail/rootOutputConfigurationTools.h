@@ -1,5 +1,5 @@
-#ifndef art_Framework_IO_Root_detail_rootOutputConfigurationTools_h
-#define art_Framework_IO_Root_detail_rootOutputConfigurationTools_h
+#ifndef art_root_io_detail_rootOutputConfigurationTools_h
+#define art_root_io_detail_rootOutputConfigurationTools_h
 
 #include <string>
 
@@ -15,7 +15,7 @@ namespace art {
   }
 }
 
-#endif /* art_Framework_IO_Root_detail_rootOutputConfigurationTools_h */
+#endif /* art_root_io_detail_rootOutputConfigurationTools_h */
 
 // Local variables:
 // mode: c++

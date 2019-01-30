@@ -1,16 +1,16 @@
-#ifndef art_Framework_IO_Root_RootOutputFile_h
-#define art_Framework_IO_Root_RootOutputFile_h
+#ifndef art_root_io_RootOutputFile_h
+#define art_root_io_RootOutputFile_h
 // vim: set sw=2 expandtab :
 
 #include "art/Framework/Core/Frameworkfwd.h"
 #include "art/Framework/Core/OutputModule.h"
 #include "art/Framework/IO/ClosingCriteria.h"
 #include "art/Framework/IO/FileStatsCollector.h"
+#include "art/Framework/Principal/RangeSetsSupported.h"
+#include "art/Persistency/Provenance/Selections.h"
 #include "art_root_io/DropMetaData.h"
 #include "art_root_io/RootOutputTree.h"
 #include "art_root_io/detail/DummyProductCache.h"
-#include "art/Framework/Principal/RangeSetsSupported.h"
-#include "art/Persistency/Provenance/Selections.h"
 #include "boost/filesystem.hpp"
 #include "canvas/Persistency/Provenance/BranchDescription.h"
 #include "canvas/Persistency/Provenance/BranchType.h"
@@ -122,15 +122,9 @@ namespace art {
     template <BranchType>
     void fillBranches(Principal const&, std::vector<ProductProvenance>*);
     template <BranchType BT>
-    std::enable_if_t<!detail::RangeSetsSupported<BT>::value, EDProduct const*>
-    getProduct(OutputHandle const&,
-               RangeSet const& productRS,
-               std::string const& wrappedName);
-    template <BranchType BT>
-    std::enable_if_t<detail::RangeSetsSupported<BT>::value, EDProduct const*>
-    getProduct(OutputHandle const&,
-               RangeSet const& productRS,
-               std::string const& wrappedName);
+    EDProduct const* getProduct(OutputHandle const&,
+                                RangeSet const& productRS,
+                                std::string const& wrappedName);
 
   private: // MEMBER DATA
     mutable hep::concurrency::RecursiveMutex mutex_;
@@ -183,4 +177,4 @@ namespace art {
 // Local Variables:
 // mode: c++
 // End:
-#endif /* art_Framework_IO_Root_RootOutputFile_h */
+#endif /* art_root_io_RootOutputFile_h */

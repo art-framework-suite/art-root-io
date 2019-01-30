@@ -1,5 +1,5 @@
-#ifndef art_Framework_IO_Root_Inputfwd_h
-#define art_Framework_IO_Root_Inputfwd_h
+#ifndef art_root_io_Inputfwd_h
+#define art_root_io_Inputfwd_h
 // vim: set sw=2 expandtab :
 
 #include "Rtypes.h"
@@ -52,7 +52,7 @@ namespace art {
   } // namespace input
 } // namespace art
 
-#endif /* art_Framework_IO_Root_Inputfwd_h */
+#endif /* art_root_io_Inputfwd_h */
 
 // Local Variables:
 // mode: c++

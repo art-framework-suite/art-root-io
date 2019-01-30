@@ -1,5 +1,5 @@
-#include "art_root_io/RootDB/tkeyvfs.h"
 #include "art_root_io/setup.h"
+#include "art_root_io/RootDB/tkeyvfs.h"
 #include "canvas/Utilities/Exception.h"
 #include "canvas_root_io/Streamers/BranchDescriptionStreamer.h"
 #include "canvas_root_io/Streamers/CacheStreamers.h"
@@ -129,6 +129,15 @@ namespace {
 
     if ((el_location.find("TTree::ReadStream") != npos) &&
         (el_message.find("Ignoring trailing") == 0)) {
+      el_severity = SeverityLevel::kInfo;
+    }
+
+    // Enable XRootD retries
+    if ((el_location.find("TUnixSystem::GetHostByName") != npos) ||
+        // Allowed to downgrade severity of the error comes from
+        // TNetXNGFile::Open and is *not* fatal.
+        (el_location.find("TNetXNGFile::Open") != npos &&
+         el_message.find("[FATAL]") == npos)) {
       el_severity = SeverityLevel::kInfo;
     }
 

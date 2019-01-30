@@ -46,18 +46,18 @@ namespace {
   }
 } // namespace
 
-art::SQLite3Wrapper::SQLite3Wrapper() : db_(0), key_() {}
+art::SQLite3Wrapper::SQLite3Wrapper() = default;
 
-art::SQLite3Wrapper::SQLite3Wrapper(std::string const& key, int flags)
-  : db_(0), key_(key)
+art::SQLite3Wrapper::SQLite3Wrapper(std::string const& key, int const flags)
+  : key_{key}
 {
   initDB(flags);
 }
 
-art::SQLite3Wrapper::SQLite3Wrapper(TFile* tfile,
+art::SQLite3Wrapper::SQLite3Wrapper(TFile* const tfile,
                                     std::string const& key,
-                                    int flags)
-  : db_(0), key_(key)
+                                    int const flags)
+  : key_{key}
 {
   initDB(flags, tfile);
 }

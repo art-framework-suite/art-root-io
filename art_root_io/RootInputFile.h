@@ -1,18 +1,18 @@
-#ifndef art_Framework_IO_Root_RootInputFile_h
-#define art_Framework_IO_Root_RootInputFile_h
+#ifndef art_root_io_RootInputFile_h
+#define art_root_io_RootInputFile_h
 // vim: set sw=2 expandtab :
 
 #include "art/Framework/Core/Frameworkfwd.h"
 #include "art/Framework/Core/InputSource.h"
 #include "art/Framework/Core/UpdateOutputCallbacks.h"
-#include "art_root_io/FastCloningInfoProvider.h"
-#include "art_root_io/Inputfwd.h"
-#include "art_root_io/RootInputFileSequence.h"
 #include "art/Framework/Principal/EventPrincipal.h"
 #include "art/Framework/Principal/RangeSetHandler.h"
 #include "art/Framework/Principal/ResultsPrincipal.h"
 #include "art/Framework/Principal/RunPrincipal.h"
 #include "art/Framework/Principal/SubRunPrincipal.h"
+#include "art_root_io/FastCloningInfoProvider.h"
+#include "art_root_io/Inputfwd.h"
+#include "art_root_io/RootInputFileSequence.h"
 #include "canvas/Persistency/Provenance/Compatibility/BranchIDList.h"
 #include "canvas/Persistency/Provenance/EventAuxiliary.h"
 #include "canvas/Persistency/Provenance/FileFormatVersion.h"
@@ -48,10 +48,13 @@ namespace art {
     void mergeAuxiliary(RunAuxiliary& left, RunAuxiliary const& right);
     void mergeAuxiliary(SubRunAuxiliary& left, SubRunAuxiliary const& right);
   } // namespace detail
+
+  class BranchChildren;
   class DuplicateChecker;
   class EventRangeHandler;
   class GroupSelectorRules;
   class UpdateOutputCallbacks;
+
   class RootInputFile {
   private: // TYPES
     class RootInputTree {
@@ -191,6 +194,7 @@ namespace art {
     void overrideRunNumber(SubRunID& id);
     void overrideRunNumber(EventID& id, bool isRealData);
     void dropOnInput(GroupSelectorRules const& rules,
+                     BranchChildren const& branchChildren,
                      bool dropDescendants,
                      ProductTables& tables);
     void readParentageTree(unsigned int treeCacheSize);
@@ -258,4 +262,4 @@ namespace art {
 // Local Variables:
 // mode: c++
 // End:
-#endif /* art_Framework_IO_Root_RootInputFile_h */
+#endif /* art_root_io_RootInputFile_h */

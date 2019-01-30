@@ -2,10 +2,11 @@
 // vim: sw=2 expandtab :
 
 #include "art/Framework/Core/InputSourceMutex.h"
-#include "art/Framework/Core/SharedResourcesRegistry.h"
+#include "art/Framework/Principal/Principal.h"
+#include "art/Framework/Principal/RangeSetsSupported.h"
+#include "art/Utilities/SharedResourcesRegistry.h"
 #include "art_root_io/RootInputFile.h"
 #include "art_root_io/detail/resolveRangeSet.h"
-#include "art/Framework/Principal/Principal.h"
 #include "canvas/Persistency/Provenance/BranchDescription.h"
 #include "canvas/Persistency/Provenance/Compatibility/BranchIDList.h"
 #include "canvas/Persistency/Provenance/ProductProvenance.h"
@@ -84,7 +85,7 @@ namespace art {
   bool
   RootDelayedReader::isAvailableAfterCombine_(ProductID bid) const
   {
-    if ((branchType_ != InSubRun) && (branchType_ != InRun)) {
+    if (!detail::range_sets_supported(branchType_)) {
       // We only handle run and subrun products here, tell
       // the caller he should proceed.
       return true;
@@ -141,7 +142,7 @@ namespace art {
     // run or subrun product because there might be many of them spread
     // across multiple fragments of the same run or subrun which will
     // be combined below.
-    if ((branchType_ != InSubRun) && (branchType_ != InRun)) {
+    if (!detail::range_sets_supported(branchType_)) {
       if (pd.produced()) {
         throw Exception{errors::LogicError, "RootDelayedReader::getProduct_"}
           << "Attempt to delay read a produced product!\n";
@@ -167,7 +168,7 @@ namespace art {
     };
     // Retrieve first product
     auto result = get_product(entrySet_[0]);
-    if ((branchType_ != InSubRun) && (branchType_ != InRun)) {
+    if (!detail::range_sets_supported(branchType_)) {
       // Not a run or subrun product, all done.
       configureProductIDStreamer();
       configureRefCoreStreamer();

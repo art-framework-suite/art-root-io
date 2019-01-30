@@ -1,5 +1,5 @@
-#ifndef art_Framework_IO_Root_detail_KeptProvenance_h
-#define art_Framework_IO_Root_detail_KeptProvenance_h
+#ifndef art_root_io_detail_KeptProvenance_h
+#define art_root_io_detail_KeptProvenance_h
 // vim: set sw=2 expandtab :
 
 //
@@ -58,7 +58,7 @@ namespace art {
 
 } // namespace art
 
-#endif /* art_Framework_IO_Root_detail_KeptProvenance_h */
+#endif /* art_root_io_detail_KeptProvenance_h */
 
 // Local variables:
 // mode: c++

@@ -1,5 +1,5 @@
-#ifndef art_Framework_IO_Root_RootBranchInfo_h
-#define art_Framework_IO_Root_RootBranchInfo_h
+#ifndef art_root_io_RootBranchInfo_h
+#define art_root_io_RootBranchInfo_h
 
 namespace art {
   class RootBranchInfo;
@@ -39,7 +39,7 @@ art::RootBranchInfo::branch()
   return branch_;
 }
 
-#endif /* art_Framework_IO_Root_RootBranchInfo_h */
+#endif /* art_root_io_RootBranchInfo_h */
 
 // Local Variables:
 // mode: c++
