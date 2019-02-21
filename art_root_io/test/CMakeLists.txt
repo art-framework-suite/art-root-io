@@ -82,6 +82,22 @@ cet_test(PersistStdArrays_r HANDBUILT
   REQUIRED_FILES "../PersistStdArrays_w.d/out.root"
   TEST_PROPERTIES DEPENDS PersistStdArrays_w)
 
+simple_plugin(BitsetAnalyzer "module"  NO_INSTALL ALLOW_UNDERSCORES)
+simple_plugin(BitsetProducer "module"  NO_INSTALL ALLOW_UNDERSCORES)
+
+cet_test(PersistStdBitsets_w HANDBUILT
+  TEST_EXEC art
+  TEST_ARGS --rethrow-all -c persistStdBitsets_w.fcl -o out.root
+  DATAFILES
+  fcl/persistStdBitsets_w.fcl)
+
+cet_test(PersistStdBitsets_r HANDBUILT
+  TEST_EXEC art
+  TEST_ARGS --rethrow-all -c persistStdBitsets_r.fcl -s ../PersistStdBitsets_w.d/out.root
+  DATAFILES
+  fcl/persistStdBitsets_r.fcl
+  TEST_PROPERTIES DEPENDS PersistStdBitsets_w)
+
 cet_test(PostCloseFileRename_Integration HANDBUILT
   TEST_EXEC art
   TEST_ARGS -c PostCloseFileRename_t.fcl
