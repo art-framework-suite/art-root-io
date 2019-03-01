@@ -1,5 +1,8 @@
-# ======================================================================
+#
 #  art_root_io main build file
+#  -------------------------------------------------------------------
+#
+#  CMake build file for library  art_root_io
 #
 #  cd .../path/to/build/directory
 #  source .../path/to/art_root_io/ups/setup_for_development
@@ -12,14 +15,16 @@
 #  make package (builds distribution tarfile)
 # ======================================================================
 
-
-# use cmake 3.11 or later
-cmake_minimum_required (VERSION 3.11)
+cmake_minimum_required(VERSION 3.11) # use cmake 3.11 or later
 
 project(art_root_io)
+set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 
 # cetbuildtools contains our cmake modules
 find_package(cetbuildtools REQUIRED)
+
+include(CetCMakeEnv)
+cet_cmake_env()
 
 list(APPEND CMAKE_MODULE_PATH
   $ENV{CANVAS_ROOT_IO_DIR}/Modules
@@ -33,7 +38,8 @@ cet_set_compiler_flags(DIAGS VIGILANT
   WERROR
   NO_UNDEFINED
   EXTRA_FLAGS -pedantic
-  EXTRA_CXX_FLAGS -Wnon-virtual-dtor -Wdelete-non-virtual-dtor)
+  EXTRA_CXX_FLAGS -Wnon-virtual-dtor -Wdelete-non-virtual-dtor
+  )
 
 cet_have_qual(sse2 SSE2)
 if (SSE2)
@@ -77,6 +83,7 @@ find_ups_product(canvas)
 find_ups_product(messagefacility)
 find_ups_product(fhiclcpp)
 find_ups_product(cetlib)
+find_ups_product(python v3_7_2)
 find_ups_product(cetlib_except)
 find_ups_product(clhep)
 find_ups_product(cppunit)
@@ -86,21 +93,31 @@ find_ups_product(sqlite)
 find_ups_boost()
 find_ups_root()
 
+#cet_find_library(PYTHON NAMES python2.7 PATHS ENV PYTHON_LIB NO_DEFAULT_PATH)
+cet_find_library(PYTHON NAMES python3.7 PATHS ENV PYTHON_LIB NO_DEFAULT_PATH)
+
+# ----------------------------------------------------------------------
 # SQLite
 cet_find_library(SQLITE3 NAMES sqlite3_ups PATHS ENV SQLITE_LIB NO_DEFAULT_PATH)
 
+# ----------------------------------------------------------------------
 # macros for making art libraries/dictionaries, etc. and plugins
 include(ArtMake)
 include(BuildPlugins)
 
-# source
-add_subdirectory(art_root_io)
+# ----------------------------------------------------------------------
+# Describe source tree layout:
 
-# ups - table and config files
-add_subdirectory(ups)
+add_subdirectory(art_root_io) # source
 
-# tools - migration scripts
-add_subdirectory(tools)
+add_subdirectory(tools) # tools
+add_subdirectory(ups) # ups - table and config files
 
-# packaging utility
+# ----------------------------------------------------------------------
+# Documentation generation:
+#find_package(Sphinx REQUIRED)
+add_subdirectory(docs)
+
+# ----------------------------------------------------------------------
+# Packaging utility
 include(UseCPack)
