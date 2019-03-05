@@ -172,9 +172,17 @@ detail::SamplingInputFile::SamplingInputFile(
 
   for (auto& pr : productList) {
     auto const& key = pr.first;
-    auto& pd = pr.second;
+    auto const& pd = pr.second;
     auto const bt = pd.branchType();
     auto branch = treeForBranchType_(bt)->GetBranch(pd.branchName().c_str());
+    if (branch == nullptr) {
+      continue;
+    }
+    // A default-constructed BranchDescription object is initialized
+    // with the PresentFromSource validity flag.  If we get this far,
+    // then the branch is present in the file, and we need not adjust
+    // the validity of the BranchDescription.
+
     branch->SetAddress(nullptr);
     if (bt == InSubRun || bt == InRun) {
       std::string const wrapped_product{"art::Sampled<" +
@@ -194,12 +202,6 @@ detail::SamplingInputFile::SamplingInputFile(
         false,
         false};
       oldKeyToSampledProductDescription.emplace(key, std::move(sampledDesc));
-    } else {
-      bool const present{branch != nullptr};
-      auto const validity = present ?
-                              BranchDescription::Transients::PresentFromSource :
-                              BranchDescription::Transients::Dropped;
-      pd.setValidity(validity);
     }
 
     branches_.emplace(pd.productID(), input::BranchInfo{pd, branch});
