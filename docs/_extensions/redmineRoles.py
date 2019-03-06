@@ -79,7 +79,7 @@ def make_link_node(rawtext, app, type, spec, options):
     if type is 'source':
         version = 'v' + release.replace('.', '_')
         #ref += 'projects/cetlib/repository/entry/'
-        ref += 'projects/cetlib_except/repository/entry/'
+        ref += 'projects/art/repository/entry/'
         ref += spec
         ref += '?utf8='
         ref += u'\u2713'
