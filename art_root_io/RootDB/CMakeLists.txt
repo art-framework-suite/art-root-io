@@ -1,3 +1,5 @@
+find_package(ROOT QUIET REQUIRED COMPONENTS RIO Core)
+
 art_make_library(LIBRARY_NAME
   art_root_io_RootDB
   SOURCE
@@ -13,8 +15,8 @@ art_make_library(LIBRARY_NAME
   cetlib_except
   MF_MessageLogger
   ${CMAKE_DL_LIBS}
-  ${ROOT_RIO}
-  ${ROOT_CORE}
+  ${ROOT_RIO_LIBRARY}
+  ${ROOT_Core_LIBRARY}
   ${SQLITE3})
 
 install_headers()

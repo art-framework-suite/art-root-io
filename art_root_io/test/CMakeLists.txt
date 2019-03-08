@@ -2,9 +2,11 @@ cet_enable_asserts()
 
 include(CetTest)
 
+find_package(ROOT QUIET REQUIRED COMPONENTS Graf)
+
 cet_make_library(LIBRARY_NAME art_root_io_test_TH1Data
   SOURCE TH1Data.cc
-  LIBRARIES ${ROOT_HIST} ${ROOT_CORE}
+  LIBRARIES ${ROOT_Hist_LIBRARY} ${ROOT_Core_LIBRARY}
   NO_INSTALL)
 art_dictionary(DICTIONARY_LIBRARIES art_root_io_test_TH1Data NO_INSTALL)
 
@@ -104,7 +106,7 @@ cet_test(PostCloseFileRename_Integration HANDBUILT
   DATAFILES fcl/PostCloseFileRename_t.fcl)
 
 simple_plugin(TestTFileService "module" NO_INSTALL
-  art_root_io_TFileService_service ${ROOT_HIST} ${ROOT_GRAF} ALLOW_UNDERSCORES)
+  art_root_io_TFileService_service ${ROOT_Hist_LIBRARY} ${ROOT_Graf_LIBRARY} ALLOW_UNDERSCORES)
 
 simple_plugin(TestTFileServiceNoRegister "module" NO_INSTALL
   art_root_io_TFileService_service ALLOW_UNDERSCORES)
@@ -139,12 +141,12 @@ cet_test(TFileService_t_08 HANDBUILT
   DATAFILES fcl/TFileService_t_08.fcl)
 
 cet_test(TFileService_r_08 SOURCE TFileService_r_08.cxx
-  LIBRARIES ${ROOT_CORE} ${ROOT_RIO} ${ROOT_GRAF} ${ROOT_HIST}
+  LIBRARIES ${ROOT_Core_LIBRARY} ${ROOT_RIO_LIBRARY} ${ROOT_Graf_LIBRARY} ${ROOT_Hist_LIBRARY}
   REQUIRED_FILES ../TFileService_t_08.d/tfile_output.root
   TEST_PROPERTIES DEPENDS TFileService_t_08)
 
 add_executable(TestTFileService_r TestTFileService_r.cxx)
-target_link_libraries(TestTFileService_r ${ROOT_CORE} ${ROOT_RIO} ${ROOT_HIST})
+target_link_libraries(TestTFileService_r ${ROOT_Core_LIBRARY} ${ROOT_RIO_LIBRARY} ${ROOT_Hist_LIBRARY})
 
 foreach(NUM 1 5 6) # N.B. No 'RANGE' for these two tests
   cet_test(TFileService_r_0${NUM} HANDBUILT
@@ -154,7 +156,7 @@ foreach(NUM 1 5 6) # N.B. No 'RANGE' for these two tests
     TEST_PROPERTIES DEPENDS TFileService_t_0${NUM})
 endforeach()
 
-simple_plugin(XRootDRetry "module" NO_INSTALL ALLOW_UNDERSCORES ${ROOT_CORE} ${ROOT_RIO} art_root_io)
+simple_plugin(XRootDRetry "module" NO_INSTALL ALLOW_UNDERSCORES ${ROOT_Core_LIBRARY} ${ROOT_RIO_LIBRARY} art_root_io)
 
 cet_test(XRootDRetry_t HANDBUILT
   TEST_EXEC art
