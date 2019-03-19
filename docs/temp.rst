@@ -5,23 +5,9 @@
 .. Optional description of series
 
 
-New features
-------------
-
-**SamplingInput Source**: It is occasionally desirable to process events from multiple input datasets, according to predefined sampling weights. 
-This is now possible with the SamplingInput source. 
-Type 'art --print-description SamplingInput' to see the supported configuration. For full documentation, see here. (Resolves feature #21229.)
-
-
 .. New features
 
 .. Other
-
-Breaking changes
-----------------
-
-art users should consult the `list of breaking changes <https://cdcvs.fnal.gov/redmine/projects/art/wiki/302_breaking_changes>`_ to determine how to migrate code from using art to using art_root_io.
-
 
 .. Breaking changes
 
@@ -45,6 +31,7 @@ art users should consult the `list of breaking changes <https://cdcvs.fnal.gov/r
 
 
 
+Known issues
 ------------
 
 Depends on
