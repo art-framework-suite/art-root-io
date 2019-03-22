@@ -28,7 +28,7 @@ BEGIN {
   );
   %cmake_library_list = (
     # Bare link-line variables
-    "art_Framework_Services_Optional" => 'art_root_io_tfile_support $\ROOT_CORE',
+    "art_Framework_Services_Optional" => 'art_root_io_tfile_support \${ROOT_CORE}',
     "art_Framework_Services_Optional_TFileService_service" => "art_root_io_TFileService_service",
     "art_Framework_IO_Root" => "art_root_io",
     "art_Framework_IO_Root_detail_sources" => "art_root_io_detail",
