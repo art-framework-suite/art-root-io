@@ -19,7 +19,7 @@ cmake_minimum_required (VERSION 3.11)
 project(art_root_io)
 
 # cetbuildtools contains our cmake modules
-find_package(cetbuildtools REQUIRED)
+find_package(cetbuildtools 7.13.00 REQUIRED)
 
 list(APPEND CMAKE_MODULE_PATH
   $ENV{CANVAS_ROOT_IO_DIR}/Modules
@@ -81,7 +81,6 @@ find_ups_product(cetlib_except)
 find_ups_product(clhep)
 find_ups_product(cppunit)
 find_ups_product(hep_concurrency)
-find_ups_product(cetbuildtools v6_00_00) # LIBRARY_OUTPUT_DIRECTORY, etc.
 find_ups_product(sqlite)
 find_ups_boost()
 find_ups_root()
