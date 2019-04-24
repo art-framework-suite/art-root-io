@@ -82,7 +82,7 @@ find_ups_product(clhep)
 find_ups_product(cppunit)
 find_ups_product(hep_concurrency)
 find_ups_product(sqlite)
-find_ups_boost()
+find_ups_boost(BOOST_TARGETS)
 find_ups_root()
 
 # SQLite
