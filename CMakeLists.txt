@@ -19,7 +19,7 @@ cmake_minimum_required (VERSION 3.11...3.14 FATAL_ERROR)
 project(art_root_io VERSION 1.00.03 LANGUAGES C CXX)
 
 # cetmodules contains our cmake modules
-find_package(cetmodules REQUIRED)
+find_package(cetmodules 1.01.01 REQUIRED)
 
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/Modules)
 

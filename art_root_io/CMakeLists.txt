@@ -61,7 +61,7 @@ art_make_library(
   cetlib
   canvas
   fhiclcpp
-  ${Boost_DATE_TIME_LIBRARY}
+  Boost::date_time
   ${ROOT_Hist_LIBRARY}
   ${ROOT_Tree_LIBRARY})
 
@@ -106,14 +106,14 @@ art_make_exec(NAME product_sizes_dumper
   LIBRARIES
   art_root_io
   cetlib
-  ${Boost_FILESYSTEM_LIBRARY}
-  ${Boost_PROGRAM_OPTIONS_LIBRARY})
+  Boost::filesystem
+  Boost::program_options)
 
 art_make_exec(NAME config_dumper
   LIBRARIES art_root_io
   art_Utilities canvas
   art_Framework_Core
-  ${Boost_PROGRAM_OPTIONS_LIBRARY}
+  Boost::program_options
   ${ROOT_Tree_LIBRARY}
   ${ROOT_RIO_LIBRARY})
 
@@ -121,7 +121,7 @@ art_make_exec(NAME sam_metadata_dumper
   LIBRARIES art_root_io
   art_Utilities canvas
   art_Framework_Core
-  ${Boost_PROGRAM_OPTIONS_LIBRARY}
+  Boost::program_options
   ${ROOT_RIO_LIBRARY})
 
 art_make_exec(NAME count_events
@@ -129,7 +129,7 @@ art_make_exec(NAME count_events
   art_root_io
   art_Framework_Core
   art_Utilities canvas
-  ${Boost_PROGRAM_OPTIONS_LIBRARY}
+  Boost::program_options
   ${ROOT_Tree_LIBRARY}
   ${ROOT_RIO_LIBRARY})
 
@@ -140,7 +140,7 @@ art_make_exec(NAME file_info_dumper
   art_Persistency_Provenance
   canvas
   cetlib
-  ${Boost_PROGRAM_OPTIONS_LIBRARY})
+  Boost::program_options)
 
 include(CetMakeCompletions)
 cet_make_completions(product_sizes_dumper)
