@@ -29,6 +29,10 @@ src = os.environ['MRB_SOURCE']
 top = os.environ['MRB_TOP']
 html = os.environ['HTML_DIR']#+'/'project
 
+if(not html):
+    print("You haven't set an install dir ($HTML_DIR). Please set one and try again.")
+    sys.exit() 
+
 def dotted_version(normal_version):
     return normal_version.lstrip('v').replace('_', '.')
 
@@ -39,18 +43,17 @@ release = dotted_version('@version@')
 
 # Assemble list of already-built documentation that will appear in the
 # versions drop-down menu.
-#built_docs_path = '/Users/kyleknoepfel/work/art_suite_docs/' + project
-#built_docs_path = '/home/ryan/Documents/fermilab/work/doc_devel/srcs/' + project
-#built_docs_path = src+'/'+project
+#built_docs_path = top+'/all_docs/'+project
 built_docs_path = top+'/all_docs/'+project
+install_docs_path = html+'/'+project 
 
 print("\n\n\ninvestigating the version tab stuff..")
-files = os.listdir(built_docs_path)
+files = os.listdir(install_docs_path)
 print(files)
 subdirs = [subdir for subdir in files
-           if os.path.isdir(os.path.join(built_docs_path, subdir))]
+           if os.path.isdir(os.path.join(install_docs_path, subdir))]
 versions = { subdir: dotted_version(subdir) for subdir in subdirs }
-print(built_docs_path+subdirs[0])
+print(install_docs_path+subdirs[0])
 
 versions['@version@'] = release
 
