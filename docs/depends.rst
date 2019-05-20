@@ -3,6 +3,7 @@
 |release| depends on
 ====================
 
-| `(internal link): art v3_02_01 <../../art/v3_02_01/index.html>`_
-| `(internal link): canvas_root_io v1_03_01 <../../canvas_root_io/v1_03_01/index.html>`_
-| (external link): cetbuildtools v7_11_00
+| (external link): art v3_02_05
+| (external link): canvas_root_io v1_03_03
+| (external link): cetbuildtools v7_13_01
+| (external link): sphinx v2_0_1
