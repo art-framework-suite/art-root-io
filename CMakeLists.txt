@@ -21,7 +21,7 @@ project(art_root_io)
 set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 
 # cetbuildtools contains our cmake modules
-find_package(cetbuildtools REQUIRED)
+find_package(cetbuildtools 7.13.01 REQUIRED)
 
 include(CetCMakeEnv)
 cet_cmake_env()
@@ -88,9 +88,8 @@ find_ups_product(cetlib_except)
 find_ups_product(clhep)
 find_ups_product(cppunit)
 find_ups_product(hep_concurrency)
-find_ups_product(cetbuildtools v6_00_00) # LIBRARY_OUTPUT_DIRECTORY, etc.
 find_ups_product(sqlite)
-find_ups_boost()
+find_ups_boost(BOOST_TARGETS)
 find_ups_root()
 
 #cet_find_library(PYTHON NAMES python2.7 PATHS ENV PYTHON_LIB NO_DEFAULT_PATH)

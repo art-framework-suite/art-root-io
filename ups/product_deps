@@ -1,15 +1,15 @@
 # The parent line must be the first non-comment line in the file
 # This line defines the product name and version
-parent art_root_io v1_00_01
+parent art_root_io v1_00_05
 defaultqual     e17
 #
 fcldir -
 perllib  product_dir
 #
 product         version
-art             v3_02_01
-canvas_root_io  v1_03_01
-cetbuildtools   v7_11_00        -       only_for_build
+art             v3_02_05
+canvas_root_io  v1_03_03
+cetbuildtools   v7_13_01        -       only_for_build
 end_product_list
 
 qualifier       art             canvas_root_io  notes
