@@ -1,3 +1,5 @@
+:orphan:
+
 Specifying ROOT compression for data products
 =============================================
 

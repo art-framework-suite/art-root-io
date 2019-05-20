@@ -1,3 +1,5 @@
+:orphan:
+
 Output file renaming for ROOT files
 ===================================
 
