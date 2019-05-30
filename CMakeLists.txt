@@ -120,6 +120,7 @@ if(BUILD_DOCS)
 else()
     message("Not going to build documentation because variable BUILD_DOCS was not set..")
 endif()
+
 # ----------------------------------------------------------------------
 # Packaging utility
 include(UseCPack)

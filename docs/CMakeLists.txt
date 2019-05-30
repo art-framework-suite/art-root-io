@@ -68,6 +68,7 @@ if(EXISTS "${TOP_DOCS_DIR}")
     #message("art_root_io dir is here")
     string(TOUPPER ${PROJECT_NAME} ENV_PROJ_NAME)
     set(VERSION_DOCS_DIR "${PROJ_DOCS_DIR}/$ENV{${ENV_PROJ_NAME}_VERSION}")
+    set(VERSION_NUMBER $ENV{${ENV_PROJ_NAME}_VERSION})
     #message("looking for.. ${DUMB_TEMP_VAR}")
     #if(EXISTS "$ENV{MRB_TOP}/all_docs/${PROJECT_NAME}/$ENV{${ENV_PROJ_NAME}_VERSION}")
 
@@ -82,16 +83,15 @@ if(EXISTS "${TOP_DOCS_DIR}")
     endif() 
   endif()
 else()
-  #message("You don't a spot to put your docs!")
+  message("You don't a spot to put your docs!")
 endif()
   
 
 
 #message("\n\n\n\n\n\n")
 
-
 set(BINARY_BUILD_DIR "${CMAKE_CURRENT_BINARY_DIR}/${VERSION_NUMBER}")
-message("BINARY_BUILD_DIR: ${BINARY_BUILD_DIR}")
+message("BINARY_BUILD_DIR is: ${BINARY_BUILD_DIR} and VERSION_NUMBER is: ${VERSION_NUMBER}")
 set(SPHINX_HTML_DIR "${BINARY_BUILD_DIR}")
 
 
