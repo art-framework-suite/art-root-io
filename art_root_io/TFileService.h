@@ -99,7 +99,7 @@ namespace art {
 
 } // namespace art
 
-DECLARE_ART_SERVICE(art::TFileService, GLOBAL)
+DECLARE_ART_SERVICE(art::TFileService, SHARED)
 
 #endif /* art_root_io_TFileService_h */
 
