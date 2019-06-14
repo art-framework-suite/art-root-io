@@ -38,7 +38,7 @@ namespace art {
     : catalog_{catalog}
     , firstFile_{true}
     , seekingFile_{false}
-    , fileIndexes_(fileCatalogItems().size())
+    , fileIndexes_(catalog_.size())
     , eventsToSkip_{config().skipEvents()}
     , compactSubRunRanges_{config().compactSubRunRanges()}
     , noEventSort_{config().noEventSort()}
@@ -281,12 +281,6 @@ namespace art {
   {
     skip(offset);
     return rootFile_->eventIDForFileIndexPosition();
-  }
-
-  vector<FileCatalogItem> const&
-  RootInputFileSequence::fileCatalogItems() const
-  {
-    return catalog_.fileCatalogItems();
   }
 
   void
