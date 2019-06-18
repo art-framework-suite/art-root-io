@@ -97,13 +97,13 @@ namespace art {
     }
     {
       InputSourceMutexSentry sentry;
-      for (auto I = entrySet_.cbegin(), E = entrySet_.cend(); I != E; ++I) {
+      for (auto const entryNum : entrySet_) {
         vector<ProductProvenance> ppv;
         ProductProvenance const* prov = nullptr;
         {
           auto p_ppv = &ppv;
           provenanceBranch_->SetAddress(&p_ppv);
-          input::getEntry(provenanceBranch_, *I);
+          input::getEntry(provenanceBranch_, entryNum);
           for (auto const& val : ppv) {
             if (val.productID() == bid) {
               prov = &val;
@@ -215,6 +215,7 @@ namespace art {
     // this case because products that represent a full (Sub)Run are
     // allowed to be duplicated in an input file.  The behavior in
     // such a case is a NOP.
+    assert(db_ != nullptr);
     RangeSet mergedRangeSet = detail::resolveRangeSet(db_,
                                                       "SomeInput"s,
                                                       branchType_,
