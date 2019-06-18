@@ -69,6 +69,12 @@ using namespace std;
 
 namespace {
 
+  sqlite3*
+  db_or_nullptr(std::unique_ptr<sqlite::Connection> const& db)
+  {
+    return db.get() == nullptr ? nullptr : static_cast<sqlite3*>(*db);
+  }
+
   bool
   have_table(sqlite3* db, string const& table, string const& filename)
   {
@@ -617,6 +623,7 @@ namespace art {
       swap(subRunAux_, auxResult);
       return make_unique<OpenRangeSetHandler>(subRunAux_.run());
     }
+    assert(sqliteDB_);
     auto resolve_info = [this](auto const id) {
       return detail::resolveRangeSetInfo(*sqliteDB_,
                                          this->fileName_,
@@ -656,6 +663,7 @@ namespace art {
       swap(runAux_, auxResult);
       return make_unique<OpenRangeSetHandler>(runAux_.run());
     }
+    assert(sqliteDB_);
     auto resolve_info = [this](auto const id) {
       return detail::resolveRangeSetInfo(*sqliteDB_,
                                          this->fileName_,
@@ -1176,7 +1184,7 @@ namespace art {
       processConfiguration_,
       &presentProducts_.get(InRun),
       make_unique<RootDelayedReader>(fileFormatVersion_,
-                                     *sqliteDB_,
+                                     db_or_nullptr(sqliteDB_),
                                      entryNumbers,
                                      &runTree().branches(),
                                      runTree().productProvenanceBranch(),
@@ -1219,7 +1227,7 @@ namespace art {
       processConfiguration_,
       &presentProducts_.get(InRun),
       make_unique<RootDelayedReader>(fileFormatVersion_,
-                                     *sqliteDB_,
+                                     db_or_nullptr(sqliteDB_),
                                      entryNumbers,
                                      &runTree().branches(),
                                      runTree().productProvenanceBranch(),
@@ -1271,7 +1279,7 @@ namespace art {
       processConfiguration_,
       &presentProducts_.get(InSubRun),
       make_unique<RootDelayedReader>(fileFormatVersion_,
-                                     *sqliteDB_,
+                                     db_or_nullptr(sqliteDB_),
                                      entryNumbers,
                                      &subRunTree().branches(),
                                      subRunTree().productProvenanceBranch(),
@@ -1313,7 +1321,7 @@ namespace art {
       processConfiguration_,
       &presentProducts_.get(InSubRun),
       make_unique<RootDelayedReader>(fileFormatVersion_,
-                                     *sqliteDB_,
+                                     db_or_nullptr(sqliteDB_),
                                      entryNumbers,
                                      &subRunTree().branches(),
                                      subRunTree().productProvenanceBranch(),
