@@ -6,6 +6,7 @@
 #include "canvas/Persistency/Provenance/ProcessHistoryID.h"
 #include "canvas/Persistency/Provenance/SubRunID.h"
 
+#include <cstdint>
 #include <map>
 #include <memory>
 #include <string>
@@ -20,7 +21,8 @@ namespace art {
 
     class DataSetBroker {
     public:
-      explicit DataSetBroker(fhicl::ParameterSet const& pset);
+      explicit DataSetBroker(fhicl::ParameterSet const& pset,
+                             std::uint_fast32_t seed);
 
       std::map<BranchKey, BranchDescription> openInputFiles(
         std::vector<std::string> const& inputCommands,

@@ -63,8 +63,9 @@ namespace {
   }
 }
 
-detail::DataSetBroker::DataSetBroker(fhicl::ParameterSet const& pset) noexcept(
-  false)
+detail::DataSetBroker::DataSetBroker(
+  fhicl::ParameterSet const& pset,
+  std::uint_fast32_t const seed) noexcept(false)
 {
   auto const dataset_names = pset.get_pset_names();
   if (dataset_names.empty()) {
@@ -120,7 +121,8 @@ detail::DataSetBroker::DataSetBroker(fhicl::ParameterSet const& pset) noexcept(
          "Please look at the configured weights to ensure this.\n";
   }
 
-  dataSetSampler_ = std::make_unique<DataSetSampler>(datasetNames, weights);
+  dataSetSampler_ =
+    std::make_unique<DataSetSampler>(datasetNames, weights, seed);
 
   mf::LogInfo log{"SamplingInput"};
   log << "The following datasets have been configured for the SamplingInput "
