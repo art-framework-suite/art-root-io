@@ -238,8 +238,6 @@ namespace art {
 
     void rewindFile();
 
-    std::vector<FileCatalogItem> const& fileCatalogItems() const;
-
     ProcessConfiguration const& processConfiguration() const;
 
     bool primary() const;

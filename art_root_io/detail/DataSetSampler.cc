@@ -7,9 +7,11 @@
 
 art::detail::DataSetSampler::DataSetSampler(
   std::vector<std::string> const& datasetNames,
-  std::vector<double> const& weights) noexcept(false)
+  std::vector<double> const& weights,
+  std::uint_fast32_t const seed) noexcept(false)
   : datasetNames_{datasetNames}
   , weights_{weights}
+  , engine_{seed}
   , dist_{cbegin(weights_), cend(weights_)}
 {}
 

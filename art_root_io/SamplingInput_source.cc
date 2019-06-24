@@ -55,6 +55,7 @@
 #include "fhiclcpp/types/Sequence.h"
 
 #include <memory>
+#include <random>
 #include <string>
 #include <type_traits>
 #include <vector>
@@ -142,6 +143,14 @@ namespace art {
           "respectively."}};
       OptionalAtom<SubRunNumber_t> subRun{Name{"subRun"}};
       OptionalAtom<EventNumber_t> firstEvent{Name{"firstEvent"}};
+      Atom<std::uint_fast32_t> samplingSeed{
+        Name{"samplingSeed"},
+        Comment{
+          "The 'samplingSeed' parameter is an unsigned integral seed value\n"
+          "provided to the constructor of the random-number engine used for\n"
+          "sampling datasets.  The default value is the C++ standard\n"
+          "library's chosen default."},
+        std::minstd_rand0::default_seed};
       DelegatedParameter dataSets{
         Name{"dataSets"},
         Comment{
@@ -273,7 +282,8 @@ art::SamplingInput::SamplingInput(Parameters const& config,
   , pc_{md_.processConfiguration()}
   , eventsLeft_{config().maxEvents()}
   // Setup custom ROOT configurations.  Note the comma operator.
-  , dataSetBroker_{(root::setup(), config().dataSets.get<ParameterSet>())}
+  , dataSetBroker_{(root::setup(), config().dataSets.get<ParameterSet>()),
+                   config().samplingSeed()}
   , summary_{config().summary()}
   , delayedReadEventProducts_{config().delayedReadEventProducts()}
 {

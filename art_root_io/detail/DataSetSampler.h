@@ -21,9 +21,9 @@ namespace art {
     // for the facilities used here.
     class DataSetSampler {
     public:
-      explicit DataSetSampler(
-        std::vector<std::string> const& datasetNames,
-        std::vector<double> const& weights) noexcept(false);
+      explicit DataSetSampler(std::vector<std::string> const& datasetNames,
+                              std::vector<double> const& weights,
+                              std::uint_fast32_t seed) noexcept(false);
 
       auto const&
       sample()
@@ -56,7 +56,7 @@ namespace art {
 
       std::vector<std::string> datasetNames_;
       std::vector<double> weights_;
-      std::default_random_engine engine_{};
+      std::minstd_rand0 engine_;
       std::discrete_distribution<unsigned> dist_;
     };
   }
