@@ -174,6 +174,10 @@ detail::SamplingInputFile::SamplingInputFile(
     auto const bt = pd.branchType();
     auto branch = treeForBranchType_(bt)->GetBranch(pd.branchName().c_str());
     if (branch == nullptr) {
+      // This situation can happen for dropped products registered in
+      // files that were created with art 2.09 and 2.10.  To ensure
+      // that we do not fill the product tables for these dropped
+      // products, we erase the entry from the product list.
       auto const count [[maybe_unused]] = productList.erase(key);
       assert(count == 1);
       continue;
