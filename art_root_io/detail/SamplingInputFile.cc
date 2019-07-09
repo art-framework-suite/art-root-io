@@ -170,12 +170,16 @@ detail::SamplingInputFile::SamplingInputFile(
   dropOnInput_(
     groupSelectorRules, branchChildren, dropDescendants, descriptionsByID);
 
-  for (auto& pr : productList) {
-    auto const& key = pr.first;
-    auto const& pd = pr.second;
+  for (auto& [key, pd] : productList) {
     auto const bt = pd.branchType();
     auto branch = treeForBranchType_(bt)->GetBranch(pd.branchName().c_str());
     if (branch == nullptr) {
+      // This situation can happen for dropped products registered in
+      // files that were created with art 2.09 and 2.10.  To ensure
+      // that we do not fill the product tables for these dropped
+      // products, we erase the entry from the product list.
+      auto const count [[maybe_unused]] = productList.erase(key);
+      assert(count == 1);
       continue;
     }
     // A default-constructed BranchDescription object is initialized
@@ -291,10 +295,7 @@ detail::SamplingInputFile::productsFor(EntriesForID_t const& entries,
                                        BranchType const bt)
 {
   ProductsForKey_t result;
-  for (auto const& pr : entries) {
-    auto const& id = pr.first;
-    auto const& tree_entries = pr.second;
-
+  for (auto const& [id, tree_entries] : entries) {
     SamplingDelayedReader const reader{fileFormatVersion_,
                                        sqliteDB_->get(),
                                        tree_entries,
@@ -305,9 +306,7 @@ detail::SamplingInputFile::productsFor(EntriesForID_t const& entries,
                                        bt,
                                        id,
                                        compactRangeSets_};
-    for (auto const& pr : productListHolder_.productList_) {
-      auto const& key = pr.first;
-      auto const& bd = pr.second;
+    for (auto const& [key, bd] : productListHolder_.productList_) {
       if (bd.branchType() != bt)
         continue;
       auto rs = RangeSet::invalid();
