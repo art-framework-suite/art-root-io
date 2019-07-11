@@ -157,58 +157,69 @@ detail::SamplingInputFile::SamplingInputFile(
   auto const branchChildren =
     detail::readMetadata<BranchChildren>(metaDataTree);
 
-  // Read the ProductList
-  productListHolder_ = detail::readMetadata<ProductRegistry>(metaDataTree);
+  // Read the ProductList and fill the cached product-list holder
+  // skipping over entries with no branches.
+  {
+    auto const productListHolder =
+      detail::readMetadata<ProductRegistry>(metaDataTree);
+
+    ProductDescriptionsByID descriptionsByID;
+    cet::transform_all(productListHolder.productList_,
+                       inserter(descriptionsByID, descriptionsByID.begin()),
+                       [](auto const& pr) {
+                         auto const& pd = pr.second;
+                         return std::make_pair(pd.productID(), pd);
+                       });
+    dropOnInput_(
+      groupSelectorRules, branchChildren, dropDescendants, descriptionsByID);
+
+    for (auto const& pr : descriptionsByID) {
+      auto const& pd = pr.second;
+      auto const bt = pd.branchType();
+      auto branch = treeForBranchType_(bt)->GetBranch(pd.branchName().c_str());
+      if (branch == nullptr) {
+        // This situation can happen for dropped products registered in
+        // files that were created with art 2.09 and 2.10.  To ensure
+        // that we do not fill the product tables for these dropped
+        // products, we skip over them.
+        continue;
+      }
+      branch->SetAddress(nullptr);
+      branches_.emplace(pd.productID(), input::BranchInfo{pd, branch});
+
+      // A default-constructed BranchDescription object is initialized
+      // with the PresentFromSource validity flag.  If we get this far,
+      // then the branch is present in the file, and we need not adjust
+      // the validity of the BranchDescription.
+      productListHolder_.productList_.emplace(BranchKey{pd}, pd);
+    }
+  }
+
+  // Insert sampled products for (sub)runs.
   auto& productList = productListHolder_.productList_;
-  ProductDescriptionsByID descriptionsByID;
-  cet::transform_all(productList,
-                     inserter(descriptionsByID, descriptionsByID.begin()),
-                     [](auto const& pr) {
-                       auto const& pd = pr.second;
-                       return std::make_pair(pd.productID(), pd);
-                     });
-  dropOnInput_(
-    groupSelectorRules, branchChildren, dropDescendants, descriptionsByID);
-
-  for (auto& [key, pd] : productList) {
+  for (auto const& [key, pd] : productList) {
     auto const bt = pd.branchType();
-    auto branch = treeForBranchType_(bt)->GetBranch(pd.branchName().c_str());
-    if (branch == nullptr) {
-      // This situation can happen for dropped products registered in
-      // files that were created with art 2.09 and 2.10.  To ensure
-      // that we do not fill the product tables for these dropped
-      // products, we erase the entry from the product list.
-      auto const count [[maybe_unused]] = productList.erase(key);
-      assert(count == 1);
+    assert(bt != NumBranchTypes);
+    if (bt == InEvent || bt == InResults)
       continue;
-    }
-    // A default-constructed BranchDescription object is initialized
-    // with the PresentFromSource validity flag.  If we get this far,
-    // then the branch is present in the file, and we need not adjust
-    // the validity of the BranchDescription.
 
-    branch->SetAddress(nullptr);
-    if (bt == InSubRun || bt == InRun) {
-      std::string const wrapped_product{"art::Sampled<" +
-                                        pd.producedClassName() + ">"};
-      ProcessConfiguration const pc{"SampledFrom" + pd.processName(),
-                                    md.parameterSetID(),
-                                    md.releaseVersion()};
-      BranchDescription sampledDesc{
-        bt,
-        pd.moduleLabel(),
-        pc.processName(),
-        uniform_type_name(wrapped_product),
-        pd.productInstanceName(),
-        pc.parameterSetID(),
-        pc.id(),
-        BranchDescription::Transients::PresentFromSource,
-        false,
-        false};
-      oldKeyToSampledProductDescription.emplace(key, std::move(sampledDesc));
-    }
-
-    branches_.emplace(pd.productID(), input::BranchInfo{pd, branch});
+    std::string const wrapped_product{"art::Sampled<" + pd.producedClassName() +
+                                      ">"};
+    ProcessConfiguration const pc{"SampledFrom" + pd.processName(),
+                                  md.parameterSetID(),
+                                  md.releaseVersion()};
+    BranchDescription sampledDesc{
+      bt,
+      pd.moduleLabel(),
+      pc.processName(),
+      uniform_type_name(wrapped_product),
+      pd.productInstanceName(),
+      pc.parameterSetID(),
+      pc.id(),
+      BranchDescription::Transients::PresentFromSource,
+      false,
+      false};
+    oldKeyToSampledProductDescription.emplace(key, std::move(sampledDesc));
   }
 
   // Register newly created data product
