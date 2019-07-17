@@ -439,6 +439,11 @@ art::SamplingInput::putSampledProductsInto_(T& principal,
   }
 }
 
+// N.B. For all principals below, we mark the process history as
+// "modified" because this source creates additional products and
+// explicitly specifies the process history ID.  (We do something
+// similar for the art::SourceHelper class.)
+
 std::unique_ptr<art::RunPrincipal>
 art::SamplingInput::readRun()
 {
@@ -450,6 +455,7 @@ art::SamplingInput::readRun()
 
   auto rp = std::make_unique<art::RunPrincipal>(
     aux, pc_, cet::make_exempt_ptr(&presentRunProducts_));
+  rp->markProcessHistoryAsModified();
 
   putSampledProductsInto_(
     *rp, std::move(read_products), RangeSet::forRun(runID_));
@@ -476,6 +482,7 @@ art::SamplingInput::readSubRun(cet::exempt_ptr<art::RunPrincipal const> rp)
   auto srp = std::make_unique<SubRunPrincipal>(
     aux, pc_, cet::make_exempt_ptr(&presentSubRunProducts_));
   srp->setRunPrincipal(rp);
+  srp->markProcessHistoryAsModified();
 
   putSampledProductsInto_(
     *srp, std::move(read_products), RangeSet::forSubRun(subRunID_));
@@ -499,6 +506,7 @@ art::SamplingInput::readEvent(cet::exempt_ptr<art::SubRunPrincipal const> srp)
   auto ep =
     dataSetBroker_.readNextEvent(nextEventID_, sampledProcessConfigs_, pc_);
   ep->setSubRunPrincipal(srp);
+  ep->markProcessHistoryAsModified();
   if (!delayedReadEventProducts_) {
     ep->readImmediate();
   }
