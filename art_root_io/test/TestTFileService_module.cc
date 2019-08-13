@@ -13,6 +13,7 @@
 
 using namespace art;
 using namespace std;
+using namespace std::string_literals;
 
 class TestTFileService : public art::SharedAnalyzer {
 public:
@@ -68,7 +69,7 @@ TestTFileService::setRootObjects()
 
   g1 = fs->makeAndRegister<TGraph>("graphAtTopLevel", "graph at top level", 10);
   g2 = dir2.makeAndRegister<TGraphPolar>(
-    "graphInSubdirectory", "graph in subdirectory", 20);
+    "graphInSubdirectory"s, "graph in subdirectory"s, 20);
 }
 
 void

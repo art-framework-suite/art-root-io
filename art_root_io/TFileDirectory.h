@@ -115,7 +115,7 @@ namespace art {
                                   ARGS... args) const
   {
     std::lock_guard<std::recursive_mutex> lock{mutex_};
-    auto ret = makeAndRegister(name.c_str(), title.c_str(), args...);
+    auto ret = makeAndRegister<T>(name.c_str(), title.c_str(), args...);
     return ret;
   }
 
