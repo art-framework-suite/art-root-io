@@ -10,7 +10,6 @@
 
 #include "art_root_io/RootSizeOnDisk.h"
 #include "art_root_io/detail/rootFileSizeTools.h"
-#include "boost/filesystem.hpp"
 #include "boost/format.hpp"
 #include "cetlib/container_algorithms.h"
 
@@ -111,12 +110,8 @@ art::RootSizeOnDisk::print(std::ostream& os, double const minimumFraction) const
 }
 
 art::RootSizeOnDisk::RootSizeOnDisk(std::string const& aFileName, TFile* file)
-  : fileName_(aFileName), size_(0), sum_(0), fraction_(0)
+  : fileName_(aFileName), size_(file->GetSize())
 {
-
-  // File size on disk, in bytes.
-  size_ = boost::filesystem::file_size(fileName_.c_str());
-
   // Extract info about top level objects.
   // There are usually Multiple cycles of these objects; we only want each name
   // once.

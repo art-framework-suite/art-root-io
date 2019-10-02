@@ -103,7 +103,6 @@ art_make_exec(NAME product_sizes_dumper
   LIBRARIES
   art_root_io
   cetlib
-  ${Boost_FILESYSTEM_LIBRARY}
   ${Boost_PROGRAM_OPTIONS_LIBRARY})
 
 art_make_exec(NAME config_dumper
