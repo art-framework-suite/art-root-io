@@ -103,7 +103,6 @@ art_make_exec(NAME product_sizes_dumper
   LIBRARIES
   art_root_io
   cetlib
-  Boost::filesystem
   Boost::program_options)
 
 art_make_exec(NAME config_dumper

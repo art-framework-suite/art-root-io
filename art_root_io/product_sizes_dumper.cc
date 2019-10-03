@@ -26,7 +26,7 @@ main(int argc, char** argv)
   // use the boost command line option processing library to help out
   // with command line options
   std::ostringstream descstr;
-  descstr << argv[0] << " <options> [<source-file>]+";
+  descstr << argv[0] << " <options> [<source-file>]+\nOptions";
   bpo::options_description desc(descstr.str());
   desc.add_options()("help,h", "this help message.")(
     "fraction,f",
@@ -102,7 +102,7 @@ main(int argc, char** argv)
     // This is a little dangerous since it might suppress other warnings too ...
     int errorSave = gErrorIgnoreLevel;
     gErrorIgnoreLevel = kError;
-    auto file = std::make_unique<TFile>(filename.c_str());
+    std::unique_ptr<TFile> file{TFile::Open(filename.c_str())};
     gErrorIgnoreLevel = errorSave;
 
     // Extract and print the information.

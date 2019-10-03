@@ -50,9 +50,9 @@ namespace {
     // Ignore less severe warnings for the purposes of opening the file.
     auto savedErrorLevel = gErrorIgnoreLevel;
     gErrorIgnoreLevel = kBreak;
-    TFile* tf = TFile::Open(fileName.c_str());
+    std::unique_ptr<TFile> tf{TFile::Open(fileName.c_str())};
     gErrorIgnoreLevel = savedErrorLevel;
-    if (tf == nullptr) {
+    if (tf.get() == nullptr) {
       err << fileName << "\tCould not be opened by ROOT: skipped.\n";
       return false;
     }
@@ -95,7 +95,7 @@ main(int argc, char** argv)
   using stringvec = std::vector<std::string>;
   int result = 1;
   std::ostringstream descstr;
-  descstr << argv[0] << "Usage: count_events [<options>] <filename>+\n";
+  descstr << argv[0] << " [<options>] <filename>+\nOptions";
   bpo::options_description desc(descstr.str());
   desc.add_options()("hr", "Human-readable output")(
     "help,h", "this help message.")("source,s",
