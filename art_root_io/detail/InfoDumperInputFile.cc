@@ -63,9 +63,7 @@ art::detail::InfoDumperInputFile::InfoDumperInputFile(
   : file_{openFile(filename)}
 {
   using namespace art::rootNames;
-  std::unique_ptr<TTree> md{
-    static_cast<TTree*>(file_->Get(metaDataTreeName().data()))};
-
+  std::unique_ptr<TTree> md{file_->Get<TTree>(metaDataTreeName().data())};
   fileFormatVersion_ = detail::readMetadata<FileFormatVersion>(md.get());
 
   // Read BranchID lists if they exist
@@ -188,8 +186,8 @@ art::detail::InfoDumperInputFile::print_range_sets(
     return;
   }
 
-  auto* tree =
-    static_cast<TTree*>(file_->Get(BranchTypeToProductTreeName(InRun).c_str()));
+  std::unique_ptr<TTree> tree{
+    file_->Get<TTree>(BranchTypeToProductTreeName(InRun).c_str())};
   SQLite3Wrapper db{file_.get(), "RootFileDB"};
 
   os << "Representation: " << rep << '\n' << rule('-') << '\n';
@@ -201,7 +199,7 @@ art::detail::InfoDumperInputFile::print_range_sets(
     // getEntryNumbers increments iterator!
     auto const& entries = getEntryNumbers(it, cend);
     auto const& rs =
-      getRangeSet(tree, entries, db, file_->GetName(), compactRanges);
+      getRangeSet(tree.get(), entries, db, file_->GetName(), compactRanges);
     os << rs << '\n';
   }
 }

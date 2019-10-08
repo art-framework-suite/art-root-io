@@ -137,8 +137,8 @@ read_all_parameter_sets(TFile& file, ostream& errors)
   ParameterSetMap psm;
   ParameterSetMap* psm_address = &psm;
   // Find the TTree that holds this data.
-  TTree* metadata_tree =
-    static_cast<TTree*>(file.Get(art::rootNames::metaDataTreeName().c_str()));
+  std::unique_ptr<TTree> metadata_tree{
+    file.Get<TTree>(art::rootNames::metaDataTreeName().c_str())};
   if (!metadata_tree) {
     errors << "Unable to find the metadata tree in file '" << file.GetName()
            << "';\nthis may not be an ART event data file.\n";

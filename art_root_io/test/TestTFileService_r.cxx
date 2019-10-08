@@ -27,23 +27,19 @@ TestTFileService_r(string const& input)
   for (auto const& pr : integrals_per_file) {
     auto const& filename = pr.first;
     auto const integral = pr.second;
-    auto f = TFile::Open(filename.c_str());
+    std::unique_ptr<TFile> f{TFile::Open(filename.c_str())};
     if ((f == nullptr) || f->IsZombie()) {
       return 1;
     }
     for (auto const& histname : histogram_names) {
-      auto h = dynamic_cast<TH1*>(f->Get(histname));
+      std::unique_ptr<TH1> h{f->Get<TH1>(histname)};
       if (h == nullptr) {
         return 2;
       }
       if (h->Integral() != integral) {
         return 3;
       }
-      delete h;
-      h = nullptr;
     }
-    delete f;
-    f = nullptr;
   }
   return 0;
 }
