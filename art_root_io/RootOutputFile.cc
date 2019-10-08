@@ -783,7 +783,6 @@ namespace art {
     using namespace cet::sqlite;
     Ntuple<string, string> fileCatalogMetadata{
       *rootFileDB_, "FileCatalog_metadata", {{"Name", "Value"}}, true};
-    Transaction txn{*rootFileDB_};
     for (auto const& kv : md) {
       fileCatalogMetadata.insert(kv.first, kv.second);
     }
@@ -861,7 +860,6 @@ namespace art {
     for (auto const& kv : ssmd) {
       fileCatalogMetadata.insert(kv.first, kv.second);
     }
-    txn.commit();
   }
 
   void
