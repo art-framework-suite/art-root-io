@@ -137,10 +137,10 @@ namespace art {
     bool const missingOK /*=false*/)
   {
     if (filePtr) {
-      tree_ = static_cast<TTree*>(
-        filePtr->Get(BranchTypeToProductTreeName(branchType).c_str()));
-      metaTree_ = static_cast<TTree*>(
-        filePtr->Get(BranchTypeToMetaDataTreeName(branchType).c_str()));
+      tree_ =
+        filePtr->Get<TTree>(BranchTypeToProductTreeName(branchType).c_str());
+      metaTree_ =
+        filePtr->Get<TTree>(BranchTypeToMetaDataTreeName(branchType).c_str());
     }
     if (tree_) {
       auxBranch_ =
@@ -335,7 +335,7 @@ namespace art {
     }
     // Retrieve the metadata tree.
     auto metaDataTree =
-      static_cast<TTree*>(filePtr_->Get(rootNames::metaDataTreeName().c_str()));
+      filePtr_->Get<TTree>(rootNames::metaDataTreeName().c_str());
     if (!metaDataTree) {
       throw art::Exception{errors::FileReadError}
         << couldNotFindTree(rootNames::metaDataTreeName());
@@ -780,8 +780,8 @@ namespace art {
     //
     //  Auxiliary routine for the constructor.
     //
-    auto parentageTree = static_cast<TTree*>(
-      filePtr_->Get(rootNames::parentageTreeName().c_str()));
+    auto parentageTree =
+      filePtr_->Get<TTree>(rootNames::parentageTreeName().c_str());
     if (!parentageTree) {
       throw art::Exception{errors::FileReadError}
         << couldNotFindTree(rootNames::parentageTreeName());
@@ -1376,8 +1376,8 @@ namespace art {
   RootInputFile::readEventHistoryTree(unsigned int treeCacheSize)
   {
     // Read in the event history tree, if we have one...
-    eventHistoryTree_ = static_cast<TTree*>(
-      filePtr_->Get(rootNames::eventHistoryTreeName().c_str()));
+    eventHistoryTree_ =
+      filePtr_->Get<TTree>(rootNames::eventHistoryTreeName().c_str());
     if (!eventHistoryTree_) {
       throw art::Exception{errors::DataCorruption}
         << "Failed to find the event history tree.\n";

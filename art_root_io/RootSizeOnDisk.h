@@ -139,10 +139,10 @@ namespace art {
     void print(std::ostream& os, double minimumFraction) const;
 
   private:
-    std::string fileName_;
-    Long64_t size_;
-    Long64_t sum_;
-    double fraction_;
+    std::string const fileName_;
+    Long64_t const size_;
+    Long64_t sum_{0};
+    double fraction_{0.};
     Records_t contents_;
 
     void fillLevel2(Record&, TTree*);

@@ -66,7 +66,7 @@ namespace art {
     openFile_();
     // Activities to monitor in order to set the proper directory.
     r.sPostOpenFile.watch([this](string const& fileName) {
-      std::lock_guard<std::recursive_mutex> lock{mutex_};
+      std::lock_guard lock{mutex_};
       fstats_.recordInputFile(fileName);
     });
     r.sPreModuleBeginJob.watch(this, &TFileService::setDirectoryName_);
@@ -90,7 +90,7 @@ namespace art {
     r.sPreModule.watch(this, &TFileService::setDirectoryNameViaContext_);
     // Activities to monitor to keep track of events, subruns and runs seen.
     r.sPostProcessEvent.watch([this](Event const& e, ScheduleContext) {
-      std::lock_guard<std::recursive_mutex> lock{mutex_};
+      std::lock_guard lock{mutex_};
       currentGranularity_ = Granularity::Event;
       fp_.update_event();
       fstats_.recordEvent(e.id());
@@ -99,7 +99,7 @@ namespace art {
       }
     });
     r.sPostEndSubRun.watch([this](SubRun const& sr) {
-      std::lock_guard<std::recursive_mutex> lock{mutex_};
+      std::lock_guard lock{mutex_};
       currentGranularity_ = Granularity::SubRun;
       fp_.update_subRun(status_);
       fstats_.recordSubRun(sr.id());
@@ -108,7 +108,7 @@ namespace art {
       }
     });
     r.sPostEndRun.watch([this](Run const& r) {
-      std::lock_guard<std::recursive_mutex> lock{mutex_};
+      std::lock_guard lock{mutex_};
       currentGranularity_ = Granularity::Run;
       fp_.update_run(status_);
       fstats_.recordRun(r.id());
@@ -117,7 +117,7 @@ namespace art {
       }
     });
     r.sPostCloseFile.watch([this] {
-      std::lock_guard<std::recursive_mutex> lock{mutex_};
+      std::lock_guard lock{mutex_};
       currentGranularity_ = Granularity::InputFile;
       fp_.update_inputFile();
       if (requestsToCloseFile_()) {
@@ -129,7 +129,7 @@ namespace art {
   void
   TFileService::registerFileSwitchCallback(Callback_t cb)
   {
-    std::lock_guard<std::recursive_mutex> lock{mutex_};
+    std::lock_guard lock{mutex_};
     registerCallback(cb);
   }
 
@@ -142,7 +142,7 @@ namespace art {
   void
   TFileService::setDirectoryName_(ModuleDescription const& desc)
   {
-    std::lock_guard<std::recursive_mutex> lock{mutex_};
+    std::lock_guard lock{mutex_};
     dir_ = desc.moduleLabel();
     descr_ = dir_;
     descr_ += " (";
@@ -153,7 +153,7 @@ namespace art {
   string
   TFileService::fileNameAtOpen_()
   {
-    std::lock_guard<std::recursive_mutex> lock{mutex_};
+    std::lock_guard lock{mutex_};
     if (filePattern_ == dev_null) {
       return dev_null;
     }
@@ -167,7 +167,7 @@ namespace art {
   string
   TFileService::fileNameAtClose_(string const& filename)
   {
-    std::lock_guard<std::recursive_mutex> lock{mutex_};
+    std::lock_guard lock{mutex_};
     // Use named return value optimization.
     auto ret = (filePattern_ == dev_null) ?
                  dev_null :
@@ -178,7 +178,7 @@ namespace art {
   void
   TFileService::openFile_()
   {
-    std::lock_guard<std::recursive_mutex> lock{mutex_};
+    std::lock_guard lock{mutex_};
     uniqueFilename_ = fileNameAtOpen_();
     assert((file_ == nullptr) && "TFile pointer should always be zero here!");
     beginTime_ = chrono::steady_clock::now();
@@ -190,7 +190,7 @@ namespace art {
   void
   TFileService::closeFile_()
   {
-    std::lock_guard<std::recursive_mutex> lock{mutex_};
+    std::lock_guard lock{mutex_};
     file_->Write();
     if (closeFileFast_) {
       gROOT->GetListOfFiles()->Remove(file_);
@@ -206,7 +206,7 @@ namespace art {
   void
   TFileService::maybeSwitchFiles_()
   {
-    std::lock_guard<std::recursive_mutex> lock{mutex_};
+    std::lock_guard lock{mutex_};
     // FIXME: Should maybe include the granularity check in
     // requestsToCloseFile_().
     if (fileSwitchCriteria_.granularity() > currentGranularity_) {
@@ -225,7 +225,7 @@ namespace art {
   bool
   TFileService::requestsToCloseFile_()
   {
-    std::lock_guard<std::recursive_mutex> lock{mutex_};
+    std::lock_guard lock{mutex_};
     using namespace chrono;
     fp_.updateSize(file_->GetSize() / 1024U);
     fp_.updateAge(duration_cast<seconds>(steady_clock::now() - beginTime_));

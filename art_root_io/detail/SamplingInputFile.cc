@@ -38,7 +38,7 @@ namespace {
   TTree*
   get_tree(TFile& file, std::string const& treeName)
   {
-    auto result = dynamic_cast<TTree*>(file.Get(treeName.c_str()));
+    auto result = file.Get<TTree>(treeName.c_str());
     if (result == nullptr) {
       throw art::Exception{art::errors::FileReadError,
                            "An error occurred while trying to read "s +
@@ -337,7 +337,7 @@ detail::SamplingInputFile::readEvent(EventID const& eventID,
   auto history = historyForEntry_(currentEventEntry_);
 
   ProcessHistory ph;
-  bool const found [[gnu::unused]]{
+  bool const found [[maybe_unused]]{
     ProcessHistoryRegistry::get(history.processHistoryID(), ph)};
   assert(found);
 

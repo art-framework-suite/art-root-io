@@ -49,7 +49,7 @@ namespace art {
   string
   TFileDirectory::fullPath() const
   {
-    std::lock_guard<std::recursive_mutex> lock{mutex_};
+    std::lock_guard lock{mutex_};
     string ret;
     if (path_.empty()) {
       ret = dir_;
@@ -62,7 +62,7 @@ namespace art {
   void
   TFileDirectory::cd() const
   {
-    std::lock_guard<std::recursive_mutex> lock{mutex_};
+    std::lock_guard lock{mutex_};
     auto const fpath = fullPath();
     if (requireCallback_) {
       auto iter = callbacks_.find(dir_);
@@ -108,7 +108,7 @@ namespace art {
   TFileDirectory
   TFileDirectory::mkdir(string const& dir, string const& descr)
   {
-    std::lock_guard<std::recursive_mutex> lock{mutex_};
+    std::lock_guard lock{mutex_};
     detail::RootDirectorySentry rds;
     cd();
     return TFileDirectory{dir, descr, file_, fullPath()};
@@ -117,7 +117,7 @@ namespace art {
   void
   TFileDirectory::invokeCallbacks()
   {
-    std::lock_guard<std::recursive_mutex> lock{mutex_};
+    std::lock_guard lock{mutex_};
     for (auto const& dirAndvcallback : callbacks_) {
       dir_ = dirAndvcallback.first;
       for (auto cb : dirAndvcallback.second) {
@@ -129,7 +129,7 @@ namespace art {
   void
   TFileDirectory::registerCallback(Callback_t cb)
   {
-    std::lock_guard<std::recursive_mutex> lock{mutex_};
+    std::lock_guard lock{mutex_};
     callbacks_[dir_].push_back(cb);
   }
 

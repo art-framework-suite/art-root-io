@@ -324,7 +324,7 @@ main(int argc, char* argv[])
   // use the boost command line option processing library to help out
   // with command line options
   std::ostringstream descstr;
-  descstr << argv[0] << " <options> [<source-file>]+";
+  descstr << argv[0] << " <options> [<source-file>]+\nOptions";
   bpo::options_description desc(descstr.str());
   desc.add_options()("help,h", "produce help message")(
     "hr,H", "produce human-readable output (default is JSON)")(

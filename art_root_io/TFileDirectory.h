@@ -85,7 +85,7 @@ namespace art {
   TFileDirectory::make(ARGS... args) const
   {
 
-    std::lock_guard<std::recursive_mutex> lock{mutex_};
+    std::lock_guard lock{mutex_};
     detail::RootDirectorySentry rds;
     cd();
     auto ret = new T(args...);
@@ -98,7 +98,7 @@ namespace art {
                                   char const* title,
                                   ARGS... args) const
   {
-    std::lock_guard<std::recursive_mutex> lock{mutex_};
+    std::lock_guard lock{mutex_};
     detail::RootDirectorySentry rds;
     cd();
     auto ret = new T(args...);
@@ -114,8 +114,8 @@ namespace art {
                                   std::string const& title,
                                   ARGS... args) const
   {
-    std::lock_guard<std::recursive_mutex> lock{mutex_};
-    auto ret = makeAndRegister(name.c_str(), title.c_str(), args...);
+    std::lock_guard lock{mutex_};
+    auto ret = makeAndRegister<T>(name.c_str(), title.c_str(), args...);
     return ret;
   }
 

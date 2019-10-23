@@ -50,9 +50,9 @@ namespace {
     // Ignore less severe warnings for the purposes of opening the file.
     auto savedErrorLevel = gErrorIgnoreLevel;
     gErrorIgnoreLevel = kBreak;
-    TFile* tf = TFile::Open(fileName.c_str());
+    std::unique_ptr<TFile> tf{TFile::Open(fileName.c_str())};
     gErrorIgnoreLevel = savedErrorLevel;
-    if (tf == nullptr) {
+    if (tf.get() == nullptr) {
       err << fileName << "\tCould not be opened by ROOT: skipped.\n";
       return false;
     }
@@ -61,7 +61,7 @@ namespace {
     for (int i = art::InEvent; i != art::InResults; ++i) {
       std::string treeName =
         art::BranchTypeToProductTreeName(static_cast<art::BranchType>(i));
-      TTree* tree = static_cast<TTree*>(tf->Get(treeName.c_str()));
+      std::unique_ptr<TTree> tree{tf->Get<TTree>(treeName.c_str())};
       if (!tree) {
         err << fileName << "\tNot a valid art ROOT-format file: skipped.\n";
         return false;
@@ -69,8 +69,8 @@ namespace {
       counters[i] = tree->GetEntries();
     }
     {
-      auto tree = static_cast<TTree*>(
-        tf->Get(art::BranchTypeToProductTreeName(art::InResults).c_str()));
+      std::unique_ptr<TTree> tree{tf->Get<TTree>(
+        art::BranchTypeToProductTreeName(art::InResults).c_str())};
       if (tree && (tree->GetNbranches() > 1)) {
         counters[art::InResults] = 1;
       }
@@ -95,7 +95,7 @@ main(int argc, char** argv)
   using stringvec = std::vector<std::string>;
   int result = 1;
   std::ostringstream descstr;
-  descstr << argv[0] << "Usage: count_events [<options>] <filename>+\n";
+  descstr << argv[0] << " [<options>] <filename>+\nOptions";
   bpo::options_description desc(descstr.str());
   desc.add_options()("hr", "Human-readable output")(
     "help,h", "this help message.")("source,s",
