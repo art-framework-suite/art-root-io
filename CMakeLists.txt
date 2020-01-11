@@ -84,6 +84,7 @@ find_ups_product(hep_concurrency)
 find_ups_product(sqlite)
 find_ups_boost(BOOST_TARGETS)
 find_ups_root()
+find_ups_product(catch)
 
 # SQLite
 cet_find_library(SQLITE3 NAMES sqlite3_ups PATHS ENV SQLITE_LIB NO_DEFAULT_PATH)

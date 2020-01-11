@@ -23,6 +23,7 @@ cet_test(TH1Data_t HANDBUILT
 cet_test(GetFileFormatVersion SOURCES test_GetFileFormatVersion.cpp
   LIBRARIES art_root_io)
 
+cet_test(RootErrorHandler_t USE_CATCH_MAIN LIBRARIES art_root_io)
 cet_test(RootOutputClosingCriteria_t USE_BOOST_UNIT LIBRARIES art_root_io)
 
 add_subdirectory(RootDB)

@@ -50,6 +50,8 @@ namespace {
     // Adapt C-strings to std::strings
     // Arrange to report the error location as furnished by Root
 
+    // The prefix '@SUB=' is used to specify the subroutine in which a
+    // messagefacility message is emitted.
     std::string el_location{"@SUB=?"};
     if (location != nullptr) {
       el_location = "@SUB=" + std::string(location);
