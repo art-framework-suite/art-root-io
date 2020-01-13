@@ -23,7 +23,8 @@ cet_test(TH1Data_t HANDBUILT
 cet_test(GetFileFormatVersion SOURCES test_GetFileFormatVersion.cpp
   LIBRARIES art_root_io)
 
-cet_test(RootErrorHandler_t USE_CATCH_MAIN LIBRARIES art_root_io)
+cet_test(RootErrorParser_t USE_CATCH_MAIN LIBRARIES art_root_io)
+cet_test(RootErrorClassifier_t USE_CATCH_MAIN LIBRARIES art_root_io)
 cet_test(RootOutputClosingCriteria_t USE_BOOST_UNIT LIBRARIES art_root_io)
 
 add_subdirectory(RootDB)
@@ -154,10 +155,3 @@ foreach(NUM 1 5 6) # N.B. No 'RANGE' for these two tests
     DATAFILES TFileService_r_0${NUM}_input.txt
     TEST_PROPERTIES DEPENDS TFileService_t_0${NUM})
 endforeach()
-
-simple_plugin(XRootDRetry "module" NO_INSTALL ALLOW_UNDERSCORES ${ROOT_CORE} ${ROOT_RIO} art_root_io)
-
-cet_test(XRootDRetry_t HANDBUILT
-  TEST_EXEC art
-  TEST_ARGS -c xrootd_retry_t.fcl -n 1
-  DATAFILES fcl/xrootd_retry_t.fcl)

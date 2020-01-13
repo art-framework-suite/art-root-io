@@ -9,6 +9,7 @@ art_make_library(
   SOURCE
   detail/DummyProductCache.cc
   detail/RangeSetInfo.cc
+  detail/RootErrorClassifier.cc
   detail/dropBranch.cc
   detail/getEntry.cc
   detail/getObjectRequireDict.cc
