@@ -62,10 +62,12 @@ namespace {
       return true;
     }
 
+    if (parser.has_message_in("DISPLAY not set", "TUnixSystem::SetDisplay")) {
+      return true;
+    }
+
     // Necessary for enabling XRootD retries
-    if (parser.has_message_in("DISPLAY not set", "TUnixSystem::SetDisplay") or
-        (parser.in("TNetXNGFile::Open") and
-         not parser.has_message("[FATAL]"))) {
+    if (parser.in("TNetXNGFile::Open") and not parser.has_message("[FATAL]")) {
       return true;
     }
 
