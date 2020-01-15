@@ -92,8 +92,7 @@ namespace art::detail {
 
   RootErrorClassifier::RootErrorClassifier(int const level,
                                            RootErrorPayload const& payload)
-    : level_{level}
-    , canSuppress_{can_suppress_error(payload)}
+    : canSuppress_{can_suppress_error(payload)}
     , canInfoLog_{can_info_log(level, payload)}
     , canErrorLog_{can_error_log(payload)}
   {}

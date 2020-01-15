@@ -31,7 +31,6 @@ namespace art::detail {
     }
 
   private:
-    int level_;
     bool canSuppress_;
     bool canInfoLog_;
     bool canErrorLog_;
