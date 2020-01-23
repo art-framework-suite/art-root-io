@@ -1,8 +1,8 @@
 #include "art_root_io/detail/DataSetBroker.h"
 #include "art/Framework/Core/GroupSelectorRules.h"
-#include "art/Utilities/bold_fontify.h"
 #include "art_root_io/detail/event_start.h"
 #include "cetlib/HorizontalRule.h"
+#include "cetlib/bold_fontify.h"
 #include "fhiclcpp/ParameterSet.h"
 #include "fhiclcpp/types/Atom.h"
 #include "fhiclcpp/types/Sequence.h"
@@ -42,9 +42,9 @@ namespace {
   make_exception_for(std::string const& dataset)
   {
     return Exception{errors::Configuration}
-           << "\nModule label: " << art::detail::bold_fontify("source")
-           << "\nmodule_type : " << art::detail::bold_fontify("SamplingInput")
-           << "\ndataset     : " << art::detail::bold_fontify(dataset);
+           << "\nModule label: " << cet::bold_fontify("source")
+           << "\nmodule_type : " << cet::bold_fontify("SamplingInput")
+           << "\ndataset     : " << cet::bold_fontify(dataset);
   }
 
   auto
