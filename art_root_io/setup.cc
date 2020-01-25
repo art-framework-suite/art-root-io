@@ -53,8 +53,8 @@ namespace {
                    char const* location,
                    char const* message) noexcept(false)
   {
-    auto str_or_question_mark = [](char const* str) -> std::string {
-      return str ? str : "?";
+    auto str_or_question_mark = [](char const* str) {
+      return std::string{str ? str : "?"};
     };
     RootErrorPayload const payload{str_or_question_mark(location),
                                    str_or_question_mark(message)};
@@ -65,7 +65,7 @@ namespace {
     }
 
     if (classifier.should_be_info_logged()) {
-      mf::LogInfo("Root_information")
+      mf::LogInfo("Root_Information")
         << payload << "\nROOT severity: " << level;
       return;
     }
