@@ -469,6 +469,9 @@ namespace art {
         if (treePointers_[bt]->tree()->GetBranch(pd.branchName().c_str()) ==
             nullptr) {
           pd.setValidity(BranchDescription::Transients::Dropped);
+        } else {
+          // Only check dictionaries for products that are actually readable.
+          checkDictionaries(pd);
         }
         treePointers_[bt]->addBranch(pd);
       }
@@ -1454,7 +1457,6 @@ namespace art {
           bool drop = branchesToDrop.find(bd.productID()) != branchesToDropEnd;
           if (!drop) {
             ++I;
-            checkDictionaries(bd);
             continue;
           }
           if (groupSelector.selected(bd)) {
