@@ -12,8 +12,8 @@
 #  make package (builds distribution tarfile)
 # ======================================================================
 
-cmake_minimum_required(VERSION 3.14..3.14 FATAL_ERROR)
-project(art_root_io LANGUAGES CXX)
+cmake_minimum_required(VERSION 3.14...3.14 FATAL_ERROR)
+project(art_root_io LANGUAGES CXX C)
 
 # cetbuildtools contains our cmake modules
 find_package(cetbuildtools REQUIRED)
