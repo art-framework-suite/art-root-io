@@ -12,14 +12,11 @@
 #  make package (builds distribution tarfile)
 # ======================================================================
 
-
-# use cmake 3.11 or later
-cmake_minimum_required (VERSION 3.11)
-
-project(art_root_io)
+cmake_minimum_required(VERSION 3.14..3.14 FATAL_ERROR)
+project(art_root_io LANGUAGES CXX)
 
 # cetbuildtools contains our cmake modules
-find_package(cetbuildtools 7.13.01 REQUIRED)
+find_package(cetbuildtools REQUIRED)
 
 list(APPEND CMAKE_MODULE_PATH
   $ENV{CANVAS_ROOT_IO_DIR}/Modules
