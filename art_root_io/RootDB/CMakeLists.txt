@@ -13,8 +13,8 @@ art_make_library(LIBRARY_NAME
   cetlib_except
   MF_MessageLogger
   ${CMAKE_DL_LIBS}
-  ${ROOT_RIO}
-  ${ROOT_CORE}
+  ROOT::RIO
+  ROOT::Core
   ${SQLITE3})
 
 install_headers()

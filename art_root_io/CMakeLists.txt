@@ -9,6 +9,7 @@ art_make_library(
   SOURCE
   detail/DummyProductCache.cc
   detail/RangeSetInfo.cc
+  detail/RootErrorClassifier.cc
   detail/dropBranch.cc
   detail/getEntry.cc
   detail/getObjectRequireDict.cc
@@ -22,9 +23,9 @@ art_make_library(
   canvas
   canvas_root_io
   hep_concurrency
-  ${ROOT_CORE}
-  ${ROOT_RIO}
-  ${ROOT_TREE})
+  ROOT::Core
+  ROOT::RIO
+  ROOT::Tree)
 
 art_make_library(
   LIBRARY_NAME art_root_io
@@ -59,15 +60,15 @@ art_make_library(
   canvas
   fhiclcpp
   Boost::date_time
-  ${ROOT_HIST}
-  ${ROOT_TREE})
+  ROOT::Hist
+  ROOT::Tree)
 
 art_make_library(
   LIBRARY_NAME art_root_io_tfile_support
   SOURCE TFileDirectory.cc detail/RootDirectorySentry.cc
   LIBRARIES cetlib_except
-  ${ROOT_HIST}
-  ${ROOT_CORE}
+  ROOT::Hist
+  ROOT::Core
   art_root_io
   canvas)
 
@@ -77,17 +78,17 @@ simple_plugin(TFileService "service"
   art_Framework_IO
   art_Framework_IO_detail
   art_Framework_Principal
-  ${ROOT_RIO}
-  ${ROOT_THREAD}
-  ${ROOT_TREE}
+  ROOT::RIO
+  ROOT::Thread
+  ROOT::Tree
   ALLOW_UNDERSCORES)
 
 simple_plugin(RootInput "source" art_root_io art_Framework_IO_Catalog ALLOW_UNDERSCORES)
 simple_plugin(RootOutput "module" art_root_io ALLOW_UNDERSCORES)
 simple_plugin(SamplingInput "source"
   art_root_io
-  ${ROOT_RIO}
-  ${ROOT_TREE}
+  ROOT::RIO
+  ROOT::Tree
   SOURCE
   SamplingInput_source.cc
   detail/DataSetBroker.cc
@@ -110,15 +111,15 @@ art_make_exec(NAME config_dumper
   art_Utilities canvas
   art_Framework_Core
   Boost::program_options
-  ${ROOT_TREE}
-  ${ROOT_RIO})
+  ROOT::Tree
+  ROOT::RIO)
 
 art_make_exec(NAME sam_metadata_dumper
   LIBRARIES art_root_io
   art_Utilities canvas
   art_Framework_Core
   Boost::program_options
-  ${ROOT_RIO})
+  ROOT::RIO)
 
 art_make_exec(NAME count_events
   LIBRARIES
@@ -126,8 +127,8 @@ art_make_exec(NAME count_events
   art_Framework_Core
   art_Utilities canvas
   Boost::program_options
-  ${ROOT_TREE}
-  ${ROOT_RIO})
+  ROOT::Tree
+  ROOT::RIO)
 
 art_make_exec(NAME file_info_dumper
   SOURCE file_info_dumper.cc detail/InfoDumperInputFile.cc

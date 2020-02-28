@@ -12,14 +12,11 @@
 #  make package (builds distribution tarfile)
 # ======================================================================
 
-
-# use cmake 3.11 or later
-cmake_minimum_required (VERSION 3.11)
-
-project(art_root_io)
+cmake_minimum_required(VERSION 3.14...3.14 FATAL_ERROR)
+project(art_root_io LANGUAGES CXX C)
 
 # cetbuildtools contains our cmake modules
-find_package(cetbuildtools 7.13.01 REQUIRED)
+find_package(cetbuildtools REQUIRED)
 
 list(APPEND CMAKE_MODULE_PATH
   $ENV{CANVAS_ROOT_IO_DIR}/Modules
@@ -33,7 +30,7 @@ cet_set_compiler_flags(DIAGS VIGILANT
   WERROR
   NO_UNDEFINED
   EXTRA_FLAGS -pedantic
-  EXTRA_CXX_FLAGS -Wnon-virtual-dtor -Wdelete-non-virtual-dtor)
+  EXTRA_CXX_FLAGS -Wnon-virtual-dtor -Wdelete-non-virtual-dtor -DBOOST_TEST_NO_OLD_TOOLS)
 
 cet_have_qual(sse2 SSE2)
 if (SSE2)
@@ -84,6 +81,7 @@ find_ups_product(hep_concurrency)
 find_ups_product(sqlite)
 find_ups_boost(BOOST_TARGETS)
 find_ups_root()
+find_ups_product(catch)
 
 # SQLite
 cet_find_library(SQLITE3 NAMES sqlite3_ups PATHS ENV SQLITE_LIB NO_DEFAULT_PATH)

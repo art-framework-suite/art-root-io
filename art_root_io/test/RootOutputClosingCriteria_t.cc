@@ -36,7 +36,7 @@ BOOST_AUTO_TEST_CASE(MaxCriteria)
   ClosingCriteria c{closingCriteria, "Unset"};
 
   FileProperties const fp{0, 0, 0, 0, 0, one_second()};
-  BOOST_CHECK(!c.should_close(fp));
+  BOOST_TEST(!c.should_close(fp));
 }
 
 BOOST_AUTO_TEST_CASE(TwoSecondSleep)
@@ -52,7 +52,7 @@ BOOST_AUTO_TEST_CASE(TwoSecondSleep)
 
   FileProperties const currentProperties{
     0, 0, 0, 0, 0, duration_cast<seconds>(age)};
-  BOOST_CHECK(c.should_close(currentProperties));
+  BOOST_TEST(c.should_close(currentProperties));
 }
 
 BOOST_AUTO_TEST_SUITE_END()
