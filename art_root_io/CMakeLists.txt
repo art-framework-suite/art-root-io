@@ -4,6 +4,9 @@ art_dictionary()
 
 add_subdirectory(RootDB)
 
+find_package(ROOT QUIET REQUIRED
+  COMPONENTS Core RIO Tree Hist Thread)
+
 art_make_library(
   LIBRARY_NAME art_root_io_detail
   SOURCE
@@ -147,6 +150,5 @@ cet_make_completions(count_events)
 cet_make_completions(file_info_dumper)
 
 install_headers(SUBDIRS detail)
-install_source(SUBDIRS detail)
 
 add_subdirectory(test)

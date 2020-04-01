@@ -2,6 +2,8 @@ cet_enable_asserts()
 
 include(CetTest)
 
+find_package(ROOT QUIET REQUIRED COMPONENTS Graf)
+
 cet_make_library(LIBRARY_NAME art_root_io_test_TH1Data
   SOURCE TH1Data.cc
   LIBRARIES ROOT::Hist ROOT::Core

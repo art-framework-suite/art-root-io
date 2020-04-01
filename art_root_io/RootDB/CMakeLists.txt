@@ -1,3 +1,5 @@
+find_package(ROOT QUIET REQUIRED COMPONENTS RIO Core)
+
 art_make_library(LIBRARY_NAME
   art_root_io_RootDB
   SOURCE
@@ -18,4 +20,3 @@ art_make_library(LIBRARY_NAME
   ${SQLITE3})
 
 install_headers()
-install_source()
