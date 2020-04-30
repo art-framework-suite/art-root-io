@@ -125,12 +125,13 @@ namespace art {
           << "INFO: Processing will continue, tree will be slow cloned.";
       }
     }
-    for (auto const& val : readBranches_) {
-      if (val->GetEntries() != tree_.load()->GetEntries()) {
-        unclonedReadBranches_.push_back(val);
-        unclonedReadBranchNames_.insert(string(val->GetName()));
+    for (auto branch : readBranches_) {
+      if (branch->GetEntries() != tree_.load()->GetEntries()) {
+        unclonedReadBranches_.push_back(branch);
+        unclonedReadBranchNames_.push_back(branch->GetName());
       }
     }
+    cet::sort_all(unclonedReadBranchNames_);
     return cloned;
   }
 

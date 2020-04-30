@@ -964,35 +964,37 @@ namespace art {
                                vector<ProductProvenance>* vpp)
   {
     RecursiveMutexSentry sentry{mutex_, __func__};
-    bool const fastCloning = ((BT == InEvent) && wasFastCloned_);
+    bool const fastCloning{BT == InEvent && wasFastCloned_};
     map<unsigned, unsigned> checksumToIndex;
     auto const& principalRS = principal.seenRanges();
+
+    // Local variables to avoid many functions calls to
+    // DropMetaData::operator==().
+    bool const drop_no_metadata{dropMetaData_ == DropMetaData::DropNone};
+    bool const drop_prior_metadata{dropMetaData_ == DropMetaData::DropPrior};
+    bool const drop_all_metadata{dropMetaData_ == DropMetaData::DropAll};
+
     set<ProductProvenance> keptprv;
     for (auto const& val : selectedOutputItemList_[BT]) {
       auto const& bd = val.branchDescription_;
       auto const pid = bd.productID();
-      descriptionsToPersist_[BT].emplace(pid, bd);
+      descriptionsToPersist_[BT].try_emplace(pid, bd);
       bool const produced = bd.produced();
-      bool const resolveProd = (produced || !fastCloning ||
-                                treePointers_[BT]->uncloned(bd.branchName()));
+      bool const resolveProd{produced || !fastCloning ||
+                             treePointers_[BT]->uncloned(bd.branchName())};
       // Update the kept provenance
       bool const keepProvenance =
-        ((dropMetaData_ == DropMetaData::DropNone) ||
-         (produced && (dropMetaData_ == DropMetaData::DropPrior)));
+        drop_no_metadata || (produced && drop_prior_metadata);
       auto const& oh = principal.getForOutput(pid, resolveProd);
       auto prov = keptprv.begin();
       if (keepProvenance) {
         if (oh.productProvenance()) {
           prov = keptprv.insert(*oh.productProvenance()).first;
-          if ((dropMetaData_ != DropMetaData::DropAll) &&
-              !dropMetaDataForDroppedData_) {
+          if (!drop_all_metadata && !dropMetaDataForDroppedData_) {
             {
               vector<ProductProvenance const*> stacked_pp;
               stacked_pp.push_back(&*oh.productProvenance());
-              while (true) {
-                if (stacked_pp.size() == 0) {
-                  break;
-                }
+              while (not empty(stacked_pp)) {
                 auto current_pp = stacked_pp.back();
                 stacked_pp.pop_back();
                 for (auto const parent_bid :
@@ -1013,22 +1015,22 @@ namespace art {
                     // FIXME: Is this an error condition?
                     continue;
                   }
-                  descriptionsToPersist_[BT].emplace(parent_bid, *parent_bd);
+                  descriptionsToPersist_[BT].try_emplace(parent_bid,
+                                                         *parent_bd);
                   if (!parent_bd->produced()) {
                     // We got it from the input, nothing to do.
                     continue;
                   }
                   auto parent_pp =
                     principal.branchToProductProvenance(parent_bid);
-                  if (!parent_pp || (dropMetaData_ != DropMetaData::DropNone)) {
+                  if (!parent_pp || !drop_no_metadata) {
                     continue;
                   }
                   if (!keptprv.insert(*parent_pp).second) {
                     // Already there, done.
                     continue;
                   }
-                  if ((dropMetaData_ != DropMetaData::DropAll) &&
-                      !dropMetaDataForDroppedData_) {
+                  if (!drop_all_metadata && !dropMetaDataForDroppedData_) {
                     stacked_pp.push_back(parent_pp.get());
                   }
                 }
