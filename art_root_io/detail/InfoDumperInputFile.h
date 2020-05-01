@@ -17,44 +17,42 @@
 #include <ostream>
 #include <string>
 
-namespace art {
-  namespace detail {
+namespace art::detail {
 
-    class InfoDumperInputFile {
-    public:
-      using EntryNumber = input::EntryNumber;
-      using EntryNumbers = input::EntryNumbers;
+  class InfoDumperInputFile {
+  public:
+    using EntryNumber = input::EntryNumber;
+    using EntryNumbers = input::EntryNumbers;
 
-      InfoDumperInputFile(std::string const& filename);
-      void print_process_history(std::ostream&) const;
-      void print_range_sets(std::ostream&, bool compactRanges) const;
-      void print_event_list(std::ostream&) const;
-      void print_file_index(std::ostream&) const;
-      void print_branchIDLists(std::ostream& os) const;
-      TFile*
-      tfile() const
-      {
-        return file_.get();
-      }
+    InfoDumperInputFile(std::string const& filename);
+    void print_process_history(std::ostream&) const;
+    void print_range_sets(std::ostream&, bool compactRanges) const;
+    void print_event_list(std::ostream&) const;
+    void print_file_index(std::ostream&) const;
+    void print_branchIDLists(std::ostream& os) const;
+    TFile*
+    tfile() const
+    {
+      return file_.get();
+    }
 
-    private:
-      RunAuxiliary getAuxiliary(TTree* tree, EntryNumber const entry) const;
+  private:
+    RunAuxiliary getAuxiliary(TTree* tree, EntryNumber const entry) const;
 
-      RangeSet getRangeSet(TTree* tree,
-                           EntryNumbers const& entries,
-                           sqlite3* db,
-                           std::string const& filename,
-                           bool compactRanges) const;
+    RangeSet getRangeSet(TTree* tree,
+                         EntryNumbers const& entries,
+                         sqlite3* db,
+                         std::string const& filename,
+                         bool compactRanges) const;
 
-      std::unique_ptr<TFile> file_;
-      BranchIDLists branchIDLists_{};
-      ProcessHistoryMap pHistMap_;
-      FileIndex fileIndex_;
-      FileFormatVersion fileFormatVersion_;
-    };
+    std::unique_ptr<TFile> file_;
+    BranchIDLists branchIDLists_{};
+    ProcessHistoryMap pHistMap_;
+    FileIndex fileIndex_;
+    FileFormatVersion fileFormatVersion_;
+  };
 
-  } // namespace detail
-} // namespace art
+} // namespace art::detail
 
 #endif /* art_root_io_detail_InfoDumperInputFile_h */
 
