@@ -10,7 +10,7 @@ product         version		<format=2>
 art             v3_05_01
 canvas_root_io  v1_05_02
 cetbuildtools   v7_17_00        -       only_for_build
-catch           v2_12_1		-       only_for_build
+catch           v2_12_2		-       only_for_build
 end_product_list
 
 qualifier       art             canvas_root_io  notes
