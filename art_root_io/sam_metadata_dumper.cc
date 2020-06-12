@@ -10,6 +10,7 @@
 #include "canvas/Persistency/Provenance/rootNames.h"
 #include "cetlib/canonical_string.h"
 #include "cetlib/container_algorithms.h"
+#include "cetlib/parsed_program_options.h"
 #include "fhiclcpp/ParameterSet.h"
 #include "fhiclcpp/make_ParameterSet.h"
 
@@ -318,7 +319,7 @@ RootErrorHandler(int level, bool die, char const* location, char const* message)
 }
 
 int
-main(int argc, char* argv[])
+main(int argc, char const* argv[])
 {
   // ------------------
   // use the boost command line option processing library to help out
@@ -326,31 +327,24 @@ main(int argc, char* argv[])
   std::ostringstream descstr;
   descstr << argv[0] << " <options> [<source-file>]+\nOptions";
   bpo::options_description desc(descstr.str());
-  desc.add_options()("help,h", "produce help message")(
-    "hr,H", "produce human-readable output (default is JSON)")(
-    "human-readable", "produce human-readable output (default is JSON)")(
-    "source,s", bpo::value<stringvec>(), "source data file (multiple OK)");
+  // clang-format off
+  desc.add_options()
+    ("help,h", "produce help message")
+    ("hr,H", "produce human-readable output (default is JSON)")
+    ("human-readable", "produce human-readable output (default is JSON)")
+    ("source,s", bpo::value<stringvec>(), "source data file (multiple OK)");
+  // clang-format on
+
   bpo::options_description all_opts("All Options");
   all_opts.add(desc);
+
   // Each non-option argument is interpreted as the name of a files to
   // be processed. Any number of filenames is allowed.
   bpo::positional_options_description pd;
   pd.add("source", -1);
-  // The variables_map contains the actual program options.
-  bpo::variables_map vm;
-  try {
-    bpo::store(bpo::command_line_parser(argc, argv)
-                 .options(all_opts)
-                 .positional(pd)
-                 .run(),
-               vm);
-    bpo::notify(vm);
-  }
-  catch (bpo::error const& e) {
-    std::cerr << "Exception from command line processing in " << argv[0] << ": "
-              << e.what() << "\n";
-    return 2;
-  }
+
+  auto const vm = cet::parsed_program_options(argc, argv, all_opts, pd);
+
   if (vm.count("help")) {
     std::cout << desc << std::endl;
     return 1;

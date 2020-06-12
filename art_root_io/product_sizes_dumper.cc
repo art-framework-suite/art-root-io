@@ -6,6 +6,7 @@
 #include "art_root_io/RootSizeOnDisk.h"
 #include "boost/program_options.hpp"
 #include "cetlib/container_algorithms.h"
+#include "cetlib/parsed_program_options.h"
 
 #include "TError.h"
 #include "TFile.h"
@@ -18,7 +19,7 @@ namespace bpo = boost::program_options;
 typedef std::vector<std::string> stringvec;
 
 int
-main(int argc, char** argv)
+main(int argc, char const** argv)
 {
 
   // Parse and validate command line arguments.
@@ -28,35 +29,28 @@ main(int argc, char** argv)
   std::ostringstream descstr;
   descstr << argv[0] << " <options> [<source-file>]+\nOptions";
   bpo::options_description desc(descstr.str());
-  desc.add_options()("help,h", "this help message.")(
-    "fraction,f",
-    bpo::value<double>()->default_value(0.05, "0.05"),
-    "floating point number on the range [0,1].  "
-    "If a TTree occupies a fraction on disk of the total space in the file "
-    "that is less than <f>, then a detailed analysis of its branches will "
-    "not be done")(
-    "source,s", bpo::value<stringvec>(), "source data file (multiple OK)");
+  // clang-format off
+  desc.add_options()
+    ("help,h", "this help message.")
+    ("fraction,f",
+       bpo::value<double>()->default_value(0.05, "0.05"),
+       "floating point number on the range [0,1].  "
+       "If a TTree occupies a fraction on disk of the total space in the file "
+       "that is less than <f>, then a detailed analysis of its branches will "
+       "not be done")
+    ("source,s", bpo::value<stringvec>(), "source data file (multiple OK)");
+  // clang-format on
+
   bpo::options_description all_opts("All Options.");
   all_opts.add(desc);
+
   // Each non-option argument is interpreted as the name of a file to be
   // processed. Any number of filenames is allowed.
   bpo::positional_options_description pd;
   pd.add("source", -1);
-  // The variables_map contains the actual program options.
-  bpo::variables_map vm;
-  try {
-    bpo::store(bpo::command_line_parser(argc, argv)
-                 .options(all_opts)
-                 .positional(pd)
-                 .run(),
-               vm);
-    bpo::notify(vm);
-  }
-  catch (bpo::error const& e) {
-    std::cerr << "Exception from command line processing in " << argv[0] << ": "
-              << e.what() << "\n";
-    return 2;
-  }
+
+  auto const vm = cet::parsed_program_options(argc, argv, all_opts, pd);
+
   if (vm.count("help")) {
     std::cout << desc << std::endl;
     return 1;

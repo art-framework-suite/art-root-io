@@ -7,6 +7,7 @@
 #include "canvas/Persistency/Provenance/rootNames.h"
 #include "cetlib/HorizontalRule.h"
 #include "cetlib/container_algorithms.h"
+#include "cetlib/parsed_program_options.h"
 
 #include "TError.h"
 #include "TFile.h"
@@ -124,32 +125,34 @@ namespace {
 } // namespace
 
 int
-main(int argc, char* argv[]) try {
-  // ------------------
-  // use the boost command line option processing library to help out
-  // with command line options
+main(int argc, char const* argv[]) try {
   std::ostringstream descstr;
   descstr << argv[0] << " <options> [<source-file>]+\nOptions";
 
   bpo::options_description desc{descstr.str()};
-  desc.add_options()("help,h", "produce help message")(
-    "full-path", "print full path of file name")(
-    "event-list", "print event-list for each input file")(
-    "file-index", "prints FileIndex object for each input file")(
-    "process-history",
-    "prints list of processes that produced this file (output given in "
-    "chronological order)")(
-    "range-of-validity",
-    bpo::value<string>()->implicit_value("full"),
-    "prints range of validity for each input file.  Allowed values are\n"
-    "  \"full\" (default)\n"
-    "  \"compact\"")("branch-ids,B",
-                     "prints BranchID lists stored in the file")(
-    "db-to-file",
-    ("Writes RootFileDB to external SQLite database with the same base name as the input file and the suffix '.db'.\n"s +
-     "(Writes to directory in which '"s + argv[0] + "' is executed)."s)
-      .c_str())(
-    "source,s", bpo::value<stringvec>(), "source data file (multiple OK)");
+  // clang-format off
+  desc.add_options()
+    ("help,h", "produce help message")
+    ("full-path", "print full path of file name")
+    ("event-list", "print event-list for each input file")
+    ("file-index", "prints FileIndex object for each input file")
+    ("process-history",
+      "prints list of processes that produced this file (output given in "
+      "chronological order)")
+    ("range-of-validity",
+       bpo::value<string>()->implicit_value("full"),
+       "prints range of validity for each input file.  Allowed values are\n"
+       "  \"full\" (default)\n"
+       "  \"compact\"")
+    ("branch-ids,B", "prints BranchID lists stored in the file")
+    ("db-to-file",
+       ("Writes RootFileDB to external SQLite database with the same base name"
+        "as the input file and the suffix '.db'.\n"
+        "(Writes to directory in which '"s +
+        argv[0] + "' is executed)."s)
+         .c_str())
+    ("source,s", bpo::value<stringvec>(), "source data file (multiple OK)");
+  // clang-format on
 
   bpo::options_description all_opts{"All Options"};
   all_opts.add(desc);
@@ -158,21 +161,8 @@ main(int argc, char* argv[]) try {
   // be processed. Any number of filenames is allowed.
   bpo::positional_options_description pd;
   pd.add("source", -1);
-  // The variables_map contains the actual program options.
-  bpo::variables_map vm;
-  try {
-    bpo::store(bpo::command_line_parser(argc, argv)
-                 .options(all_opts)
-                 .positional(pd)
-                 .run(),
-               vm);
-    bpo::notify(vm);
-  }
-  catch (bpo::error const& e) {
-    std::cerr << "Exception from command line processing in " << argv[0] << ": "
-              << e.what() << "\n";
-    return 2;
-  }
+
+  auto const vm = cet::parsed_program_options(argc, argv, all_opts, pd);
 
   if (vm.count("help")) {
     std::cout << desc << std::endl;
