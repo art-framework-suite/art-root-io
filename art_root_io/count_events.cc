@@ -91,7 +91,7 @@ namespace {
 } // namespace
 
 int
-main(int argc, char const** argv)
+main(int argc, char** argv)
 {
   using stringvec = std::vector<std::string>;
   int result = 1;

@@ -19,7 +19,7 @@ namespace bpo = boost::program_options;
 typedef std::vector<std::string> stringvec;
 
 int
-main(int argc, char const** argv)
+main(int argc, char** argv)
 {
 
   // Parse and validate command line arguments.
@@ -108,6 +108,4 @@ main(int argc, char const** argv)
     if (file_names.size() > 1)
       std::cout << "Done: " << filename << std::endl;
   }
-
-  return 0;
 }

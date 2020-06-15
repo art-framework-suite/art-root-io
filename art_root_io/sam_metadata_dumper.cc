@@ -319,7 +319,7 @@ RootErrorHandler(int level, bool die, char const* location, char const* message)
 }
 
 int
-main(int argc, char const* argv[])
+main(int argc, char** argv)
 {
   // ------------------
   // use the boost command line option processing library to help out
