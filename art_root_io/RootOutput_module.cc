@@ -33,6 +33,7 @@
 #include "fhiclcpp/types/ConfigurationTable.h"
 #include "fhiclcpp/types/OptionalAtom.h"
 #include "fhiclcpp/types/Table.h"
+#include "fhiclcpp/types/TableFragment.h"
 #include "hep_concurrency/RecursiveMutex.h"
 #include "messagefacility/MessageLogger/MessageLogger.h"
 
@@ -86,7 +87,10 @@ namespace art {
       Atom<string> dropMetaData{Name("dropMetaData"), "NONE"};
       Atom<bool> writeParameterSets{Name("writeParameterSets"), true};
       fhicl::Table<ClosingCriteria::Config> fileProperties{
-        Name("fileProperties")};
+        Name("fileProperties"),
+        Comment("The 'fileProperties' parameter is specified to enable "
+                "output-file switching.")};
+      fhicl::TableFragment<detail::SafeFileNameConfig> safeFileName;
 
       Config()
       {
@@ -225,13 +229,13 @@ namespace art {
     , dropMetaData_{config().dropMetaData()}
     , dropMetaDataForDroppedData_{config().dropMetaDataForDroppedData()}
     , writeParameterSets_{config().writeParameterSets()}
-    , fileProperties_{(
-        detail::validateFileNamePattern(
-          config.get_PSet().has_key(config().fileProperties.name()),
-          filePattern_),
-        config().fileProperties())}
+    , fileProperties_{config().fileProperties()}
     , rpm_{config.get_PSet()}
   {
+    bool const check_filename = config.get_PSet().has_key("fileProperties") and
+                                config().safeFileName().checkFileName();
+    detail::validateFileNamePattern(check_filename, filePattern_);
+
     // Setup the streamers and error handlers.
     root::setup();
 

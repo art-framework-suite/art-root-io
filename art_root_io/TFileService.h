@@ -6,19 +6,18 @@
 #include "art/Framework/IO/ClosingCriteria.h"
 #include "art/Framework/IO/FileStatsCollector.h"
 #include "art/Framework/IO/PostCloseFileRenamer.h"
+#include "art/Framework/IO/detail/validateFileNamePattern.h"
 #include "art/Framework/Services/Registry/ServiceMacros.h"
 #include "art_root_io/TFileDirectory.h"
+#include "fhiclcpp/fwd.h"
 #include "fhiclcpp/types/Atom.h"
 #include "fhiclcpp/types/Name.h"
 #include "fhiclcpp/types/OptionalTable.h"
+#include "fhiclcpp/types/TableFragment.h"
 #include "hep_concurrency/RecursiveMutex.h"
 
 #include <chrono>
 #include <string>
-
-namespace fhicl {
-  class ParameterSet;
-}
 
 namespace art {
 
@@ -37,6 +36,7 @@ namespace art {
       fhicl::Atom<std::string> tmpDir{fhicl::Name("tmpDir"), default_tmpDir};
       fhicl::OptionalTable<ClosingCriteria::Config> fileProperties{
         fhicl::Name("fileProperties")};
+      fhicl::TableFragment<detail::SafeFileNameConfig> safeFileName;
     };
     using Parameters = ServiceTable<Config>;
 

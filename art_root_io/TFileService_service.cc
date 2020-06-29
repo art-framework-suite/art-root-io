@@ -60,7 +60,8 @@ namespace art {
           << "This is done by specifying '-j=1' at the command line.\n";
       }
 
-      detail::validateFileNamePattern(requireCallback_, filePattern_);
+      detail::validateFileNamePattern(config().safeFileName().checkFileName(),
+                                      filePattern_);
       fileSwitchCriteria_ = ClosingCriteria{fpConfig};
     }
     openFile_();
