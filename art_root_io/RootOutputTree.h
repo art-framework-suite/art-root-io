@@ -7,6 +7,7 @@
 #include "art/Framework/Core/Frameworkfwd.h"
 #include "canvas/Persistency/Provenance/BranchType.h"
 #include "canvas/Persistency/Provenance/ProductProvenance.h"
+#include "cetlib/container_algorithms.h"
 #include "cetlib/exempt_ptr.h"
 
 #include "TTree.h"
@@ -109,8 +110,7 @@ namespace art {
     bool
     uncloned(std::string const& branchName) const
     {
-      return unclonedReadBranchNames_.find(branchName) !=
-             unclonedReadBranchNames_.end();
+      return cet::binary_search_all(unclonedReadBranchNames_, branchName);
     }
 
   private: // MEMBER DATA
@@ -122,7 +122,7 @@ namespace art {
     std::vector<TBranch*> metaBranches_{};
     std::vector<TBranch*> readBranches_{};
     std::vector<TBranch*> unclonedReadBranches_{};
-    std::set<std::string> unclonedReadBranchNames_{};
+    std::vector<std::string> unclonedReadBranchNames_{};
     // The default for 'fastCloningEnabled_' is false so that SubRuns
     // and Runs are not fast-cloned.  We explicitly set this variable
     // to true for the event tree.

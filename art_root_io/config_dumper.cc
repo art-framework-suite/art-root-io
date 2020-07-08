@@ -7,6 +7,7 @@
 #include "canvas/Persistency/Provenance/rootNames.h"
 #include "cetlib/container_algorithms.h"
 #include "cetlib/exempt_ptr.h"
+#include "cetlib/parsed_program_options.h"
 #include "fhiclcpp/ParameterSet.h"
 #include "fhiclcpp/ParameterSetRegistry.h"
 #include "fhiclcpp/make_ParameterSet.h"
@@ -273,47 +274,35 @@ print_psets_from_files(stringvec const& file_names,
 }
 
 int
-main(int argc, char* argv[])
+main(int argc, char** argv)
 {
-  // ------------------
-  // use the boost command line option processing library to help out
-  // with command line options
   std::ostringstream descstr;
   descstr << argv[0] << " <PsetType> <options> [<source-file>]+\nOptions";
   bpo::options_description desc(descstr.str());
-  desc.add_options()(
-    "filter,f",
-    bpo::value<stringvec>()->composing(),
-    "Only entities whose identifier (label (M), service type (S) "
-    "or process name (P)) match (multiple OK).")("help,h",
-                                                 "this help message.")(
-    "modules,M", "PsetType: print module configurations (default).")(
-    "source,s",
-    bpo::value<stringvec>()->composing(),
-    "source data file (multiple OK).")(
-    "services,S", "PsetType: print service configurations.")(
-    "process,P", "PsetType: print process configurations.");
+  // clang-format off
+  desc.add_options()
+    ("filter,f",
+       bpo::value<stringvec>()->composing(),
+       "Only entities whose identifier (label (M), service type (S) "
+       "or process name (P)) match (multiple OK).")
+    ("help,h", "this help message.")
+    ("modules,M", "PsetType: print module configurations (default).")
+    ("source,s",
+       bpo::value<stringvec>()->composing(), "source data file (multiple OK).")
+    ("services,S", "PsetType: print service configurations.")
+    ("process,P", "PsetType: print process configurations.");
+  // clang-format on
+
   bpo::options_description all_opts("All Options.");
   all_opts.add(desc);
+
   // Each non-option argument is interpreted as the name of a file to be
   // processed. Any number of filenames is allowed.
   bpo::positional_options_description pd;
   pd.add("source", -1);
-  // The variables_map contains the actual program options.
-  bpo::variables_map vm;
-  try {
-    bpo::store(bpo::command_line_parser(argc, argv)
-                 .options(all_opts)
-                 .positional(pd)
-                 .run(),
-               vm);
-    bpo::notify(vm);
-  }
-  catch (bpo::error const& e) {
-    std::cerr << "Exception from command line processing in " << argv[0] << ": "
-              << e.what() << "\n";
-    return 2;
-  }
+
+  auto const vm = cet::parsed_program_options(argc, argv, all_opts, pd);
+
   if (vm.count("help")) {
     std::cout << desc << std::endl;
     return 1;

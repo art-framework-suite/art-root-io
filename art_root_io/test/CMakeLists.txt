@@ -155,3 +155,31 @@ foreach(NUM 1 5 6) # N.B. No 'RANGE' for these two tests
     DATAFILES TFileService_r_0${NUM}_input.txt
     TEST_PROPERTIES DEPENDS TFileService_t_0${NUM})
 endforeach()
+
+cet_test(CheckFileName_default_t1 HANDBUILT
+  TEST_EXEC art
+  TEST_ARGS --config check_filename_default_t1.fcl
+  DATAFILES fcl/check_filename_default_t1.fcl)
+
+cet_test(CheckFileName_default_t2 HANDBUILT
+  TEST_EXEC art
+  TEST_ARGS --config check_filename_default_t2.fcl
+  DATAFILES fcl/check_filename_default_t2.fcl
+  TEST_PROPERTIES PASS_REGULAR_EXPRESSION "Please change your file name to include the '%#' pattern")
+
+cet_test(CheckFileName_required_t HANDBUILT
+  TEST_EXEC art
+  TEST_ARGS --config check_filename_required_t.fcl
+  DATAFILES fcl/check_filename_required_t.fcl
+  TEST_PROPERTIES PASS_REGULAR_EXPRESSION "Please change your file name to include the '%#' pattern")
+
+cet_test(CheckFileName_disabled_w HANDBUILT
+  TEST_EXEC art
+  TEST_ARGS --config check_filename_disabled_w.fcl -n 2
+  DATAFILES fcl/check_filename_disabled_w.fcl)
+
+cet_test(CheckFileName_disabled_t1 PREBUILT
+  TEST_PROPERTIES DEPENDS CheckFileName_disabled_w)
+
+cet_test(CheckFileName_disabled_t2 PREBUILT
+  TEST_PROPERTIES DEPENDS CheckFileName_disabled_t1)
