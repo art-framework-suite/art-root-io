@@ -11,14 +11,18 @@
 #  make install
 #  make package (builds distribution tarfile)
 # ======================================================================
+cmake_minimum_required(VERSION 3.18.2 FATAL_ERROR)
+cmake_policy(VERSION 3.14)
+# Policy CMP0096 must be set to NEW to preserve leading zeros in the
+# VERSION set by project().
+cmake_policy(SET CMP0096 NEW)
 
-cmake_minimum_required(VERSION 3.12...3.14 FATAL_ERROR)
-project(art_root_io LANGUAGES CXX C)
+find_package(cetmodules 2.02.00 REQUIRED)
+project(art_root_io VERSION 1.04.03 LANGUAGES CXX C)
 
-# cetbuildtools contains our cmake modules
-find_package(cetbuildtools REQUIRED)
+# cetbuildtools contains our cmake modules ### MIGRATE-ACTION-REQUIRED: remove
 
-list(APPEND CMAKE_MODULE_PATH
+list(APPEND CMAKE_MODULE_PATH ### MIGRATE-ACTION-REQUIRED: remove
   $ENV{CANVAS_ROOT_IO_DIR}/Modules
   $ENV{ART_DIR}/Modules
   ${CMAKE_CURRENT_SOURCE_DIR}/Modules)
@@ -31,11 +35,6 @@ cet_set_compiler_flags(DIAGS VIGILANT
   NO_UNDEFINED
   EXTRA_FLAGS -pedantic
   EXTRA_CXX_FLAGS -Wnon-virtual-dtor -Wdelete-non-virtual-dtor -DBOOST_TEST_NO_OLD_TOOLS)
-
-cet_have_qual(sse2 SSE2)
-if (SSE2)
-  cet_add_compiler_flags(CXX -msse2 -ftree-vectorizer-verbose=2)
-endif()
 
 if($ENV{CET_SANITIZE_ADDRESS})
   if(NOT "$ENV{GCC_FQ_DIR}" STREQUAL "")
@@ -65,25 +64,25 @@ set(CMAKE_MODULE_LINKER_FLAGS_DEBUG "${CMAKE_MODULE_LINKER_FLAGS_DEBUG} -fsaniti
 set(CMAKE_SHARED_LINKER_FLAGS_DEBUG "${CMAKE_SHARED_LINKER_FLAGS_DEBUG} -fsanitize=thread -D__SANITIZE_THREAD__")
 endif()
 
-cet_report_compiler_flags()
+cet_report_compiler_flags(REPORT_THRESHOLD VERBOSE)
 
 # these are minimum required versions, not the actual product versions
-find_ups_product(art)
-find_ups_product(canvas_root_io)
-find_ups_product(canvas)
-find_ups_product(messagefacility)
-find_ups_product(fhiclcpp)
-find_ups_product(cetlib)
-find_ups_product(cetlib_except)
-find_ups_product(clhep)
-find_ups_product(hep_concurrency)
-find_ups_product(sqlite)
+find_ups_product(art) ### MIGRATE-ACTION-RECOMMENDED: use cet_find_package() with target semantics for linking
+find_ups_product(canvas_root_io) ### MIGRATE-ACTION-RECOMMENDED: use cet_find_package() with target semantics for linking
+find_ups_product(canvas) ### MIGRATE-ACTION-RECOMMENDED: use cet_find_package() with target semantics for linking
+find_ups_product(messagefacility) ### MIGRATE-ACTION-RECOMMENDED: use cet_find_package() with target semantics for linking
+find_ups_product(fhiclcpp) ### MIGRATE-ACTION-RECOMMENDED: use cet_find_package() with target semantics for linking
+find_ups_product(cetlib) ### MIGRATE-ACTION-RECOMMENDED: use cet_find_package() with target semantics for linking
+find_ups_product(cetlib_except) ### MIGRATE-ACTION-RECOMMENDED: use cet_find_package() with target semantics for linking
+find_ups_product(clhep) ### MIGRATE-ACTION-RECOMMENDED: use cet_find_package() with target semantics for linking
+find_ups_product(hep_concurrency) ### MIGRATE-ACTION-RECOMMENDED: use cet_find_package() with target semantics for linking
+find_ups_product(sqlite) ### MIGRATE-ACTION-RECOMMENDED: use cet_find_package() with target semantics for linking
 find_ups_boost(BOOST_TARGETS)
 find_ups_root()
-find_ups_product(catch)
+find_ups_product(catch) ### MIGRATE-ACTION-RECOMMENDED: use cet_find_package() with target semantics for linking
 
 # SQLite
-cet_find_library(SQLITE3 NAMES sqlite3_ups PATHS ENV SQLITE_LIB NO_DEFAULT_PATH)
+cet_find_library(SQLITE3 NAMES sqlite3_ups PATHS ENV SQLITE_LIB NO_DEFAULT_PATH) ### MIGRATE-ACTION-RECOMMENDED: use of ENV ... may be UPS-dependent ### MIGRATE-ACTION-RECOMMENDED: use cet_find_package() with target semantics for linking
 
 # macros for making art libraries/dictionaries, etc. and plugins
 include(ArtMake)
@@ -93,10 +92,9 @@ include(BuildPlugins)
 add_subdirectory(art_root_io)
 
 # ups - table and config files
-add_subdirectory(ups)
 
 # tools - migration scripts
 add_subdirectory(tools)
 
 # packaging utility
-include(UseCPack)
+cet_cmake_config(COMPATIBILITY SameMajorVersion)
