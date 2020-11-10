@@ -17,15 +17,8 @@ cmake_policy(VERSION 3.14)
 # VERSION set by project().
 cmake_policy(SET CMP0096 NEW)
 
-find_package(cetmodules 2.02.01 REQUIRED)
+find_package(cetmodules 2.03.00 REQUIRED)
 project(art_root_io VERSION 1.04.03 LANGUAGES CXX C)
-
-# cetbuildtools contains our cmake modules ### MIGRATE-ACTION-REQUIRED: remove
-
-list(APPEND CMAKE_MODULE_PATH ### MIGRATE-ACTION-REQUIRED: remove
-  $ENV{CANVAS_ROOT_IO_DIR}/Modules
-  $ENV{ART_DIR}/Modules
-  ${CMAKE_CURRENT_SOURCE_DIR}/Modules)
 
 include(CetCMakeEnv)
 cet_cmake_env()
