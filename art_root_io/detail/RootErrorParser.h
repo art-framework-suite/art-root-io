@@ -1,8 +1,6 @@
 #ifndef art_root_io_detail_RootErrorParser_h
 #define art_root_io_detail_RootErrorParser_h
 
-#include "messagefacility/MessageLogger/MessageLogger.h"
-
 #include <ostream>
 #include <sstream>
 

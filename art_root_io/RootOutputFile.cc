@@ -50,6 +50,7 @@
 #include "fhiclcpp/ParameterSetID.h"
 #include "fhiclcpp/ParameterSetRegistry.h"
 #include "hep_concurrency/RecursiveMutex.h"
+#include "messagefacility/MessageLogger/MessageLogger.h"
 
 #include "Rtypes.h"
 #include "TBranchElement.h"

@@ -26,8 +26,7 @@ cet_cmake_env()
 cet_set_compiler_flags(DIAGS VIGILANT
   WERROR
   NO_UNDEFINED
-  EXTRA_FLAGS -pedantic
-  EXTRA_CXX_FLAGS -Wnon-virtual-dtor -Wdelete-non-virtual-dtor -DBOOST_TEST_NO_OLD_TOOLS)
+  EXTRA_FLAGS -pedantic)
 
 if($ENV{CET_SANITIZE_ADDRESS})
   if(NOT "$ENV{GCC_FQ_DIR}" STREQUAL "")
@@ -59,23 +58,19 @@ endif()
 
 cet_report_compiler_flags(REPORT_THRESHOLD VERBOSE)
 
-# these are minimum required versions, not the actual product versions
-find_ups_product(art) ### MIGRATE-ACTION-RECOMMENDED: use cet_find_package() with target semantics for linking
-find_ups_product(canvas_root_io) ### MIGRATE-ACTION-RECOMMENDED: use cet_find_package() with target semantics for linking
-find_ups_product(canvas) ### MIGRATE-ACTION-RECOMMENDED: use cet_find_package() with target semantics for linking
-find_ups_product(messagefacility) ### MIGRATE-ACTION-RECOMMENDED: use cet_find_package() with target semantics for linking
-find_ups_product(fhiclcpp) ### MIGRATE-ACTION-RECOMMENDED: use cet_find_package() with target semantics for linking
-find_ups_product(cetlib) ### MIGRATE-ACTION-RECOMMENDED: use cet_find_package() with target semantics for linking
-find_ups_product(cetlib_except) ### MIGRATE-ACTION-RECOMMENDED: use cet_find_package() with target semantics for linking
-find_ups_product(clhep) ### MIGRATE-ACTION-RECOMMENDED: use cet_find_package() with target semantics for linking
-find_ups_product(hep_concurrency) ### MIGRATE-ACTION-RECOMMENDED: use cet_find_package() with target semantics for linking
-find_ups_product(sqlite) ### MIGRATE-ACTION-RECOMMENDED: use cet_find_package() with target semantics for linking
-find_ups_boost(BOOST_TARGETS)
-find_ups_root()
-find_ups_product(catch) ### MIGRATE-ACTION-RECOMMENDED: use cet_find_package() with target semantics for linking
-
-# SQLite
-cet_find_library(SQLITE3 NAMES sqlite3_ups PATHS ENV SQLITE_LIB NO_DEFAULT_PATH) ### MIGRATE-ACTION-RECOMMENDED: use of ENV ... may be UPS-dependent ### MIGRATE-ACTION-RECOMMENDED: use cet_find_package() with target semantics for linking
+cet_find_package(art REQUIRED)
+cet_find_package(canvas_root_io REQUIRED)
+cet_find_package(canvas REQUIRED)
+cet_find_package(messagefacility REQUIRED)
+cet_find_package(fhiclcpp REQUIRED)
+cet_find_package(cetlib REQUIRED)
+cet_find_package(cetlib_except REQUIRED)
+cet_find_package(CLHEP REQUIRED)
+cet_find_package(hep_concurrency REQUIRED)
+cet_find_package(SQLite3 REQUIRED)
+cet_find_package(Boost COMPONENTS date_time program_options REQUIRED)
+cet_find_package(ROOT REQUIRED)
+cet_find_package(Catch2 REQUIRED PRIVATE)
 
 # macros for making art libraries/dictionaries, etc. and plugins
 include(ArtMake)

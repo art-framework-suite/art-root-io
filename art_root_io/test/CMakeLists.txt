@@ -6,12 +6,13 @@ cet_make_library(LIBRARY_NAME art_root_io_test_TH1Data
   SOURCE TH1Data.cc
   LIBRARIES ROOT::Hist ROOT::Core
   NO_INSTALL)
-art_dictionary(DICTIONARY_LIBRARIES art_root_io_test_TH1Data NO_INSTALL)
+
+art_dictionary(DICTIONARY_LIBRARIES PRIVATE art_root_io_test_TH1Data art::art_test_TestObjects NO_INSTALL)
 
 add_subdirectory(bad-assns)
 add_subdirectory(fastclonefail)
 
-simple_plugin(TH1DataProducer "module" NO_INSTALL art_root_io_test_TH1Data ALLOW_UNDERSCORES)
+simple_plugin(TH1DataProducer "module" NO_INSTALL LIBRARIES PRIVATE art_root_io_test_TH1Data ALLOW_UNDERSCORES)
 
 cet_test(TH1Data_t HANDBUILT
   TEST_EXEC art
@@ -20,12 +21,12 @@ cet_test(TH1Data_t HANDBUILT
 
 ###############################################################
 # Not integration tests
-cet_test(GetFileFormatVersion SOURCES test_GetFileFormatVersion.cpp
+cet_test(GetFileFormatVersion SOURCE test_GetFileFormatVersion.cpp
   LIBRARIES art_root_io)
 
-cet_test(RootErrorParser_t USE_CATCH_MAIN LIBRARIES art_root_io)
-cet_test(RootErrorClassifier_t USE_CATCH_MAIN LIBRARIES art_root_io)
-cet_test(RootOutputClosingCriteria_t USE_BOOST_UNIT LIBRARIES art_root_io)
+cet_test(RootErrorParser_t USE_CATCH2_MAIN LIBRARIES PRIVATE Catch2::Catch2 art_root_io::art_root_io )
+cet_test(RootErrorClassifier_t USE_CATCH2_MAIN LIBRARIES PRIVATE Catch2::Catch2 art_root_io::art_root_io)
+cet_test(RootOutputClosingCriteria_t USE_BOOST_UNIT LIBRARIES PRIVATE art_root_io)
 
 add_subdirectory(RootDB)
 
@@ -106,10 +107,19 @@ cet_test(PostCloseFileRename_Integration HANDBUILT
   DATAFILES fcl/PostCloseFileRename_t.fcl)
 
 simple_plugin(TestTFileService "module" NO_INSTALL
-  art_root_io_TFileService_service ROOT::Hist ROOT::Graf ALLOW_UNDERSCORES)
+  ALLOW_UNDERSCORES
+  LIBRARIES PRIVATE
+    art_root_io::art_root_io_TFileService_service
+    ROOT::Hist
+    ROOT::Graf
+  )
 
 simple_plugin(TestTFileServiceNoRegister "module" NO_INSTALL
-  art_root_io_TFileService_service ALLOW_UNDERSCORES)
+  ALLOW_UNDERSCORES
+  LIBRARIES PRIVATE
+    art_root_io::art_root_io_TFileService_service
+    ROOT::Hist
+  )
 
 foreach(NUM RANGE 1 5)
   cet_test(TFileService_t_0${NUM} HANDBUILT
