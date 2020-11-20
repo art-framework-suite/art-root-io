@@ -68,7 +68,7 @@ cet_find_package(cetlib_except REQUIRED)
 cet_find_package(CLHEP REQUIRED)
 cet_find_package(hep_concurrency REQUIRED)
 cet_find_package(SQLite3 REQUIRED)
-cet_find_package(Boost COMPONENTS date_time program_options REQUIRED)
+cet_find_package(Boost COMPONENTS date_time program_options filesystem REQUIRED)
 cet_find_package(ROOT REQUIRED)
 cet_find_package(Catch2 REQUIRED PRIVATE)
 
