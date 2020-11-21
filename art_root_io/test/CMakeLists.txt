@@ -158,7 +158,7 @@ cet_test(TFileService_r_08 SOURCE TFileService_r_08.cxx
 add_executable(TestTFileService_r TestTFileService_r.cxx)
 target_link_libraries(TestTFileService_r ROOT::Core ROOT::RIO ROOT::Hist)
 
-foreach(NUM 1 5 6) # N.B. No 'RANGE' for these two tests
+foreach(NUM IN ITEMS 1 5 6) # N.B. No 'RANGE' for these two tests
   cet_test(TFileService_r_0${NUM} HANDBUILT
     TEST_EXEC TestTFileService_r
     TEST_ARGS TFileService_r_0${NUM}_input.txt
