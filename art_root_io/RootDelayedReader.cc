@@ -44,8 +44,7 @@ namespace art {
     BranchType const branchType,
     EventID const eID,
     bool const compactSubRunRanges)
-    : DelayedReader()
-    , fileFormatVersion_{version}
+    : fileFormatVersion_{version}
     , db_{db}
     , entrySet_{entrySet}
     , branches_{branches}
@@ -127,6 +126,24 @@ namespace art {
     }
   }
 
+  namespace {
+    class ConfigureStreamersSentry {
+    public:
+      ConfigureStreamersSentry(cet::exempt_ptr<BranchIDLists const> bidLists,
+                               cet::exempt_ptr<Principal> principal)
+      {
+        configureProductIDStreamer(bidLists);
+        configureRefCoreStreamer(principal.get());
+      }
+
+      ~ConfigureStreamersSentry()
+      {
+        configureProductIDStreamer();
+        configureRefCoreStreamer();
+      }
+    };
+  }
+
   unique_ptr<EDProduct>
   RootDelayedReader::getProduct_(Group const* grp,
                                  ProductID const pid,
@@ -151,8 +168,7 @@ namespace art {
     // Note: threading: The configure ref core streamer and the related i/o
     // operations must be done with the source lock held!
     InputSourceMutexSentry sentry;
-    configureProductIDStreamer(branchIDLists_);
-    configureRefCoreStreamer(principal_.get());
+    ConfigureStreamersSentry streamers_sentry{branchIDLists_, principal_};
     TClass* cl = TClass::GetClass(pd.wrappedName().c_str());
     auto get_product = [this, cl, br](auto entry) {
       unique_ptr<EDProduct> p{static_cast<EDProduct*>(cl->New())};
@@ -166,12 +182,11 @@ namespace art {
       }
       return p;
     };
+
     // Retrieve first product
     auto result = get_product(entrySet_[0]);
     if (!detail::range_sets_supported(branchType_)) {
       // Not a run or subrun product, all done.
-      configureProductIDStreamer();
-      configureRefCoreStreamer();
       return result;
     }
     //
@@ -186,8 +201,6 @@ namespace art {
       } else {
         rs = RangeSet::forSubRun(eventID_.subRunID());
       }
-      configureProductIDStreamer();
-      configureRefCoreStreamer();
       return result;
     }
     // Fetch the provenance for the first product.
@@ -321,8 +334,6 @@ namespace art {
     // Now transfer the calculated mergedRangeSet to the output argument.
     std::swap(rs, mergedRangeSet);
     // And now we are done.
-    configureProductIDStreamer();
-    configureRefCoreStreamer();
     return result;
   }
 
