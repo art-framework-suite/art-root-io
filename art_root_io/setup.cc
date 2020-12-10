@@ -1,3 +1,4 @@
+#include "art/Framework/Core/InputSourceMutex.h"
 #include "art_root_io/setup.h"
 #include "art_root_io/RootDB/tkeyvfs.h"
 #include "art_root_io/detail/RootErrorClassifier.h"
@@ -87,7 +88,6 @@ namespace {
       << "Please report this logic error to artists@fnal.gov\n";
   }
 
-  RecursiveMutex mutex{"art::root::setup"};
   bool initialized{false};
 
 } // namespace
@@ -95,7 +95,8 @@ namespace {
 void
 art::root::setup()
 {
-  RecursiveMutexSentry lock{mutex};
+  // FIXME: Should probably switch to ROOT-specific mutex
+  InputSourceMutexSentry sentry;
   if (initialized) {
     return;
   }
