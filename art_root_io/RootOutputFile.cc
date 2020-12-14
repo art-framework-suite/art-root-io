@@ -321,22 +321,16 @@ namespace {
 
 namespace art {
 
-  RootOutputFile::OutputItem::~OutputItem() = default;
+  OutputItem::~OutputItem() = default;
 
-  RootOutputFile::OutputItem::OutputItem(BranchDescription const& bd)
+  OutputItem::OutputItem(BranchDescription const& bd)
     : branchDescription_{bd}, product_{nullptr}
   {}
 
   string const&
-  RootOutputFile::OutputItem::branchName() const
+  OutputItem::branchName() const
   {
     return branchDescription_.branchName();
-  }
-
-  bool
-  RootOutputFile::OutputItem::operator<(OutputItem const& rh) const
-  {
-    return branchDescription_ < rh.branchDescription_;
   }
 
   // Part of static interface.
@@ -543,11 +537,11 @@ namespace art {
         if (pd.transient()) {
           continue;
         }
-        items.emplace(pd);
+        items.try_emplace(pd.productID(), pd);
       }
       for (auto const& val : items) {
-        treePointers_[bt]->addOutputBranch(val.branchDescription_,
-                                           val.product_);
+        treePointers_[bt]->addOutputBranch(val.second.branchDescription_,
+                                           val.second.product_);
       }
     };
     for_each_branch_type(selectProductsToWrite);
@@ -976,9 +970,8 @@ namespace art {
     bool const drop_all_metadata{dropMetaData_ == DropMetaData::DropAll};
 
     set<ProductProvenance> keptprv;
-    for (auto const& val : selectedOutputItemList_[BT]) {
+    for (auto const& [pid, val] : selectedOutputItemList_[BT]) {
       auto const& bd = val.branchDescription_;
-      auto const pid = bd.productID();
       descriptionsToPersist_[BT].try_emplace(pid, bd);
       bool const produced = bd.produced();
       bool const resolveProd{produced || !fastCloning ||
