@@ -30,10 +30,10 @@ namespace {
   can_info_log(int const level, RootErrorPayload const& payload)
   {
     RootErrorParser const parser{payload};
-    // Print an informational message if (a) the severity is at the
-    // "info" level, or (b) if the art users have asked a specific
-    // error to not result in an exception throw.
-    if (level == kInfo) {
+    // Print an informational message if (a) the severity is at or
+    // below the "info" level, or (b) if the art users have asked a
+    // specific error to not result in an exception throw.
+    if (level <= kInfo) {
       return true;
     }
 
