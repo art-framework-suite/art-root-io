@@ -11,6 +11,11 @@ using art::detail::RootErrorPayload;
 
 namespace {
   auto
+  make_print(std::string const& location, std::string const& message)
+  {
+    return RootErrorClassifier{kPrint, RootErrorPayload{location, message}};
+  }
+  auto
   make_info(std::string const& location, std::string const& message)
   {
     return RootErrorClassifier{kInfo, RootErrorPayload{location, message}};
@@ -168,6 +173,12 @@ SCENARIO("Some ROOT messages are treated as informational even if they're not")
   {
     auto const classifier =
       make_error("TGClient::GetFontByName", "couldn't retrieve font");
+    verify<should_only_info_log>(classifier);
+  }
+  WHEN("A severity level of 0 (kPrint) is chosen")
+  {
+    auto const classifier = make_print(
+      "A::B", "This is less important than information--drivel, perhaps.");
     verify<should_only_info_log>(classifier);
   }
 }
