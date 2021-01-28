@@ -30,8 +30,8 @@ namespace art {
 
     EventAuxiliarySequence generateEventAuxiliarySequence(
       EntryNumberSequence const&) override;
-    bool
 
+    bool
     fileOpen() const override
     {
       return ffVersion_.isValid();

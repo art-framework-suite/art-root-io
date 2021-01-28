@@ -8,6 +8,7 @@
 #include "canvas_root_io/Streamers/RefCoreStreamer.h"
 #include "canvas_root_io/Utilities/DictionaryChecker.h"
 
+#include "TDirectory.h"
 #include "TTree.h"
 
 namespace {
@@ -32,9 +33,16 @@ namespace {
 void
 art::RootIOPolicy::openAndReadMetaData(std::string filename, MixOpList& mixOps)
 {
+  // FIXME: this should be switched to a ROOT-specific mutex as
+  // necessary.
+  InputSourceMutexSentry sentry;
+  // The following 'context' variable is necessary to ensure that the
+  // file will be closed on the same thread on which it is created.
+  // This should not be necessary once the following issue is
+  // addressed -- https://github.com/root-project/root/issues/6939.
+  TDirectory::TContext context;
   // Open file.
   try {
-    // FIXME: threading: This is not thread-safe!!!
     currentFile_.reset(TFile::Open(filename.c_str()));
   }
   catch (std::exception const& e) {

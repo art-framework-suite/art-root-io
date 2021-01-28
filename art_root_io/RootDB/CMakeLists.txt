@@ -1,21 +1,21 @@
-art_make_library(LIBRARY_NAME
-  art_root_io_RootDB
+art_make_library(
+  LIBRARY_NAME
+    art_root_io_RootDB
   SOURCE
-  SQLErrMsg.cc
-  SQLite3Wrapper.cc
-  TKeyVFSOpenPolicy.cc
-  have_table.cc
-  tkeyvfs.cc
+    SQLErrMsg.cc
+    SQLite3Wrapper.cc
+    TKeyVFSOpenPolicy.cc
+    have_table.cc
+    tkeyvfs.cc
   LIBRARIES
-  art_Utilities
-  canvas
-  cetlib
-  cetlib_except
-  MF_MessageLogger
-  ${CMAKE_DL_LIBS}
-  ROOT::RIO
-  ROOT::Core
-  ${SQLITE3})
+    SQLite::SQLite3
+  PRIVATE
+    art::art_Utilities
+    messagefacility::MF_MessageLogger
+    ${CMAKE_DL_LIBS}
+    ROOT::RIO
+    ROOT::Core
+  )
 
 install_headers()
 install_source()

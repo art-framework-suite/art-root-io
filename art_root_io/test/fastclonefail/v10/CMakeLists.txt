@@ -1,6 +1,6 @@
 art_make_library(
-  LIBRARIES
-  art_Framework_Core cetlib ROOT::Core
+  LIBRARIES PRIVATE
+  art::art_Framework_Core ROOT::Core
   SOURCE ClonedProd.cc
   NO_INSTALL)
 
@@ -8,6 +8,7 @@ art_dictionary(NO_INSTALL DICTIONARY_LIBRARIES art_root_io_test_fastclonefail_v1
 
 simple_plugin(ClonedProdProducer
   "module"
+  LIBRARIES PRIVATE
   art_root_io_test_fastclonefail_v10
   NO_INSTALL
   ALLOW_UNDERSCORES)

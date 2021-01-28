@@ -7,12 +7,12 @@
 #include "canvas_root_io/Streamers/BranchDescriptionStreamer.h"
 #include "canvas_root_io/Utilities/DictionaryChecker.h"
 #include "canvas_root_io/Utilities/TypeTools.h"
-#include "cetlib/assert_only_one_thread.h"
+#include "hep_concurrency/assert_only_one_thread.h"
 
 void
 art::checkDictionaries(BranchDescription const& productDesc)
 {
-  CET_ASSERT_ONLY_ONE_THREAD();
+  HEP_CONCURRENCY_ASSERT_ONLY_ONE_THREAD();
 
   // Make sure we populate the ROOT-related transient information.  If
   // this is not done, then TBranch-related quantities will not be set

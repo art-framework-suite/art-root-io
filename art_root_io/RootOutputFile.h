@@ -44,24 +44,23 @@ namespace art {
   class RunAuxiliary;
   class ResultsAuxiliary;
   class RootFileBlock;
+
+  struct OutputItem {
+  public:
+    ~OutputItem();
+    explicit OutputItem(BranchDescription const& bd);
+
+    std::string const& branchName() const;
+
+    BranchDescription const branchDescription_;
+    mutable void const* product_;
+  };
+
   class RootOutputFile {
   public: // TYPES
     enum class ClosureRequestMode { MaxEvents = 0, MaxSize = 1, Unset = 2 };
     using RootOutputTreePtrArray =
       std::array<std::unique_ptr<RootOutputTree>, NumBranchTypes>;
-    struct OutputItem {
-    public: // MEMBER FUNCTIONS -- Special Member Functions
-      ~OutputItem();
-      explicit OutputItem(BranchDescription const& bd);
-
-    public: // MEMBER FUNCTIONS
-      std::string const& branchName() const;
-      bool operator<(OutputItem const& rh) const;
-
-    public: // MEMBER DATA
-      BranchDescription const branchDescription_;
-      mutable void const* product_;
-    };
 
   public: // MEMBER FUNCTIONS -- Static API
     static bool shouldFastClone(bool const fastCloningSet,
@@ -165,7 +164,8 @@ namespace art {
     bool dataTypeReported_;
     std::array<ProductDescriptionsByID, NumBranchTypes> descriptionsToPersist_;
     std::unique_ptr<cet::sqlite::Connection> rootFileDB_;
-    std::array<std::set<OutputItem>, NumBranchTypes> selectedOutputItemList_;
+    std::array<std::map<ProductID, OutputItem>, NumBranchTypes>
+      selectedOutputItemList_;
     detail::DummyProductCache dummyProductCache_;
     unsigned subRunRSID_;
     unsigned runRSID_;
