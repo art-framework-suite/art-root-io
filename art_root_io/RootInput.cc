@@ -225,9 +225,9 @@ RootInput::readSubRun(cet::exempt_ptr<RunPrincipal const> rp)
 }
 
 unique_ptr<SubRunPrincipal>
-RootInput::readSubRun_(cet::exempt_ptr<RunPrincipal const> rp)
+RootInput::readSubRun_(cet::exempt_ptr<RunPrincipal const> rp [[maybe_unused]])
 {
-  return primaryFileSequence_->readSubRun_(rp);
+  return primaryFileSequence_->readSubRun_();
 }
 
 unique_ptr<RangeSetHandler>
