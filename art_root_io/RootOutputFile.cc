@@ -49,7 +49,6 @@
 #include "fhiclcpp/ParameterSet.h"
 #include "fhiclcpp/ParameterSetID.h"
 #include "fhiclcpp/ParameterSetRegistry.h"
-#include "hep_concurrency/RecursiveMutex.h"
 #include "messagefacility/MessageLogger/MessageLogger.h"
 
 #include "Rtypes.h"
@@ -374,8 +373,7 @@ namespace art {
                                  DropMetaData dropMetaData,
                                  bool const dropMetaDataForDroppedData,
                                  bool const fastCloningRequested)
-    : mutex_{"RootOutputFile::mutex_"}
-    , compressionLevel_{compressionLevel}
+    : compressionLevel_{compressionLevel}
     , saveMemoryObjectThreshold_{saveMemoryObjectThreshold}
     , treeMaxVirtualSize_{treeMaxVirtualSize}
     , splitLevel_{splitLevel}
@@ -505,21 +503,21 @@ namespace art {
   void
   RootOutputFile::setFileStatus(OutputFileStatus const ofs)
   {
-    RecursiveMutexSentry sentry{mutex_, __func__};
+    std::lock_guard sentry{mutex_};
     status_ = ofs;
   }
 
   string const&
   RootOutputFile::currentFileName() const
   {
-    RecursiveMutexSentry sentry{mutex_, __func__};
+    std::lock_guard sentry{mutex_};
     return file_;
   }
 
   void
   RootOutputFile::selectProducts()
   {
-    RecursiveMutexSentry sentry{mutex_, __func__};
+    std::lock_guard sentry{mutex_};
     auto selectProductsToWrite = [this](BranchType const bt) {
       auto& items = selectedOutputItemList_[bt];
       for (auto const& pr : om_->keptProducts()[bt]) {
@@ -551,7 +549,7 @@ namespace art {
   RootOutputFile::beginInputFile(RootFileBlock const* rfb,
                                  bool const fastCloneFromOutputModule)
   {
-    RecursiveMutexSentry sentry{mutex_, __func__};
+    std::lock_guard sentry{mutex_};
     // FIXME: the logic here is nasty.
     bool shouldFastClone{fastCloningEnabledAtConstruction_ &&
                          fastCloneFromOutputModule && rfb};
@@ -590,21 +588,21 @@ namespace art {
   void
   RootOutputFile::incrementInputFileNumber()
   {
-    RecursiveMutexSentry sentry{mutex_, __func__};
+    std::lock_guard sentry{mutex_};
     fp_.update_inputFile();
   }
 
   void
   RootOutputFile::respondToCloseInputFile(FileBlock const&)
   {
-    RecursiveMutexSentry sentry{mutex_, __func__};
+    std::lock_guard sentry{mutex_};
     cet::for_all(treePointers_, [](auto const& p) { p->setEntries(); });
   }
 
   bool
   RootOutputFile::requestsToCloseFile()
   {
-    RecursiveMutexSentry sentry{mutex_, __func__};
+    std::lock_guard sentry{mutex_};
     using namespace chrono;
     unsigned int constexpr oneK{1024u};
     fp_.updateSize(filePtr_->GetSize() / oneK);
@@ -615,7 +613,7 @@ namespace art {
   void
   RootOutputFile::writeOne(EventPrincipal const& e)
   {
-    RecursiveMutexSentry sentry{mutex_, __func__};
+    std::lock_guard sentry{mutex_};
     // Auxiliary branch.
     // Note: pEventAux_ must be set before calling fillBranches
     // since it gets written out in that routine.
@@ -651,7 +649,7 @@ namespace art {
   void
   RootOutputFile::writeSubRun(SubRunPrincipal const& sr)
   {
-    RecursiveMutexSentry sentry{mutex_, __func__};
+    std::lock_guard sentry{mutex_};
     pSubRunAux_ = &sr.subRunAux();
     pSubRunAux_->setRangeSetID(subRunRSID_);
     fillBranches<InSubRun>(sr, pSubRunProductProvenanceVector_);
@@ -663,7 +661,7 @@ namespace art {
   void
   RootOutputFile::writeRun(RunPrincipal const& r)
   {
-    RecursiveMutexSentry sentry{mutex_, __func__};
+    std::lock_guard sentry{mutex_};
     pRunAux_ = &r.runAux();
     pRunAux_->setRangeSetID(runRSID_);
     fillBranches<InRun>(r, pRunProductProvenanceVector_);
@@ -675,7 +673,7 @@ namespace art {
   void
   RootOutputFile::writeParentageRegistry()
   {
-    RecursiveMutexSentry sentry{mutex_, __func__};
+    std::lock_guard sentry{mutex_};
     auto pid = root::getObjectRequireDict<ParentageID>();
     ParentageID const* hash = &pid;
     if (!parentageTree_->Branch(
@@ -706,7 +704,7 @@ namespace art {
   void
   RootOutputFile::writeFileFormatVersion()
   {
-    RecursiveMutexSentry sentry{mutex_, __func__};
+    std::lock_guard sentry{mutex_};
     FileFormatVersion const ver{getFileFormatVersion(), getFileFormatEra()};
     auto const* pver = &ver;
     TBranch* b = metaDataTree_->Branch(
@@ -719,7 +717,7 @@ namespace art {
   void
   RootOutputFile::writeFileIndex()
   {
-    RecursiveMutexSentry sentry{mutex_, __func__};
+    std::lock_guard sentry{mutex_};
     fileIndex_.sortBy_Run_SubRun_Event();
     FileIndex::Element elem{};
     auto const* findexElemPtr = &elem;
@@ -737,7 +735,7 @@ namespace art {
   void
   RootOutputFile::writeEventHistory()
   {
-    RecursiveMutexSentry sentry{mutex_, __func__};
+    std::lock_guard sentry{mutex_};
     RootOutputTree::writeTTree(eventHistoryTree_);
   }
 
@@ -751,7 +749,7 @@ namespace art {
   void
   RootOutputFile::writeProcessHistoryRegistry()
   {
-    RecursiveMutexSentry sentry{mutex_, __func__};
+    std::lock_guard sentry{mutex_};
     ProcessHistoryMap pHistMap;
     for (auto const& pr : ProcessHistoryRegistry::get()) {
       pHistMap.emplace(pr);
@@ -774,7 +772,7 @@ namespace art {
     FileCatalogMetadata::collection_type const& md,
     FileCatalogMetadata::collection_type const& ssmd)
   {
-    RecursiveMutexSentry sentry{mutex_, __func__};
+    std::lock_guard sentry{mutex_};
     using namespace cet::sqlite;
     Ntuple<string, string> fileCatalogMetadata{
       *rootFileDB_, "FileCatalog_metadata", {{"Name", "Value"}}, true};
@@ -860,14 +858,14 @@ namespace art {
   void
   RootOutputFile::writeParameterSetRegistry()
   {
-    RecursiveMutexSentry sentry{mutex_, __func__};
+    std::lock_guard sentry{mutex_};
     fhicl::ParameterSetRegistry::exportTo(*rootFileDB_);
   }
 
   void
   RootOutputFile::writeProductDescriptionRegistry()
   {
-    RecursiveMutexSentry sentry{mutex_, __func__};
+    std::lock_guard sentry{mutex_};
     // Make a local copy of the UpdateOutputCallbacks's ProductList,
     // removing any transient or pruned products.
     ProductRegistry reg;
@@ -889,7 +887,7 @@ namespace art {
   void
   RootOutputFile::writeProductDependencies()
   {
-    RecursiveMutexSentry sentry{mutex_, __func__};
+    std::lock_guard sentry{mutex_};
     BranchChildren const* ppDeps = &om_->branchChildren();
     TBranch* b = metaDataTree_->Branch(
       metaBranchRootName<BranchChildren>(), &ppDeps, basketSize_, 0);
@@ -901,7 +899,7 @@ namespace art {
   void
   RootOutputFile::writeResults(ResultsPrincipal& resp)
   {
-    RecursiveMutexSentry sentry{mutex_, __func__};
+    std::lock_guard sentry{mutex_};
     pResultsAux_ = &resp.resultsAux();
     fillBranches<InResults>(resp, pResultsProductProvenanceVector_);
   }
@@ -909,7 +907,7 @@ namespace art {
   void
   RootOutputFile::writeTTrees()
   {
-    RecursiveMutexSentry sentry{mutex_, __func__};
+    std::lock_guard sentry{mutex_};
     RootOutputTree::writeTTree(metaDataTree_);
     RootOutputTree::writeTTree(fileIndexTree_);
     RootOutputTree::writeTTree(parentageTree_);
@@ -920,7 +918,7 @@ namespace art {
   void
   RootOutputFile::setSubRunAuxiliaryRangeSetID(RangeSet const& ranges)
   {
-    RecursiveMutexSentry sentry{mutex_, __func__};
+    std::lock_guard sentry{mutex_};
     subRunRSID_ = getNewRangeSetID(*rootFileDB_, InSubRun, ranges.run());
     insertIntoEventRanges(*rootFileDB_, ranges);
     auto const& eventRangesIDs = getExistingRangeSetIDs(*rootFileDB_, ranges);
@@ -930,7 +928,7 @@ namespace art {
   void
   RootOutputFile::setRunAuxiliaryRangeSetID(RangeSet const& ranges)
   {
-    RecursiveMutexSentry sentry{mutex_, __func__};
+    std::lock_guard sentry{mutex_};
     runRSID_ = getNewRangeSetID(*rootFileDB_, InRun, ranges.run());
     insertIntoEventRanges(*rootFileDB_, ranges);
     auto const& eventRangesIDs = getExistingRangeSetIDs(*rootFileDB_, ranges);
@@ -943,7 +941,7 @@ namespace art {
                              RangeSet const& prunedProductRS,
                              string const& wrappedName)
   {
-    RecursiveMutexSentry sentry{mutex_, __func__};
+    std::lock_guard sentry{mutex_};
     if constexpr (detail::range_sets_supported(BT)) {
       if (!prunedProductRS.is_valid()) {
         return dummyProductCache_.product(wrappedName);
@@ -958,7 +956,7 @@ namespace art {
   RootOutputFile::fillBranches(Principal const& principal,
                                vector<ProductProvenance>* vpp)
   {
-    RecursiveMutexSentry sentry{mutex_, __func__};
+    std::lock_guard sentry{mutex_};
     bool const fastCloning{BT == InEvent && wasFastCloned_};
     map<unsigned, unsigned> checksumToIndex;
     auto const& principalRS = principal.seenRanges();

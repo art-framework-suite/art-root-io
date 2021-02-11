@@ -20,11 +20,11 @@
 #include "canvas/Persistency/Provenance/ProductID.h"
 #include "canvas/Persistency/Provenance/ProductProvenance.h"
 #include "cetlib/sqlite/Connection.h"
-#include "hep_concurrency/RecursiveMutex.h"
 
 #include <array>
 #include <map>
 #include <memory>
+#include <mutex>
 #include <set>
 #include <string>
 #include <vector>
@@ -126,7 +126,7 @@ namespace art {
                                 std::string const& wrappedName);
 
   private: // MEMBER DATA
-    mutable hep::concurrency::RecursiveMutex mutex_;
+    mutable std::recursive_mutex mutex_{};
     OutputModule const* om_;
     std::string file_;
     ClosingCriteria fileSwitchCriteria_;

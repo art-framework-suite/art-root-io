@@ -14,7 +14,6 @@
 #include "fhiclcpp/types/Name.h"
 #include "fhiclcpp/types/OptionalTable.h"
 #include "fhiclcpp/types/TableFragment.h"
-#include "hep_concurrency/RecursiveMutex.h"
 
 #include <chrono>
 #include <string>
