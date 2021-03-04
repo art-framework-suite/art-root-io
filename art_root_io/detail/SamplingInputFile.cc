@@ -14,6 +14,7 @@
 #include "art_root_io/detail/readFileIndex.h"
 #include "art_root_io/detail/readMetadata.h"
 #include "art_root_io/rootErrMsgs.h"
+#include "canvas/Persistency/Common/Wrapper.h"
 #include "canvas/Persistency/Provenance/BranchChildren.h"
 #include "canvas/Persistency/Provenance/BranchDescription.h"
 #include "canvas/Persistency/Provenance/BranchKey.h"

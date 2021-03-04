@@ -37,6 +37,7 @@
 #include "art/Persistency/Provenance/ProcessHistoryRegistry.h"
 #include "art_root_io/detail/DataSetBroker.h"
 #include "art_root_io/setup.h"
+#include "canvas/Persistency/Common/Wrapper.h"
 #include "canvas/Persistency/Provenance/EventID.h"
 #include "canvas/Persistency/Provenance/FileFormatVersion.h"
 #include "canvas/Persistency/Provenance/ProcessConfiguration.h"
