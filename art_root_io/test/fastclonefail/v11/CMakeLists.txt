@@ -1,27 +1,21 @@
-cet_make_library(
-  LIBRARIES PRIVATE
-  art::Framework_Core ROOT::Core
-  SOURCE ClonedProd.cc
-  NO_INSTALL)
+cet_make_library(NO_INSTALL SOURCE ClonedProd.cc
+  LIBRARIES PRIVATE art::Framework_Core ROOT::Core)
 
 art_dictionary(NO_INSTALL
   DICTIONARY_LIBRARIES art_root_io_test_fastclonefail_v11)
 
-basic_plugin(ClonedProdAnalyzer
-  "module"
+basic_plugin(ClonedProdAnalyzer "module" ALLOW_UNDERSCORES NO_INSTALL
   LIBRARIES PRIVATE
-  art_root_io_test_fastclonefail_v11
-  art::Framework_Core
-  NO_INSTALL
-  ALLOW_UNDERSCORES)
+    art_root_io_test_fastclonefail_v11
+    art::Framework_Core
+)
 
 set_target_properties(
   art_root_io_test_fastclonefail_v11
   art_root_io_test_fastclonefail_v11_dict
   art_root_io_test_fastclonefail_v11_ClonedProdAnalyzer_module
   PROPERTIES
-  LIBRARY_OUTPUT_DIRECTORY
-  ${CMAKE_CURRENT_BINARY_DIR})
+  LIBRARY_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
 
 #  Write data to an output file using a private dictionary from this
 #  directory. The intention is that the data members of the data product
