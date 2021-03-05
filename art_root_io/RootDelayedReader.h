@@ -16,9 +16,13 @@
 #include <memory>
 #include <string>
 
+#ifdef __cplusplus
 extern "C" {
-#include "sqlite3.h"
-} // extern "C"
+#endif
+  typedef struct sqlite3 sqlite3;
+#ifdef __cplusplus
+}
+#endif
 
 class TBranch;
 class TFile;

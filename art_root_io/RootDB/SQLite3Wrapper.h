@@ -4,9 +4,7 @@
 // Sentry-like entity to manage the lifetime of an SQL database handle.
 #include <string>
 
-extern "C" {
-#include "sqlite3.h"
-}
+#include <sqlite3.h>
 
 namespace art {
   class SQLite3Wrapper;
