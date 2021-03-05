@@ -1,4 +1,4 @@
-art_make_library(
+cet_make_library(
   LIBRARY_NAME
     art_root_io_RootDB
   SOURCE
@@ -8,13 +8,15 @@ art_make_library(
     have_table.cc
     tkeyvfs.cc
   LIBRARIES
+  PUBLIC
     SQLite::SQLite3
   PRIVATE
-    art::art_Utilities
+    art::Utilities
     messagefacility::MF_MessageLogger
-    ${CMAKE_DL_LIBS}
+    cetlib::sqlite
     ROOT::RIO
     ROOT::Core
+    ${CMAKE_DL_LIBS}
   )
 
 install_headers()

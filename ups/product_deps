@@ -251,7 +251,7 @@ product		version		qual	flags		<table_format=2>
 art		v3_07_00	-
 canvas_root_io	v1_08_00	-
 catch		v2_12_2		-	only_for_build
-cetmodules	v2_09_00	-	only_for_build
+cetmodules	v2_13_00	-	only_for_build
 end_product_list
 ####################################
 

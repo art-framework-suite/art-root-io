@@ -1,8 +1,9 @@
 set(CCV_DEFAULT_RECURSIVE FALSE)
 
-simple_plugin(BadAssnsProducer "module" NO_INSTALL ALLOW_UNDERSCORES LIBRARIES PRIVATE messagefacility::MF_MessageLogger)
+build_plugin(BadAssnsProducer "module" ALLOW_UNDERSCORES NO_INSTALL
+  LIBRARIES PRIVATE messagefacility::MF_MessageLogger)
 
-art_dictionary(DICTIONARY_LIBRARIES PRIVATE art::art_test_TestObjects)
+art_dictionary(DICTIONARY_LIBRARIES art_test::TestObjects NO_INSTALL)
 
 cet_test(BadAssns_t HANDBUILT
   TEST_EXEC art
@@ -10,4 +11,4 @@ cet_test(BadAssns_t HANDBUILT
   DATAFILES fcl/BadAssns_t.fcl
   TEST_PROPERTIES
   PASS_REGULAR_EXPRESSION "No dictionary found for the following classes:\n.*art::Wrapper<art::Assns<arttest::DummyProduct,arttest::DummyA,void> >\n.*Most likely they were never"
-  )
+)

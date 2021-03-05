@@ -1,5 +1,5 @@
-#ifndef art_root_io_detail_DummyProductCache_h
-#define art_root_io_detail_DummyProductCache_h
+#ifndef art_root_io_DummyProductCache_h
+#define art_root_io_DummyProductCache_h
 
 #include "canvas/Persistency/Common/EDProduct.h"
 
@@ -8,8 +8,6 @@
 #include <string>
 
 namespace art {
-  namespace detail {
-
     class DummyProductCache {
     public:
       EDProduct const* product(std::string const& wrappedName);
@@ -17,11 +15,9 @@ namespace art {
     private:
       std::map<std::string, std::unique_ptr<EDProduct>> dummies_;
     };
-
-  } // namespace detail
 } // namespace art
 
-#endif /* art_root_io_detail_DummyProductCache_h */
+#endif /* art_root_io_DummyProductCache_h */
 
 // Local variables:
 // mode: c++
