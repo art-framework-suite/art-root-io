@@ -1,8 +1,13 @@
 #ifndef art_root_io_RootDB_tkeyvfs_h
 #define art_root_io_RootDB_tkeyvfs_h
 
-// Save db to root file on close.
-#include <sqlite3.h>
+#ifdef __cplusplus
+extern "C" {
+#endif
+  typedef struct sqlite3 sqlite3;
+#ifdef __cplusplus
+}
+#endif
 
 class TFile;
 

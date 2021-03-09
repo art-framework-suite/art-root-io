@@ -7,6 +7,7 @@
 #include "art/Framework/IO/ClosingCriteria.h"
 #include "art/Framework/IO/FileStatsCollector.h"
 #include "art/Framework/IO/PostCloseFileRenamer.h"
+#include "art/Framework/IO/detail/SafeFileNameConfig.h"
 #include "art/Framework/IO/detail/logFileAction.h"
 #include "art/Framework/IO/detail/validateFileNamePattern.h"
 #include "art/Framework/Principal/Event.h"
@@ -34,12 +35,12 @@
 #include "fhiclcpp/types/OptionalAtom.h"
 #include "fhiclcpp/types/Table.h"
 #include "fhiclcpp/types/TableFragment.h"
-#include "hep_concurrency/RecursiveMutex.h"
 #include "messagefacility/MessageLogger/MessageLogger.h"
 
 #include <iomanip>
 #include <iostream>
 #include <memory>
+#include <mutex>
 #include <sstream>
 #include <string>
 #include <utility>
@@ -180,7 +181,7 @@ namespace art {
 
     // Data Members.
   private:
-    mutable RecursiveMutex mutex_{"RootOutput::mutex"};
+    mutable std::recursive_mutex mutex_;
     string const catalog_;
     bool dropAllEvents_{false};
     bool dropAllSubRuns_;
@@ -265,7 +266,7 @@ namespace art {
   void
   RootOutput::openFile(FileBlock const& fb)
   {
-    RecursiveMutexSentry sentry{mutex_, __func__};
+    std::lock_guard sentry{mutex_};
     // Note: The file block here refers to the currently open
     //       input file, so we can find out about the available
     //       products by looping over the branches of the input
@@ -279,7 +280,7 @@ namespace art {
   void
   RootOutput::postSelectProducts()
   {
-    RecursiveMutexSentry sentry{mutex_, __func__};
+    std::lock_guard sentry{mutex_};
     if (isFileOpen()) {
       rootOutputFile_->selectProducts();
     }
@@ -288,7 +289,7 @@ namespace art {
   void
   RootOutput::respondToOpenInputFile(FileBlock const& fb)
   {
-    RecursiveMutexSentry sentry{mutex_, __func__};
+    std::lock_guard sentry{mutex_};
     ++inputFileCount_;
     if (!isFileOpen()) {
       return;
@@ -316,7 +317,7 @@ namespace art {
   void
   RootOutput::readResults(ResultsPrincipal const& resp)
   {
-    RecursiveMutexSentry sentry{mutex_, __func__};
+    std::lock_guard sentry{mutex_};
     rpm_.for_each_RPWorker(
       [&resp](RPWorker& w) { w.rp().doReadResults(resp); });
   }
@@ -324,7 +325,7 @@ namespace art {
   void
   RootOutput::respondToCloseInputFile(FileBlock const& fb)
   {
-    RecursiveMutexSentry sentry{mutex_, __func__};
+    std::lock_guard sentry{mutex_};
     if (isFileOpen()) {
       rootOutputFile_->respondToCloseInputFile(fb);
     }
@@ -333,7 +334,7 @@ namespace art {
   void
   RootOutput::write(EventPrincipal& ep)
   {
-    RecursiveMutexSentry sentry{mutex_, __func__};
+    std::lock_guard sentry{mutex_};
     if (dropAllEvents_) {
       return;
     }
@@ -347,14 +348,14 @@ namespace art {
   void
   RootOutput::setSubRunAuxiliaryRangeSetID(RangeSet const& rs)
   {
-    RecursiveMutexSentry sentry{mutex_, __func__};
+    std::lock_guard sentry{mutex_};
     rootOutputFile_->setSubRunAuxiliaryRangeSetID(rs);
   }
 
   void
   RootOutput::writeSubRun(SubRunPrincipal& sr)
   {
-    RecursiveMutexSentry sentry{mutex_, __func__};
+    std::lock_guard sentry{mutex_};
     if (dropAllSubRuns_) {
       return;
     }
@@ -368,14 +369,14 @@ namespace art {
   void
   RootOutput::setRunAuxiliaryRangeSetID(RangeSet const& rs)
   {
-    RecursiveMutexSentry sentry{mutex_, __func__};
+    std::lock_guard sentry{mutex_};
     rootOutputFile_->setRunAuxiliaryRangeSetID(rs);
   }
 
   void
   RootOutput::writeRun(RunPrincipal& rp)
   {
-    RecursiveMutexSentry sentry{mutex_, __func__};
+    std::lock_guard sentry{mutex_};
     if (hasNewlyDroppedBranch()[InRun]) {
       rp.addToProcessHistory();
     }
@@ -386,7 +387,7 @@ namespace art {
   void
   RootOutput::startEndFile()
   {
-    RecursiveMutexSentry sentry{mutex_, __func__};
+    std::lock_guard sentry{mutex_};
     auto resp = make_unique<ResultsPrincipal>(
       ResultsAuxiliary{}, moduleDescription().processConfiguration(), nullptr);
     resp->createGroupsForProducedProducts(producedResultsProducts_);
@@ -403,42 +404,42 @@ namespace art {
   void
   RootOutput::writeFileFormatVersion()
   {
-    RecursiveMutexSentry sentry{mutex_, __func__};
+    std::lock_guard sentry{mutex_};
     rootOutputFile_->writeFileFormatVersion();
   }
 
   void
   RootOutput::writeFileIndex()
   {
-    RecursiveMutexSentry sentry{mutex_, __func__};
+    std::lock_guard sentry{mutex_};
     rootOutputFile_->writeFileIndex();
   }
 
   void
   RootOutput::writeEventHistory()
   {
-    RecursiveMutexSentry sentry{mutex_, __func__};
+    std::lock_guard sentry{mutex_};
     rootOutputFile_->writeEventHistory();
   }
 
   void
   RootOutput::writeProcessConfigurationRegistry()
   {
-    RecursiveMutexSentry sentry{mutex_, __func__};
+    std::lock_guard sentry{mutex_};
     rootOutputFile_->writeProcessConfigurationRegistry();
   }
 
   void
   RootOutput::writeProcessHistoryRegistry()
   {
-    RecursiveMutexSentry sentry{mutex_, __func__};
+    std::lock_guard sentry{mutex_};
     rootOutputFile_->writeProcessHistoryRegistry();
   }
 
   void
   RootOutput::writeParameterSetRegistry()
   {
-    RecursiveMutexSentry sentry{mutex_, __func__};
+    std::lock_guard sentry{mutex_};
     if (writeParameterSets_) {
       rootOutputFile_->writeParameterSetRegistry();
     }
@@ -447,14 +448,14 @@ namespace art {
   void
   RootOutput::writeProductDescriptionRegistry()
   {
-    RecursiveMutexSentry sentry{mutex_, __func__};
+    std::lock_guard sentry{mutex_};
     rootOutputFile_->writeProductDescriptionRegistry();
   }
 
   void
   RootOutput::writeParentageRegistry()
   {
-    RecursiveMutexSentry sentry{mutex_, __func__};
+    std::lock_guard sentry{mutex_};
     rootOutputFile_->writeParentageRegistry();
   }
 
@@ -463,21 +464,21 @@ namespace art {
     FileCatalogMetadata::collection_type const& md,
     FileCatalogMetadata::collection_type const& ssmd)
   {
-    RecursiveMutexSentry sentry{mutex_, __func__};
+    std::lock_guard sentry{mutex_};
     rootOutputFile_->writeFileCatalogMetadata(fstats_, md, ssmd);
   }
 
   void
   RootOutput::writeProductDependencies()
   {
-    RecursiveMutexSentry sentry{mutex_, __func__};
+    std::lock_guard sentry{mutex_};
     rootOutputFile_->writeProductDependencies();
   }
 
   void
   RootOutput::finishEndFile()
   {
-    RecursiveMutexSentry sentry{mutex_, __func__};
+    std::lock_guard sentry{mutex_};
     string const currentFileName{rootOutputFile_->currentFileName()};
     rootOutputFile_->writeTTrees();
     rootOutputFile_.reset();
@@ -491,7 +492,7 @@ namespace art {
   RootOutput::doRegisterProducts(ProductDescriptions& producedProducts,
                                  ModuleDescription const& md)
   {
-    RecursiveMutexSentry sentry{mutex_, __func__};
+    std::lock_guard sentry{mutex_};
     // Register Results products from ResultsProducers.
     rpm_.for_each_RPWorker([&producedProducts, &md](RPWorker& w) {
       auto const& params = w.params();
@@ -513,7 +514,7 @@ namespace art {
   void
   RootOutput::setFileStatus(OutputFileStatus const ofs)
   {
-    RecursiveMutexSentry sentry{mutex_, __func__};
+    std::lock_guard sentry{mutex_};
     if (isFileOpen()) {
       rootOutputFile_->setFileStatus(ofs);
     }
@@ -522,14 +523,14 @@ namespace art {
   bool
   RootOutput::isFileOpen() const
   {
-    RecursiveMutexSentry sentry{mutex_, __func__};
+    std::lock_guard sentry{mutex_};
     return rootOutputFile_.get() != nullptr;
   }
 
   void
   RootOutput::incrementInputFileNumber()
   {
-    RecursiveMutexSentry sentry{mutex_, __func__};
+    std::lock_guard sentry{mutex_};
     if (isFileOpen()) {
       rootOutputFile_->incrementInputFileNumber();
     }
@@ -538,21 +539,21 @@ namespace art {
   bool
   RootOutput::requestsToCloseFile() const
   {
-    RecursiveMutexSentry sentry{mutex_, __func__};
+    std::lock_guard sentry{mutex_};
     return isFileOpen() ? rootOutputFile_->requestsToCloseFile() : false;
   }
 
   Granularity
   RootOutput::fileGranularity() const
   {
-    RecursiveMutexSentry sentry{mutex_, __func__};
+    std::lock_guard sentry{mutex_};
     return fileProperties_.granularity();
   }
 
   void
   RootOutput::doOpenFile()
   {
-    RecursiveMutexSentry sentry{mutex_, __func__};
+    std::lock_guard sentry{mutex_};
     if (inputFileCount_ == 0) {
       throw Exception(errors::LogicError)
         << "Attempt to open output file before input file. "
@@ -592,7 +593,7 @@ namespace art {
   string const&
   RootOutput::lastClosedFileName() const
   {
-    RecursiveMutexSentry sentry{mutex_, __func__};
+    std::lock_guard sentry{mutex_};
     if (lastClosedFileName_.empty()) {
       throw Exception(errors::LogicError, "RootOutput::currentFileName(): ")
         << "called before meaningful.\n";
@@ -603,49 +604,49 @@ namespace art {
   void
   RootOutput::beginJob()
   {
-    RecursiveMutexSentry sentry{mutex_, __func__};
+    std::lock_guard sentry{mutex_};
     rpm_.invoke(&ResultsProducer::doBeginJob);
   }
 
   void
   RootOutput::endJob()
   {
-    RecursiveMutexSentry sentry{mutex_, __func__};
+    std::lock_guard sentry{mutex_};
     rpm_.invoke(&ResultsProducer::doEndJob);
   }
 
   void
   RootOutput::event(EventPrincipal const& ep)
   {
-    RecursiveMutexSentry sentry{mutex_, __func__};
+    std::lock_guard sentry{mutex_};
     rpm_.for_each_RPWorker([&ep](RPWorker& w) { w.rp().doEvent(ep); });
   }
 
   void
   RootOutput::beginSubRun(SubRunPrincipal const& srp)
   {
-    RecursiveMutexSentry sentry{mutex_, __func__};
+    std::lock_guard sentry{mutex_};
     rpm_.for_each_RPWorker([&srp](RPWorker& w) { w.rp().doBeginSubRun(srp); });
   }
 
   void
   RootOutput::endSubRun(SubRunPrincipal const& srp)
   {
-    RecursiveMutexSentry sentry{mutex_, __func__};
+    std::lock_guard sentry{mutex_};
     rpm_.for_each_RPWorker([&srp](RPWorker& w) { w.rp().doEndSubRun(srp); });
   }
 
   void
   RootOutput::beginRun(RunPrincipal const& rp)
   {
-    RecursiveMutexSentry sentry{mutex_, __func__};
+    std::lock_guard sentry{mutex_};
     rpm_.for_each_RPWorker([&rp](RPWorker& w) { w.rp().doBeginRun(rp); });
   }
 
   void
   RootOutput::endRun(RunPrincipal const& rp)
   {
-    RecursiveMutexSentry sentry{mutex_, __func__};
+    std::lock_guard sentry{mutex_};
     rpm_.for_each_RPWorker([&rp](RPWorker& w) { w.rp().doEndRun(rp); });
   }
 

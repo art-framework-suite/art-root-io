@@ -1,9 +1,13 @@
 #ifndef art_root_io_RootDB_have_table_h
 #define art_root_io_RootDB_have_table_h
 
+#ifdef __cplusplus
 extern "C" {
-#include "sqlite3.h"
+#endif
+  typedef struct sqlite3 sqlite3;
+#ifdef __cplusplus
 }
+#endif
 
 #include <string>
 

@@ -10,7 +10,7 @@
 #include "art/Persistency/Provenance/Selections.h"
 #include "art_root_io/DropMetaData.h"
 #include "art_root_io/RootOutputTree.h"
-#include "art_root_io/detail/DummyProductCache.h"
+#include "art_root_io/DummyProductCache.h"
 #include "boost/filesystem.hpp"
 #include "canvas/Persistency/Provenance/BranchDescription.h"
 #include "canvas/Persistency/Provenance/BranchType.h"
@@ -20,11 +20,11 @@
 #include "canvas/Persistency/Provenance/ProductID.h"
 #include "canvas/Persistency/Provenance/ProductProvenance.h"
 #include "cetlib/sqlite/Connection.h"
-#include "hep_concurrency/RecursiveMutex.h"
 
 #include <array>
 #include <map>
 #include <memory>
+#include <mutex>
 #include <set>
 #include <string>
 #include <vector>
@@ -126,7 +126,7 @@ namespace art {
                                 std::string const& wrappedName);
 
   private: // MEMBER DATA
-    mutable hep::concurrency::RecursiveMutex mutex_;
+    mutable std::recursive_mutex mutex_{};
     OutputModule const* om_;
     std::string file_;
     ClosingCriteria fileSwitchCriteria_;
@@ -166,7 +166,7 @@ namespace art {
     std::unique_ptr<cet::sqlite::Connection> rootFileDB_;
     std::array<std::map<ProductID, OutputItem>, NumBranchTypes>
       selectedOutputItemList_;
-    detail::DummyProductCache dummyProductCache_;
+    DummyProductCache dummyProductCache_;
     unsigned subRunRSID_;
     unsigned runRSID_;
     std::chrono::steady_clock::time_point beginTime_;

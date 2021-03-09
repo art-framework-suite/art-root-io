@@ -1,6 +1,8 @@
 #include "art_root_io/RootDB/tkeyvfs.h"
 #include "cetlib/compiler_macros.h"
 
+#include <sqlite3.h>
+
 #define SQLITE_FCNTL_SIZE_HINT 5
 #define SQLITE_FCNTL_CHUNK_SIZE 6
 #define SQLITE_FCNTL_SYNC_OMITTED 8

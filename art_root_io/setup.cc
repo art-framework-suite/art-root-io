@@ -1,5 +1,5 @@
-#include "art/Framework/Core/InputSourceMutex.h"
 #include "art_root_io/setup.h"
+#include "art/Framework/Core/InputSourceMutex.h"
 #include "art_root_io/RootDB/tkeyvfs.h"
 #include "art_root_io/detail/RootErrorClassifier.h"
 #include "canvas/Utilities/Exception.h"
@@ -9,7 +9,6 @@
 #include "canvas_root_io/Streamers/RefCoreStreamer.h"
 #include "canvas_root_io/Streamers/TransientStreamer.h"
 #include "canvas_root_io/Streamers/setPtrVectorBaseStreamer.h"
-#include "hep_concurrency/RecursiveMutex.h"
 #include "messagefacility/MessageLogger/MessageLogger.h"
 
 #include "TError.h"
@@ -22,7 +21,6 @@
 #include <sstream>
 #include <string.h>
 
-using namespace hep::concurrency;
 using namespace std::string_literals;
 using art::detail::RootErrorClassifier;
 using art::detail::RootErrorPayload;

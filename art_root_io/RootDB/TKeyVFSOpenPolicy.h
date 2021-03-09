@@ -2,8 +2,8 @@
 #define art_root_io_RootDB_TKeyVFSOpenPolicy_h
 
 #include "TFile.h"
-#include "sqlite3.h"
 
+#include <sqlite3.h>
 #include <string>
 
 namespace art {

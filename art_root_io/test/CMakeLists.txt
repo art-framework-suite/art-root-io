@@ -2,17 +2,31 @@ cet_enable_asserts()
 
 include(CetTest)
 
+cet_find_package(ROOT PRIVATE COMPONENTS Core Graf Hist RIO REQUIRED)
+cet_find_package(art PRIVATE REQUIRED)
+cet_find_package(canvas PRIVATE REQUIRED)
+cet_find_package(cetlib PRIVATE REQUIRED)
+cet_find_package(fhiclcpp PRIVATE REQUIRED)
+
+# Put everything in a different export set.
+cet_register_export_set(SET_NAME Testing NAMESPACE art_root_io_test SET_DEFAULT)
+
 cet_make_library(LIBRARY_NAME art_root_io_test_TH1Data
   SOURCE TH1Data.cc
   LIBRARIES ROOT::Hist ROOT::Core
   NO_INSTALL)
 
-art_dictionary(DICTIONARY_LIBRARIES PRIVATE art_root_io_test_TH1Data art::art_test_TestObjects NO_INSTALL)
+art_dictionary(DICTIONARY_LIBRARIES art_root_io_test_TH1Data art_test::TestObjects NO_INSTALL)
 
 add_subdirectory(bad-assns)
 add_subdirectory(fastclonefail)
 
-simple_plugin(TH1DataProducer "module" NO_INSTALL LIBRARIES PRIVATE art_root_io_test_TH1Data ALLOW_UNDERSCORES)
+basic_plugin(TH1DataProducer "module" NO_INSTALL
+  ALLOW_UNDERSCORES
+  LIBRARIES PRIVATE
+  art_root_io_test::TH1Data
+  art::Framework_Core
+)
 
 cet_test(TH1Data_t HANDBUILT
   TEST_EXEC art
@@ -24,8 +38,14 @@ cet_test(TH1Data_t HANDBUILT
 cet_test(GetFileFormatVersion SOURCE test_GetFileFormatVersion.cpp
   LIBRARIES PRIVATE art_root_io)
 
-cet_test(RootErrorParser_t USE_CATCH2_MAIN LIBRARIES PRIVATE Catch2::Catch2 art_root_io::art_root_io)
-cet_test(RootErrorClassifier_t USE_CATCH2_MAIN LIBRARIES PRIVATE Catch2::Catch2 art_root_io::art_root_io)
+cet_test(RootErrorParser_t USE_CATCH2_MAIN LIBRARIES PRIVATE
+  art_root_io::art_root_io
+)
+cet_test(RootErrorClassifier_t USE_CATCH2_MAIN LIBRARIES PRIVATE
+  art_root_io::art_root_io
+  art_root_io::detail
+  art::Framework_Core
+)
 cet_test(RootOutputClosingCriteria_t USE_BOOST_UNIT LIBRARIES PRIVATE art_root_io::art_root_io)
 
 add_subdirectory(RootDB)
@@ -76,8 +96,10 @@ cet_test(FastCloningInitMessage_03_t HANDBUILT
   TEST_PROPERTIES PASS_REGULAR_EXPRESSION "\nInitial fast cloning configuration \\(user-set\\): false\n"
 )
 
-simple_plugin(IntArrayAnalyzer "module" NO_INSTALL ALLOW_UNDERSCORES)
-simple_plugin(IntArrayProducer "module" NO_INSTALL ALLOW_UNDERSCORES)
+basic_plugin(IntArrayAnalyzer "module" NO_INSTALL ALLOW_UNDERSCORES
+  LIBRARIES PRIVATE art::Framework_Core)
+basic_plugin(IntArrayProducer "module" NO_INSTALL ALLOW_UNDERSCORES
+  LIBRARIES PRIVATE art::Framework_Core)
 
 cet_test(PersistStdArrays_w HANDBUILT
   TEST_EXEC art
@@ -93,8 +115,10 @@ cet_test(PersistStdArrays_r HANDBUILT
   TEST_PROPERTIES DEPENDS PersistStdArrays_w
 )
 
-simple_plugin(BitsetAnalyzer "module"  NO_INSTALL ALLOW_UNDERSCORES)
-simple_plugin(BitsetProducer "module"  NO_INSTALL ALLOW_UNDERSCORES)
+basic_plugin(BitsetAnalyzer "module" NO_INSTALL ALLOW_UNDERSCORES
+  LIBRARIES PRIVATE art::Framework_Core)
+basic_plugin(BitsetProducer "module" NO_INSTALL ALLOW_UNDERSCORES
+  LIBRARIES PRIVATE art::Framework_Core)
 
 cet_test(PersistStdBitsets_w HANDBUILT
   TEST_EXEC art
@@ -115,18 +139,18 @@ cet_test(PostCloseFileRename_Integration HANDBUILT
   DATAFILES fcl/PostCloseFileRename_t.fcl
 )
 
-simple_plugin(TestTFileService "module" NO_INSTALL
+basic_plugin(TestTFileService "module" NO_INSTALL
   ALLOW_UNDERSCORES
   LIBRARIES PRIVATE
-    art_root_io::art_root_io_TFileService_service
+    art_root_io::TFileService_service
     ROOT::Hist
     ROOT::Graf
   )
 
-simple_plugin(TestTFileServiceNoRegister "module" NO_INSTALL
+basic_plugin(TestTFileServiceNoRegister "module" NO_INSTALL
   ALLOW_UNDERSCORES
   LIBRARIES PRIVATE
-    art_root_io::art_root_io_TFileService_service
+    art_root_io::TFileService_service
     ROOT::Hist
   )
 

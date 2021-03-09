@@ -2,6 +2,8 @@
 #include "canvas/Utilities/Exception.h"
 #include "cetlib/compiler_macros.h"
 
+#include <sqlite3.h>
+
 bool
 art::have_table(sqlite3* db,
                 std::string const& table,

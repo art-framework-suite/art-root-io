@@ -24,7 +24,7 @@ cet_test(tkeyvfs_t_01r HANDBUILT
 
 cet_test(tkeyvfs_t_02 NO_AUTO
   SOURCE test2.cc
-  LIBRARIES art_root_io::art_root_io_RootDB ROOT::RIO)
+  LIBRARIES art_root_io::RootDB ROOT::RIO)
 
 cet_test(tkeyvfs_t_02w HANDBUILT
   TEST_EXEC dbtest_wrap_sql

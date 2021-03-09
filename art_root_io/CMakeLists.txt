@@ -1,14 +1,26 @@
-include(ArtDictionary)
+cet_find_package(Boost COMPONENTS filesystem REQUIRED)
+cet_find_package(Boost PRIVATE COMPONENTS date_time headers program_options REQUIRED)
+cet_find_package(ROOT COMPONENTS Tree RIO Core REQUIRED)
+cet_find_package(ROOT PRIVATE COMPONENTS Hist REQUIRED)
+cet_find_package(SQLite3 PRIVATE REQUIRED)
+cet_find_package(art REQUIRED)
+cet_find_package(canvas REQUIRED)
+cet_find_package(canvas_root_io PRIVATE REQUIRED)
+cet_find_package(cetlib REQUIRED)
+cet_find_package(cetlib_except PRIVATE REQUIRED)
+cet_find_package(fhiclcpp REQUIRED)
+cet_find_package(hep_concurrency REQUIRED)
+cet_find_package(messagefacility REQUIRED)
 
-art_dictionary(DICTIONARY_LIBRARIES PRIVATE art::art_Framework_IO_ProductMix)
+include(ArtDictionary)
+include(BuildPlugins)
+
+art_dictionary(DICTIONARY_LIBRARIES PRIVATE art::Framework_IO_ProductMix)
 
 add_subdirectory(RootDB)
 
-art_make_library(
-  LIBRARY_NAME
-    art_root_io_detail
+cet_make_library(LIBRARY_NAME art_root_io_detail
   SOURCE
-    detail/DummyProductCache.cc
     detail/RangeSetInfo.cc
     detail/RootErrorClassifier.cc
     detail/dropBranch.cc
@@ -18,22 +30,32 @@ art_make_library(
     detail/resolveRangeSet.cc
     detail/rootFileSizeTools.cc
     detail/rootOutputConfigurationTools.cc
-  LIBRARIES PRIVATE
-    art::art_Framework_Core
-    art_root_io::art_root_io_RootDB
-    canvas_root_io::canvas_root_io
-    messagefacility::MF_MessageLogger
+  LIBRARIES
+  PUBLIC
+    art::Framework_Core
+    art::Framework_Principal
+    art::Persistency_Common
+    canvas::canvas
+    cetlib::sqlite
+    cetlib::cetlib
     ROOT::Core
     ROOT::RIO
     ROOT::Tree
+  PRIVATE
+    canvas_root_io::canvas_root_io
+    art::Framework_Services_System_DatabaseConnection_service
+    art::Framework_Services_Registry
+    messagefacility::MF_MessageLogger
+    fhiclcpp::types
+    fhiclcpp::fhiclcpp
+    cetlib::container_algorithms
+    hep_concurrency::hep_concurrency
   )
 
-art_make_library(
-  LIBRARY_NAME
-    art_root_io
+cet_make_library(HEADERS_TARGET
   SOURCE
-    checkDictionaries.cc
     DropMetaData.cc
+    DummyProductCache.cc
     DuplicateChecker.cc
     FastCloningInfoProvider.cc
     GetFileFormatEra.cc
@@ -41,129 +63,181 @@ art_make_library(
     RootBranchInfo.cc
     RootBranchInfoList.cc
     RootDelayedReader.cc
+    RootIOPolicy.cc
     RootInputFile.cc
     RootInputFileSequence.cc
-    RootIOPolicy.cc
     RootOutputFile.cc
     RootOutputTree.cc
+    checkDictionaries.cc
     setup.cc
   LIBRARIES
-    art::art_Framework_Core
-    art::art_Framework_Principal
-    art::art_Framework_IO
-    art::art_Framework_IO_Catalog
-    art::art_Framework_IO_detail
-    art::art_Framework_Services_Registry
-    art::art_Framework_Services_System_FileCatalogMetadata_service
-    art_root_io::art_root_io_detail
-    canvas_root_io::canvas_root_io
+  PUBLIC
+    art::Framework_IO_Catalog
+    art::Framework_IO
+    art::Framework_Core
+    art::Framework_Principal
+    art::Persistency_Common
+    art::Persistency_Provenance
+    canvas::canvas
+    fhiclcpp::types
+    cetlib::container_algorithms
+    cetlib::sqlite
+    cetlib::cetlib
     ROOT::Tree
+    ROOT::RIO
+    ROOT::Core
+    Boost::filesystem
   PRIVATE
-    art_root_io::art_root_io_RootDB
+    art_root_io::detail
+    art_root_io::RootDB
+    art::Framework_IO_detail
+    art::Framework_Services_Registry
+    art::Framework_Services_System_FileCatalogMetadata_service
+    art::Utilities
+    canvas_root_io::canvas_root_io
     messagefacility::MF_MessageLogger
+    fhiclcpp::fhiclcpp
+    hep_concurrency::macros
     Boost::date_time
+    ROOT::Hist
+  )
+
+cet_make_library(LIBRARY_NAME art_root_io_tfile_support
+  SOURCE TFileDirectory.cc detail/RootDirectorySentry.cc
+  LIBRARIES
+  PUBLIC ROOT::Core
+  PRIVATE
+    art_root_io::art_root_io
+    canvas::canvas
     ROOT::Hist
     ROOT::RIO
   )
 
-art_make_library(
-  LIBRARY_NAME
-    art_root_io_tfile_support
-  SOURCE
-    TFileDirectory.cc
-    detail/RootDirectorySentry.cc
-  LIBRARIES
-    art_root_io::art_root_io
-    ROOT::Hist
+build_plugin(TFileService "service" ALLOW_UNDERSCORES LIBRARIES
+  PUBLIC
+    art_root_io::tfile_support
+    art::Framework_IO
+    art::Framework_Core
+    fhiclcpp::types
+    hep_concurrency::hep_concurrency
+  PRIVATE
+    art::Framework_IO_detail
+    art::Framework_Principal
+    art::Framework_Services_Registry
+    art::Utilities
+    fhiclcpp::fhiclcpp
+    ROOT::RIO
     ROOT::Core
   )
 
-simple_plugin(TFileService "service"
-  ALLOW_UNDERSCORES
+build_plugin(RootInput "source" BASE DRISISource ALLOW_UNDERSCORES
   LIBRARIES
-    art_root_io::art_root_io_tfile_support
-  PRIVATE
-    art::art_Framework_IO
-    art::art_Framework_IO_detail
-    art::art_Framework_Principal
-    ROOT::RIO
-    ROOT::Thread
+  PUBLIC
+    art_root_io::art_root_io
+    art::Framework_IO_Catalog
+    canvas::canvas
+    messagefacility::MF_MessageLogger
+    fhiclcpp::types
     ROOT::Tree
-  )
-
-simple_plugin(RootInput "source"
-  ALLOW_UNDERSCORES
-  LIBRARIES INTERFACE
-    messagefacility::MF_MessageLogger
   PRIVATE
-    art::art_Framework_IO_Catalog
-    art_root_io::art_root_io
-    messagefacility::MF_MessageLogger
+    art::Framework_Principal
+    canvas::canvas
   )
 
-simple_plugin(RootOutput "module"
-  ALLOW_UNDERSCORES
-  LIBRARIES PRIVATE
-    art::art_Framework_Core
+build_plugin(RootOutput "module" ALLOW_UNDERSCORES
+  LIBRARIES REG
+    art_root_io::detail
     art_root_io::art_root_io
+    art::Framework_IO
+    art::Framework_IO_detail
+    art::Framework_Core
+    art::Framework_Principal
+    art::Utilities
+    canvas::canvas
     messagefacility::MF_MessageLogger
+    fhiclcpp::types
+    fhiclcpp::fhiclcpp
+    hep_concurrency::hep_concurrency
   )
 
-simple_plugin(SamplingInput "source"
-  LIBRARIES PRIVATE
-    messagefacility::MF_MessageLogger
-    art_root_io::art_root_io
-    art_root_io::art_root_io_RootDB
-    ROOT::RIO
-    ROOT::Tree
-  SOURCE
+build_plugin(SamplingInput "source" BASE InputSource ALLOW_UNDERSCORES
+  REG_SOURCE
     SamplingInput_source.cc
     detail/DataSetBroker.cc
     detail/DataSetSampler.cc
     detail/SamplingDelayedReader.cc
     detail/SamplingInputFile.cc
     detail/event_start.cc
-  ALLOW_UNDERSCORES)
-
+  LIBRARIES REG
+    SQLite::SQLite3
+    art_root_io::RootDB
+    art_root_io::art_root_io
+    art_root_io::detail
+    canvas_root_io::canvas_root_io
+    art::Framework_Core
+    art::Framework_Principal
+    art::Persistency_Provenance
+    canvas::canvas
+    messagefacility::MF_MessageLogger
+    fhiclcpp::types
+)
 
 cet_make_exec(NAME product_sizes_dumper
   SOURCE product_sizes_dumper.cc RootSizeOnDisk.cc
   LIBRARIES PRIVATE
-  art_root_io::art_root_io
-  Boost::program_options
-  ROOT::RIO)
+    art_root_io::art_root_io
+    art_root_io::detail
+    cetlib::container_algorithms
+    cetlib::parsed_program_options
+    Boost::program_options
+    ROOT::RIO
+    ROOT::Core
+)
 
-cet_make_exec(NAME config_dumper
-  LIBRARIES PRIVATE
-  art::art_Utilities
+cet_make_exec(NAME config_dumper LIBRARIES PRIVATE
+  art_root_io::RootDB
   art_root_io::art_root_io
-  art_root_io::art_root_io_RootDB
+  canvas::canvas
+  fhiclcpp::fhiclcpp
+  cetlib::container_algorithms
+  cetlib::parsed_program_options
+  cetlib::cetlib
   Boost::program_options
   ROOT::Tree
-  ROOT::RIO)
+  ROOT::RIO
+)
 
-cet_make_exec(NAME sam_metadata_dumper
-  LIBRARIES PRIVATE
-  art::art_Utilities
+cet_make_exec(NAME sam_metadata_dumper LIBRARIES PRIVATE
+  art::Utilities
   art_root_io::art_root_io
-  art_root_io::art_root_io_RootDB
+  art_root_io::RootDB
+  cetlib::parsed_program_options
   Boost::program_options
-  ROOT::RIO)
+  ROOT::RIO
+  ROOT::Core
+)
 
-cet_make_exec(NAME count_events
-  LIBRARIES PRIVATE
-  art::art_Utilities
-  art_root_io::art_root_io
+cet_make_exec(NAME count_events LIBRARIES PRIVATE
+  canvas::canvas
+  cetlib::parsed_program_options
   Boost::program_options
   ROOT::Tree
-  ROOT::RIO)
+  ROOT::RIO
+  ROOT::Core
+)
 
 cet_make_exec(NAME file_info_dumper
   SOURCE file_info_dumper.cc detail/InfoDumperInputFile.cc
   LIBRARIES PRIVATE
-  art_root_io::art_root_io
-  art_root_io::art_root_io_RootDB
-  Boost::program_options)
+    art_root_io::RootDB
+    art_root_io::detail
+    art_root_io::art_root_io
+    canvas::canvas
+    cetlib::container_algorithms
+    cetlib::parsed_program_options
+    cetlib::cetlib
+    Boost::program_options
+)
 
 include(CetMakeCompletions)
 cet_make_completions(product_sizes_dumper)

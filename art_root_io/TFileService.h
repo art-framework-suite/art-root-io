@@ -6,15 +6,14 @@
 #include "art/Framework/IO/ClosingCriteria.h"
 #include "art/Framework/IO/FileStatsCollector.h"
 #include "art/Framework/IO/PostCloseFileRenamer.h"
-#include "art/Framework/IO/detail/validateFileNamePattern.h"
-#include "art/Framework/Services/Registry/ServiceMacros.h"
+#include "art/Framework/IO/detail/SafeFileNameConfig.h"
+#include "art/Framework/Services/Registry/ServiceDeclarationMacros.h"
 #include "art_root_io/TFileDirectory.h"
 #include "fhiclcpp/fwd.h"
 #include "fhiclcpp/types/Atom.h"
 #include "fhiclcpp/types/Name.h"
 #include "fhiclcpp/types/OptionalTable.h"
 #include "fhiclcpp/types/TableFragment.h"
-#include "hep_concurrency/RecursiveMutex.h"
 
 #include <chrono>
 #include <string>

@@ -1,17 +1,13 @@
-art_make_library(
-  LIBRARIES PRIVATE
-  art::art_Framework_Core ROOT::Core
-  SOURCE ClonedProd.cc
-  NO_INSTALL)
+cet_make_library(NO_INSTALL  SOURCE ClonedProd.cc
+  LIBRARIES PRIVATE art::Framework_Core ROOT::Core)
 
 art_dictionary(NO_INSTALL DICTIONARY_LIBRARIES art_root_io_test_fastclonefail_v10)
 
-simple_plugin(ClonedProdProducer
-  "module"
+basic_plugin(ClonedProdProducer "module" ALLOW_UNDERSCORES NO_INSTALL
   LIBRARIES PRIVATE
-  art_root_io_test_fastclonefail_v10
-  NO_INSTALL
-  ALLOW_UNDERSCORES)
+    art_root_io_test_fastclonefail_v10
+    art::Framework_Core
+ )
 
 set_target_properties(
   art_root_io_test_fastclonefail_v10

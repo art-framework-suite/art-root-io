@@ -11,7 +11,14 @@
 #include "canvas/Persistency/Provenance/ProcessHistory.h"
 #include "canvas/Persistency/Provenance/RangeSet.h"
 #include "canvas/Persistency/Provenance/RunAuxiliary.h"
-#include "sqlite3.h"
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+  typedef struct sqlite3 sqlite3;
+#ifdef __cplusplus
+}
+#endif
 
 #include <memory>
 #include <ostream>
