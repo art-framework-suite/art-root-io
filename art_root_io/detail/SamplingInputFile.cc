@@ -240,11 +240,11 @@ detail::SamplingInputFile::updateEventEntry_(FileIndex::const_iterator& it,
 {
   for (; it != fiEnd_; ++it) {
     if (it->getEntryType() != art::FileIndex::kEvent ||
-        it->eventID_ < firstEvent_) {
+        it->eventID < firstEvent_) {
       continue;
     }
 
-    entry = it->entry_;
+    entry = it->entry;
     return true;
   }
 
@@ -256,7 +256,7 @@ detail::SamplingInputFile::nextEvent() const
 {
   auto local_it = fiIter_;
   input::EntryNumber entry;
-  return updateEventEntry_(local_it, entry) ? local_it->eventID_ :
+  return updateEventEntry_(local_it, entry) ? local_it->eventID :
                                               EventID::invalidEvent();
 }
 
@@ -297,7 +297,7 @@ detail::SamplingInputFile::treeEntries(BranchType const bt)
     if (element.getEntryType() != to_entry_type(bt)) {
       continue;
     }
-    entries[element.eventID_].push_back(element.entry_);
+    entries[element.eventID].push_back(element.entry);
   }
   return entries;
 }

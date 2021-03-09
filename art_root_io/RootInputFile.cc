@@ -824,7 +824,7 @@ namespace art {
     if (fiIter_ == fiEnd_) {
       return EventID{};
     }
-    return fiIter_->eventID_;
+    return fiIter_->eventID;
   }
 
   bool
@@ -864,7 +864,7 @@ namespace art {
     if (it == fiEnd_) {
       return false;
     }
-    if (it->eventID_ < origEventID_) {
+    if (it->eventID < origEventID_) {
       return false;
     }
     return true;
@@ -880,7 +880,7 @@ namespace art {
     if (!RunID(forcedRunNumber).isValid()) {
       return 0;
     }
-    forcedRunOffset_ = forcedRunNumber - fiBegin_->eventID_.run();
+    forcedRunOffset_ = forcedRunNumber - fiBegin_->eventID.run();
     if (forcedRunOffset_ != 0) {
       fastClonable_ = false;
     }
@@ -914,7 +914,7 @@ namespace art {
     if (entryType == FileIndex::kEnd) {
       return FileIndex::kEnd;
     }
-    RunID currentRun(fiIter_->eventID_.runID());
+    RunID currentRun(fiIter_->eventID.runID());
     if (!currentRun.isValid()) {
       return FileIndex::kEnd;
     }
@@ -931,7 +931,7 @@ namespace art {
         currentRun.isValid() ? currentRun.next() : currentRun, false);
       return getNextEntryTypeWanted();
     }
-    SubRunID const& currentSubRun = fiIter_->eventID_.subRunID();
+    SubRunID const& currentSubRun = fiIter_->eventID.subRunID();
     if (entryType == FileIndex::kSubRun) {
       // Skip any subRuns before the first subRun specified
       if ((currentRun == origEventID_.runID()) &&
@@ -947,12 +947,12 @@ namespace art {
     }
     assert(entryType == FileIndex::kEvent);
     // Skip any events before the first event specified
-    if (fiIter_->eventID_ < origEventID_) {
+    if (fiIter_->eventID < origEventID_) {
       fiIter_ = fileIndex_.findPosition(origEventID_);
       return getNextEntryTypeWanted();
     }
     if (duplicateChecker_.get() && duplicateChecker_->isDuplicateAndCheckActive(
-                                     fiIter_->eventID_, fileName_)) {
+                                     fiIter_->eventID, fileName_)) {
       nextEntry();
       return getNextEntryTypeWanted();
     }
@@ -969,7 +969,7 @@ namespace art {
       while ((eventsToSkip_ != 0) && (fiIter_ != fiEnd_) &&
              (fiIter_->getEntryType() == FileIndex::kEvent) &&
              duplicateChecker_.get() &&
-             duplicateChecker_->isDuplicateAndCheckActive(fiIter_->eventID_,
+             duplicateChecker_->isDuplicateAndCheckActive(fiIter_->eventID,
                                                           fileName_)) {
         nextEntry();
       }
@@ -1070,12 +1070,12 @@ namespace art {
   {
     assert(fiIter_ != fiEnd_);
     assert(fiIter_->getEntryType() == FileIndex::kEvent);
-    assert(fiIter_->eventID_.runID().isValid());
+    assert(fiIter_->eventID.runID().isValid());
     auto const& entryNumbers = getEntryNumbers(InEvent);
     auto ep = readCurrentEvent(entryNumbers);
     assert(ep);
-    assert(eventAux_.run() == fiIter_->eventID_.run() + forcedRunOffset_);
-    assert(eventAux_.subRunID() == fiIter_->eventID_.subRunID());
+    assert(eventAux_.run() == fiIter_->eventID.run() + forcedRunOffset_);
+    assert(eventAux_.subRunID() == fiIter_->eventID.subRunID());
     nextEntry();
     return ep;
   }
@@ -1087,7 +1087,7 @@ namespace art {
   {
     assert(entryNumbers.first.size() == 1ull);
     fillAuxiliary_Event(entryNumbers.first.front());
-    assert(eventAux_.eventID() == fiIter_->eventID_);
+    assert(eventAux_.eventID() == fiIter_->eventID);
     unique_ptr<History> history = make_unique<History>();
     fillHistory(entryNumbers.first.front(), *history);
     overrideRunNumber(const_cast<EventID&>(eventAux_.eventID()),
@@ -1165,7 +1165,7 @@ namespace art {
   {
     assert(fiIter_ != fiEnd_);
     assert(fiIter_->getEntryType() == FileIndex::kRun);
-    assert(fiIter_->eventID_.runID().isValid());
+    assert(fiIter_->eventID.runID().isValid());
     auto const& entryNumbers = getEntryNumbers(InRun).first;
     auto rp = readCurrentRun(entryNumbers);
     advanceEntry(entryNumbers.size());
@@ -1176,7 +1176,7 @@ namespace art {
   RootInputFile::readCurrentRun(EntryNumbers const& entryNumbers)
   {
     runRangeSetHandler_ = fillAuxiliary_Run(entryNumbers);
-    assert(runAux_.runID() == fiIter_->eventID_.runID());
+    assert(runAux_.runID() == fiIter_->eventID.runID());
     overrideRunNumber(runAux_);
     if (runAux_.beginTime() == Timestamp::invalidTimestamp()) {
       runAux_.beginTime(eventAux_.time());
@@ -1195,7 +1195,7 @@ namespace art {
                                      this,
                                      nullptr,
                                      InRun,
-                                     fiIter_->eventID_,
+                                     fiIter_->eventID,
                                      compactSubRunRanges_));
     if (!delayedReadRunProducts_) {
       rp->readImmediate();
@@ -1217,9 +1217,9 @@ namespace art {
     auto const& entryNumbers = getEntryNumbers(InRun).first;
     assert(fiIter_ != fiEnd_);
     assert(fiIter_->getEntryType() == FileIndex::kRun);
-    assert(fiIter_->eventID_.runID().isValid());
+    assert(fiIter_->eventID.runID().isValid());
     runRangeSetHandler_ = fillAuxiliary_Run(entryNumbers);
-    assert(runAux_.runID() == fiIter_->eventID_.runID());
+    assert(runAux_.runID() == fiIter_->eventID.runID());
     overrideRunNumber(runAux_);
     if (runAux_.beginTime() == Timestamp::invalidTimestamp()) {
       runAux_.beginTime(eventAux_.time());
@@ -1238,7 +1238,7 @@ namespace art {
                                      this,
                                      nullptr,
                                      InRun,
-                                     fiIter_->eventID_,
+                                     fiIter_->eventID,
                                      compactSubRunRanges_));
     if (!delayedReadRunProducts_) {
       rp->readImmediate();
@@ -1270,7 +1270,7 @@ namespace art {
                                    [[maybe_unused]])
   {
     subRunRangeSetHandler_ = fillAuxiliary_SubRun(entryNumbers);
-    assert(subRunAux_.subRunID() == fiIter_->eventID_.subRunID());
+    assert(subRunAux_.subRunID() == fiIter_->eventID.subRunID());
     overrideRunNumber(subRunAux_.id_);
     assert(subRunAux_.runID() == rp->runID());
     if (subRunAux_.beginTime() == Timestamp::invalidTimestamp()) {
@@ -1290,7 +1290,7 @@ namespace art {
                                      this,
                                      nullptr,
                                      InSubRun,
-                                     fiIter_->eventID_,
+                                     fiIter_->eventID,
                                      compactSubRunRanges_));
     if (!delayedReadSubRunProducts_) {
       srp->readImmediate();
@@ -1313,7 +1313,7 @@ namespace art {
     assert(fiIter_ != fiEnd_);
     assert(fiIter_->getEntryType() == FileIndex::kSubRun);
     subRunRangeSetHandler_ = fillAuxiliary_SubRun(entryNumbers);
-    assert(subRunAux_.subRunID() == fiIter_->eventID_.subRunID());
+    assert(subRunAux_.subRunID() == fiIter_->eventID.subRunID());
     overrideRunNumber(subRunAux_.id_);
     if (subRunAux_.beginTime() == Timestamp::invalidTimestamp()) {
       subRunAux_.beginTime_ = eventAux_.time();
@@ -1332,7 +1332,7 @@ namespace art {
                                      this,
                                      nullptr,
                                      InSubRun,
-                                     fiIter_->eventID_,
+                                     fiIter_->eventID,
                                      compactSubRunRanges_));
     if (!delayedReadSubRunProducts_) {
       srp->readImmediate();
@@ -1409,10 +1409,10 @@ namespace art {
     if (fiIter_ == fiEnd_) {
       return pair<EntryNumbers, bool>{enumbers, true};
     }
-    auto const eid = fiIter_->eventID_;
+    auto const eid = fiIter_->eventID;
     auto iter = fiIter_;
-    for (; (iter != fiEnd_) && (iter->eventID_ == eid); ++iter) {
-      enumbers.push_back(iter->entry_);
+    for (; (iter != fiEnd_) && (iter->eventID == eid); ++iter) {
+      enumbers.push_back(iter->entry);
     }
     if ((bt == InEvent) && (enumbers.size() > 1ul)) {
       throw Exception{errors::FileReadError} << "File " << fileName_
@@ -1420,7 +1420,7 @@ namespace art {
                                              << eid << '\n';
     }
     bool const lastInSubRun{(iter == fiEnd_) ||
-                            (iter->eventID_.subRun() != eid.subRun())};
+                            (iter->eventID.subRun() != eid.subRun())};
     return pair{enumbers, lastInSubRun};
   }
 

@@ -39,7 +39,7 @@ namespace art::detail {
         rootNames::metaBranchRootName<FileIndex::Element>(), &elemPtr);
       for (size_t i{0}, sz = fileIndexTree->GetEntries(); i != sz; ++i) {
         input::getEntry(fileIndexTree.get(), i);
-        findexPtr->addEntryOnLoad(elemPtr->eventID_, elemPtr->entry_);
+        findexPtr->addEntryOnLoad(elemPtr->eventID, elemPtr->entry);
       }
       fileIndexTree->SetBranchAddress(
         rootNames::metaBranchRootName<FileIndex::Element>(), nullptr);
