@@ -2,7 +2,7 @@
 #define art_root_io_RootDelayedReader_h
 // vim: set sw=2 expandtab :
 
-#include "art/Persistency/Common/DelayedReader.h"
+#include "art/Framework/Principal/DelayedReader.h"
 #include "art_root_io/Inputfwd.h"
 #include "canvas/Persistency/Provenance/BranchType.h"
 #include "canvas/Persistency/Provenance/Compatibility/BranchIDList.h"
@@ -29,7 +29,7 @@ class TFile;
 
 namespace art {
   using secondary_reader_t =
-    std::function<int(int, BranchType, EventID const&)>;
+    std::function<std::unique_ptr<Principal>(int&, BranchType, EventID const&)>;
 
   class Group;
   class Principal;
@@ -61,7 +61,7 @@ namespace art {
     void setPrincipal_(cet::exempt_ptr<Principal>) override;
     std::vector<ProductProvenance> readProvenance_() const override;
     bool isAvailableAfterCombine_(ProductID) const override;
-    int readFromSecondaryFile_(int idx) override;
+    std::unique_ptr<Principal> readFromSecondaryFile_(int& idx) override;
 
     FileFormatVersion fileFormatVersion_;
     sqlite3* db_;

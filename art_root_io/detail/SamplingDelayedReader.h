@@ -2,7 +2,7 @@
 #define art_root_io_detail_SamplingDelayedReader_h
 // vim: set sw=2:
 
-#include "art/Persistency/Common/DelayedReader.h"
+#include "art/Framework/Principal/DelayedReader.h"
 #include "art_root_io/Inputfwd.h"
 #include "canvas/Persistency/Provenance/BranchKey.h"
 #include "canvas/Persistency/Provenance/BranchType.h"

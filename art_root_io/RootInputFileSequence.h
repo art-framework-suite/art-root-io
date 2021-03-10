@@ -114,7 +114,12 @@ namespace art {
 
     std::unique_ptr<FileBlock> readFile_();
 
-    int readFromSecondaryFile(int idx, BranchType bt, EventID const& eventID);
+    std::unique_ptr<Principal> readFromSecondaryFile(int idx,
+                                                     BranchType bt,
+                                                     EventID const& eventID);
+    std::unique_ptr<Principal> nextSecondaryPrincipal(int& idx,
+                                                      BranchType bt,
+                                                      EventID const& eventID);
 
     void closeFile_();
 
@@ -231,6 +236,7 @@ namespace art {
     ProcessConfiguration const& processConfiguration() const;
 
     RootInputFile& secondaryFile(int idx);
+    bool atEnd(int idx);
 
     InputFileCatalog& catalog_;
     bool firstFile_{true};

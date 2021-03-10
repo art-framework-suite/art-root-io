@@ -336,13 +336,13 @@ namespace art {
     return result;
   }
 
-  int
-  RootDelayedReader::readFromSecondaryFile_(int const idx)
+  std::unique_ptr<Principal>
+  RootDelayedReader::readFromSecondaryFile_(int& idx)
   {
     if (secondaryFileReader_) {
       return secondaryFileReader_(idx, branchType_, eventID_);
     }
-    return -2;
+    return nullptr;
   }
 
 } // namespace art

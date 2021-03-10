@@ -424,8 +424,8 @@ namespace art {
     auto secondary_opener =
       n_secondary_files == 0ul ?
         secondary_reader_t{} :
-        [this](int const idx, BranchType const bt, EventID const& eid) {
-          return this->readFromSecondaryFile(idx, bt, eid);
+        [this](int& idx, BranchType const bt, EventID const& eid) {
+          return this->nextSecondaryPrincipal(idx, bt, eid);
         };
 
     rootFile_ = make_shared<RootInputFile>(catalog_.currentFile().fileName(),
@@ -508,9 +508,19 @@ namespace art {
     return *file;
   }
 
+  bool
+  RootInputFileSequence::atEnd(int const idx)
+  {
+    // Check if secondary input files are available
+    assert(idx >= 0);
+    auto const uidx = static_cast<size_t>(idx);
+    return uidx == secondaryFilesForPrimary_.size() or
+           secondaryFilesForPrimary_.empty();
+  }
+
   // Note: Return code of -2 means stop, -1 means event-not-found,
   //       otherwise 0 for success.
-  int
+  std::unique_ptr<Principal>
   RootInputFileSequence::readFromSecondaryFile(int const idx,
                                                BranchType const bt,
                                                EventID const& eventID)
@@ -521,44 +531,43 @@ namespace art {
     assert(uidx <= secondaryFilesForPrimary_.size());
     if (uidx == secondaryFilesForPrimary_.size() or
         secondaryFilesForPrimary_.empty()) {
-      return -2;
+      return nullptr;
     }
 
-    // FIXME: The interface should change such that the principal is
-    //        returned directly to the caller of this function.
     switch (bt) {
       case InEvent: {
-        auto ep = secondaryFile(idx).readEventWithID(eventID);
-        if (not ep) {
-          return -1;
-        }
-        primaryEP_->addSecondaryPrincipal(move(ep));
-        break;
+        return secondaryFile(idx).readEventWithID(eventID);
       }
       case InSubRun: {
-        auto srp = secondaryFile(idx).readSubRunWithID(eventID.subRunID());
-        if (not srp) {
-          return -1;
-        }
-        primarySRP_->addSecondaryPrincipal(move(srp));
-        break;
+        return secondaryFile(idx).readSubRunWithID(eventID.subRunID());
       }
       case InRun: {
-        auto rp = secondaryFile(idx).readRunWithID(eventID.runID());
-        if (not rp) {
-          return -1;
-        }
-        primaryRP_->addSecondaryPrincipal(move(rp));
-        break;
+        return secondaryFile(idx).readRunWithID(eventID.runID());
       }
       default: {
         assert(false &&
                "RootDelayedReader encountered an unsupported BranchType!");
-        return -2;
       }
     }
 
-    return 0;
+    return nullptr;
+  }
+
+  std::unique_ptr<Principal>
+  RootInputFileSequence::nextSecondaryPrincipal(int& idx,
+                                                BranchType const bt,
+                                                EventID const& eventID)
+  {
+    std::unique_ptr<Principal> p;
+    while (not p) {
+      if (atEnd(idx)) {
+        return nullptr;
+      }
+      p = readFromSecondaryFile(idx, bt, eventID);
+      ++idx;
+    }
+
+    return p;
   }
 
   bool
