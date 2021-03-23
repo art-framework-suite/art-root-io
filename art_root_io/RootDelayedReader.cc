@@ -284,8 +284,8 @@ namespace art {
         // Replace the provenance.
         // Note: We do not worry about productstatus::unknown() here because
         // newRS is valid.
-        principal_->insert_pp(const_cast<Group*>(grp),
-                              make_unique<ProductProvenance const>(*new_prov));
+        const_cast<Group*>(grp)->setProductProvenance(
+          make_unique<ProductProvenance const>(*new_prov));
         prov = move(new_prov);
       } else if (art::disjoint_ranges(mergedRangeSet, newRS)) {
         // Old and new range sets can be combined, do it.
