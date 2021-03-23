@@ -660,9 +660,7 @@ namespace art {
     // Delayed Reader when it is asked to do so.
     //
     rootFileForLastReadEvent_ = rootFile_;
-    auto ep = rootFile_->readEvent();
-    primaryEP_ = cet::make_exempt_ptr(ep.get());
-    return ep;
+    return rootFile_->readEvent();
   }
 
   std::unique_ptr<RangeSetHandler>
@@ -719,7 +717,6 @@ namespace art {
   RootInputFileSequence::readSubRun_()
   {
     auto srp = rootFile_->readSubRun();
-    primarySRP_ = make_exempt_ptr(srp.get());
     return srp;
   }
 
@@ -764,7 +761,6 @@ namespace art {
   RootInputFileSequence::readRun_()
   {
     auto rp = rootFile_->readRun();
-    primaryRP_ = make_exempt_ptr(rp.get());
     return rp;
   }
 

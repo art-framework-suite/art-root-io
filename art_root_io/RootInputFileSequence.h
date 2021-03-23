@@ -268,13 +268,6 @@ namespace art {
     std::vector<std::vector<std::string>> secondaryFileNames_{};
     UpdateOutputCallbacks& outputCallbacks_;
     bool pendingClose_{false};
-    // We need to add the secondary principals to the primary
-    // principal when they are delay read, so we need to keep around a
-    // pointer to the primary.  Note that these are always used in a
-    // situation where we are guaranteed that primary exists.
-    cet::exempt_ptr<RunPrincipal> primaryRP_{nullptr};
-    cet::exempt_ptr<SubRunPrincipal> primarySRP_{nullptr};
-    cet::exempt_ptr<EventPrincipal> primaryEP_{nullptr};
   };
 
 } // namespace art
