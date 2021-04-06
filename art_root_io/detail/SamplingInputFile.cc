@@ -276,14 +276,14 @@ namespace art {
     to_entry_type(BranchType const bt)
     {
       switch (bt) {
-        case InRun:
-          return FileIndex::kRun;
-        case InSubRun:
-          return FileIndex::kSubRun;
-        case InEvent:
-          return FileIndex::kEvent;
-        default:
-          return FileIndex::kEnd;
+      case InRun:
+        return FileIndex::kRun;
+      case InSubRun:
+        return FileIndex::kSubRun;
+      case InEvent:
+        return FileIndex::kEvent;
+      default:
+        return FileIndex::kEnd;
       }
     }
   }
@@ -443,16 +443,16 @@ TTree*
 detail::SamplingInputFile::treeForBranchType_(BranchType const bt) const
 {
   switch (bt) {
-    case InEvent:
-      return eventTree_;
-    case InSubRun:
-      return subRunTree_;
-    case InRun:
-      return runTree_;
-    default: {
-      throw Exception{errors::LogicError}
-        << "Cannot call treeForBranchType_ for a branch type of " << bt;
-    }
+  case InEvent:
+    return eventTree_;
+  case InSubRun:
+    return subRunTree_;
+  case InRun:
+    return runTree_;
+  default: {
+    throw Exception{errors::LogicError}
+      << "Cannot call treeForBranchType_ for a branch type of " << bt;
+  }
   }
 }
 

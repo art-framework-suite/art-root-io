@@ -83,23 +83,23 @@ want_pset(ParameterSet const& ps, stringvec const& filters, PsetType mode)
 {
   string label;
   switch (mode) {
-    case PsetType::MODULE:
-      ps.get_if_present<string>("module_label", label);
-      break;
-    case PsetType::SERVICE:
-      ps.get_if_present<string>("service_provider", label) ||
-        ps.get_if_present<string>("service_type", label);
-      break;
-    case PsetType::PROCESS: {
-      fhicl::ParameterSet dummy;
-      if (ps.get_if_present("source", dummy)) {
-        ps.get_if_present<string>("process_name", label);
-      }
-    } break;
-    default:
-      throw std::string("INTERNAL ERROR: unknown mode ")
-        .append(std::to_string(int(mode)))
-        .append(".");
+  case PsetType::MODULE:
+    ps.get_if_present<string>("module_label", label);
+    break;
+  case PsetType::SERVICE:
+    ps.get_if_present<string>("service_provider", label) ||
+      ps.get_if_present<string>("service_type", label);
+    break;
+  case PsetType::PROCESS: {
+    fhicl::ParameterSet dummy;
+    if (ps.get_if_present("source", dummy)) {
+      ps.get_if_present<string>("process_name", label);
+    }
+  } break;
+  default:
+    throw std::string("INTERNAL ERROR: unknown mode ")
+      .append(std::to_string(int(mode)))
+      .append(".");
   }
   return (filters.empty() || label.empty() || cet::search_all(filters, label)) ?
            label :
@@ -111,20 +111,20 @@ strip_pset(ParameterSet const& ps, PsetType mode)
 {
   ParameterSet result(ps);
   switch (mode) {
-    case PsetType::MODULE:
-      result.erase("module_label");
-      break;
-    case PsetType::SERVICE:
-      result.erase("service_type");
-      result.erase("service_provider");
-      break;
-    case PsetType::PROCESS:
-      result.erase("process_name");
-      break;
-    default:
-      throw std::string("INTERNAL ERROR: unknown mode ")
-        .append(std::to_string(int(mode)))
-        .append(".");
+  case PsetType::MODULE:
+    result.erase("module_label");
+    break;
+  case PsetType::SERVICE:
+    result.erase("service_type");
+    result.erase("service_provider");
+    break;
+  case PsetType::PROCESS:
+    result.erase("process_name");
+    break;
+  default:
+    throw std::string("INTERNAL ERROR: unknown mode ")
+      .append(std::to_string(int(mode)))
+      .append(".");
   }
   return result;
 }

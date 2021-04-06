@@ -1181,33 +1181,33 @@ static int
 unixFileControl(sqlite3_file* id, int op, void* pArg)
 {
   switch (op) {
-    case SQLITE_FCNTL_LOCKSTATE: {
-      *(int*)pArg = ((unixFile*)id)->eFileLock;
-      return SQLITE_OK;
-    }
-    case SQLITE_LAST_ERRNO: {
-      *(int*)pArg = ((unixFile*)id)->lastErrno;
-      return SQLITE_OK;
-    }
-    case SQLITE_FCNTL_CHUNK_SIZE: {
-      ((unixFile*)id)->szChunk = *(int*)pArg;
-      return SQLITE_OK;
-    }
-    case SQLITE_FCNTL_SIZE_HINT: {
-      return fcntlSizeHint((unixFile*)id, *(i64*)pArg);
-    }
-    /* The pager calls this method to signal that it has done
-    ** a rollback and that the database is therefore unchanged and
-    ** it hence it is OK for the transaction change counter to be
-    ** unchanged.
-    */
-    case SQLITE_FCNTL_DB_UNCHANGED: {
-      ((unixFile*)id)->dbUpdate = 0;
-      return SQLITE_OK;
-    }
-    case SQLITE_FCNTL_SYNC_OMITTED: {
-      return SQLITE_OK; /* A no-op */
-    }
+  case SQLITE_FCNTL_LOCKSTATE: {
+    *(int*)pArg = ((unixFile*)id)->eFileLock;
+    return SQLITE_OK;
+  }
+  case SQLITE_LAST_ERRNO: {
+    *(int*)pArg = ((unixFile*)id)->lastErrno;
+    return SQLITE_OK;
+  }
+  case SQLITE_FCNTL_CHUNK_SIZE: {
+    ((unixFile*)id)->szChunk = *(int*)pArg;
+    return SQLITE_OK;
+  }
+  case SQLITE_FCNTL_SIZE_HINT: {
+    return fcntlSizeHint((unixFile*)id, *(i64*)pArg);
+  }
+  /* The pager calls this method to signal that it has done
+  ** a rollback and that the database is therefore unchanged and
+  ** it hence it is OK for the transaction change counter to be
+  ** unchanged.
+  */
+  case SQLITE_FCNTL_DB_UNCHANGED: {
+    ((unixFile*)id)->dbUpdate = 0;
+    return SQLITE_OK;
+  }
+  case SQLITE_FCNTL_SYNC_OMITTED: {
+    return SQLITE_OK; /* A no-op */
+  }
   }
   return SQLITE_NOTFOUND;
 }
@@ -1463,17 +1463,17 @@ unixAccess(sqlite3_vfs* NotUsed, /* The VFS containing this xAccess method */
   int amode = 0;
   UNUSED_PARAMETER(NotUsed);
   switch (flags) {
-    case SQLITE_ACCESS_EXISTS:
-      amode = F_OK;
-      break;
-    case SQLITE_ACCESS_READWRITE:
-      amode = W_OK | R_OK;
-      break;
-    case SQLITE_ACCESS_READ:
-      amode = R_OK;
-      break;
-    default:
-      assert(!"Invalid flags argument");
+  case SQLITE_ACCESS_EXISTS:
+    amode = F_OK;
+    break;
+  case SQLITE_ACCESS_READWRITE:
+    amode = W_OK | R_OK;
+    break;
+  case SQLITE_ACCESS_READ:
+    amode = R_OK;
+    break;
+  default:
+    assert(!"Invalid flags argument");
   }
   *pResOut = (osAccess(zPath, amode) == 0);
   if (flags == SQLITE_ACCESS_EXISTS && *pResOut) {

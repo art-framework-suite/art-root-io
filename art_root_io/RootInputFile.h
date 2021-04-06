@@ -64,9 +64,7 @@ namespace art {
       using EntryNumbers = input::EntryNumbers;
 
       ~RootInputTree();
-      RootInputTree(cet::exempt_ptr<TFile>,
-                    BranchType,
-                    bool missingOK = false);
+      RootInputTree(cet::exempt_ptr<TFile>, BranchType, bool missingOK = false);
       RootInputTree(RootInputTree const&) = delete;
       RootInputTree(RootInputTree&&) = delete;
       RootInputTree& operator=(RootInputTree const&) = delete;

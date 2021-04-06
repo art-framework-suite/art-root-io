@@ -10,11 +10,10 @@ art::DummyProductCache::product(std::string const& wrappedName)
     TClass* cp = TClass::GetClass(wrappedName.c_str());
     if (cp == nullptr) {
       throw art::Exception(art::errors::DictionaryNotFound)
-        << "TClass::GetClass() returned null pointer for name: "
-        << wrappedName << '\n';
+        << "TClass::GetClass() returned null pointer for name: " << wrappedName
+        << '\n';
     }
-    std::unique_ptr<EDProduct> dummy{
-      reinterpret_cast<EDProduct*>(cp->New())};
+    std::unique_ptr<EDProduct> dummy{reinterpret_cast<EDProduct*>(cp->New())};
     it = dummies_.emplace(wrappedName, move(dummy)).first;
   }
   return it->second.get();

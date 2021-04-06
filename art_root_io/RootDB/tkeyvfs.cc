@@ -762,71 +762,71 @@ namespace {
     }
 #endif // TKEYVFS_TRACE
     switch (op_l) {
-      case SQLITE_FCNTL_LOCKSTATE: {
+    case SQLITE_FCNTL_LOCKSTATE: {
 #if TKEYVFS_TRACE
-        fprintf(stderr, "op: LOCKSTATE\n");
+      fprintf(stderr, "op: LOCKSTATE\n");
 #endif // TKEYVFS_TRACE
-        *(int*)pArg = uFile->eFileLock;
-        // SQLITE_LOCK_NONE
+      *(int*)pArg = uFile->eFileLock;
+      // SQLITE_LOCK_NONE
 #if TKEYVFS_TRACE
-        fprintf(stderr, "End   unixFileControl ...\n");
+      fprintf(stderr, "End   unixFileControl ...\n");
 #endif // TKEYVFS_TRACE
-        return SQLITE_OK;
-      }
-      case SQLITE_LAST_ERRNO: {
+      return SQLITE_OK;
+    }
+    case SQLITE_LAST_ERRNO: {
 #if TKEYVFS_TRACE
-        fprintf(stderr, "op: LAST_ERRNO\n");
+      fprintf(stderr, "op: LAST_ERRNO\n");
 #endif // TKEYVFS_TRACE
-        *(int*)pArg = uFile->lastErrno;
+      *(int*)pArg = uFile->lastErrno;
 #if TKEYVFS_TRACE
-        fprintf(stderr, "End   unixFileControl ...\n");
+      fprintf(stderr, "End   unixFileControl ...\n");
 #endif // TKEYVFS_TRACE
-        return SQLITE_OK;
-      }
-      case SQLITE_FCNTL_CHUNK_SIZE: {
+      return SQLITE_OK;
+    }
+    case SQLITE_FCNTL_CHUNK_SIZE: {
 #if TKEYVFS_TRACE
-        fprintf(stderr, "op: CHUNK_SIZE\n");
-        fprintf(stderr, "szChunk: %d\n", *(int*)pArg);
+      fprintf(stderr, "op: CHUNK_SIZE\n");
+      fprintf(stderr, "szChunk: %d\n", *(int*)pArg);
 #endif // TKEYVFS_TRACE
-        uFile->szChunk = *(int*)pArg;
+      uFile->szChunk = *(int*)pArg;
 #if TKEYVFS_TRACE
-        fprintf(stderr, "End   unixFileControl ...\n");
+      fprintf(stderr, "End   unixFileControl ...\n");
 #endif // TKEYVFS_TRACE
-        return SQLITE_OK;
-      }
-      case SQLITE_FCNTL_SIZE_HINT: {
+      return SQLITE_OK;
+    }
+    case SQLITE_FCNTL_SIZE_HINT: {
 #if TKEYVFS_TRACE
-        fprintf(stderr, "op: SIZE_HINT\n");
-        fprintf(stderr, "hint: 0x%016lx\n", *(i64*)pArg);
+      fprintf(stderr, "op: SIZE_HINT\n");
+      fprintf(stderr, "hint: 0x%016lx\n", *(i64*)pArg);
 #endif // TKEYVFS_TRACE
-        int val = fcntlSizeHint(uFile, *(i64*)pArg);
+      int val = fcntlSizeHint(uFile, *(i64*)pArg);
 #if TKEYVFS_TRACE
-        fprintf(stderr, "End   unixFileControl ...\n");
+      fprintf(stderr, "End   unixFileControl ...\n");
 #endif // TKEYVFS_TRACE
-        return val;
-      }
-        /* The pager calls this method to signal that it has done
-        ** a rollback and that the database is therefore unchanged and
-        ** it hence it is OK for the transaction change counter to be
-        ** unchanged.
-        */
-      case SQLITE_FCNTL_DB_UNCHANGED: {
+      return val;
+    }
+      /* The pager calls this method to signal that it has done
+      ** a rollback and that the database is therefore unchanged and
+      ** it hence it is OK for the transaction change counter to be
+      ** unchanged.
+      */
+    case SQLITE_FCNTL_DB_UNCHANGED: {
 #if TKEYVFS_TRACE
-        fprintf(stderr, "op: DB_UNCHANGED\n");
+      fprintf(stderr, "op: DB_UNCHANGED\n");
 #endif // TKEYVFS_TRACE
-        uFile->dbUpdate = 0;
+      uFile->dbUpdate = 0;
 #if TKEYVFS_TRACE
-        fprintf(stderr, "End   unixFileControl ...\n");
+      fprintf(stderr, "End   unixFileControl ...\n");
 #endif // TKEYVFS_TRACE
-        return SQLITE_OK;
-      }
-      case SQLITE_FCNTL_SYNC_OMITTED: {
+      return SQLITE_OK;
+    }
+    case SQLITE_FCNTL_SYNC_OMITTED: {
 #if TKEYVFS_TRACE
-        fprintf(stderr, "op: SYNC_OMITTED\n");
-        fprintf(stderr, "End   unixFileControl ...\n");
-#endif                    // TKEYVFS_TRACE
-        return SQLITE_OK; //  A no-op
-      }
+      fprintf(stderr, "op: SYNC_OMITTED\n");
+      fprintf(stderr, "End   unixFileControl ...\n");
+#endif                  // TKEYVFS_TRACE
+      return SQLITE_OK; //  A no-op
+    }
     }
 #if TKEYVFS_TRACE
     fprintf(stderr, "End   unixFileControl ...\n");
@@ -1064,23 +1064,23 @@ namespace {
     }
 #endif // TKEYVFS_TRACE
     switch (flags) {
-      case SQLITE_ACCESS_EXISTS:
+    case SQLITE_ACCESS_EXISTS:
 #if TKEYVFS_TRACE
-        fprintf(stderr, "op: SQLITE_ACCESS_EXISTS\n");
+      fprintf(stderr, "op: SQLITE_ACCESS_EXISTS\n");
 #endif // TKEYVFS_TRACE
-        break;
-      case SQLITE_ACCESS_READWRITE:
+      break;
+    case SQLITE_ACCESS_READWRITE:
 #if TKEYVFS_TRACE
-        fprintf(stderr, "op: SQLITE_ACCESS_READWRITE\n");
+      fprintf(stderr, "op: SQLITE_ACCESS_READWRITE\n");
 #endif // TKEYVFS_TRACE
-        break;
-      case SQLITE_ACCESS_READ:
+      break;
+    case SQLITE_ACCESS_READ:
 #if TKEYVFS_TRACE
-        fprintf(stderr, "op: SQLITE_ACCESS_READ\n");
+      fprintf(stderr, "op: SQLITE_ACCESS_READ\n");
 #endif // TKEYVFS_TRACE
-        break;
-      default:
-        assert(!"Invalid flags argument");
+      break;
+    default:
+      assert(!"Invalid flags argument");
     }
     *pResOut = 0;
 #if TKEYVFS_TRACE

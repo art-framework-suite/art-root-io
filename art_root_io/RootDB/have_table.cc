@@ -16,14 +16,14 @@ art::have_table(sqlite3* db,
   auto rc = sqlite3_prepare_v2(db, ddl.c_str(), -1, &stmt, nullptr);
   if (rc == SQLITE_OK) {
     switch (rc = sqlite3_step(stmt)) {
-      case SQLITE_ROW:
-        result = true; // Found the table.
-        FALLTHROUGH;
-      case SQLITE_DONE:
-        rc = SQLITE_OK; // No such table.
-        break;
-      default:
-        break;
+    case SQLITE_ROW:
+      result = true; // Found the table.
+      FALLTHROUGH;
+    case SQLITE_DONE:
+      rc = SQLITE_OK; // No such table.
+      break;
+    default:
+      break;
     }
   }
   rc = sqlite3_finalize(stmt);

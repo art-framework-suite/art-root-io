@@ -388,20 +388,20 @@ art::input::ItemType
 art::SamplingInput::nextItemType()
 {
   switch (currentItemType_) {
-    case input::IsInvalid: {
-      return currentItemType_ = input::IsFile;
-    }
-    case input::IsFile: {
-      return currentItemType_ = input::IsRun;
-    }
-    case input::IsRun: {
-      return currentItemType_ = input::IsSubRun;
-    }
-    case input::IsSubRun: {
-      // Do not return prematurely when moving to the event.
-      currentItemType_ = input::IsEvent;
-    }
-    default: {} // Handle other transitions below.
+  case input::IsInvalid: {
+    return currentItemType_ = input::IsFile;
+  }
+  case input::IsFile: {
+    return currentItemType_ = input::IsRun;
+  }
+  case input::IsRun: {
+    return currentItemType_ = input::IsSubRun;
+  }
+  case input::IsSubRun: {
+    // Do not return prematurely when moving to the event.
+    currentItemType_ = input::IsEvent;
+  }
+  default: {} // Handle other transitions below.
   }
 
   if (eventsLeft_ == 0u) {

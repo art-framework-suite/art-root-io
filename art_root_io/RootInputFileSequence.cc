@@ -535,19 +535,19 @@ namespace art {
     }
 
     switch (bt) {
-      case InEvent: {
-        return secondaryFile(idx).readEventWithID(eventID);
-      }
-      case InSubRun: {
-        return secondaryFile(idx).readSubRunWithID(eventID.subRunID());
-      }
-      case InRun: {
-        return secondaryFile(idx).readRunWithID(eventID.runID());
-      }
-      default: {
-        assert(false &&
-               "RootDelayedReader encountered an unsupported BranchType!");
-      }
+    case InEvent: {
+      return secondaryFile(idx).readEventWithID(eventID);
+    }
+    case InSubRun: {
+      return secondaryFile(idx).readSubRunWithID(eventID.subRunID());
+    }
+    case InRun: {
+      return secondaryFile(idx).readRunWithID(eventID.runID());
+    }
+    default: {
+      assert(false &&
+             "RootDelayedReader encountered an unsupported BranchType!");
+    }
     }
 
     return nullptr;
