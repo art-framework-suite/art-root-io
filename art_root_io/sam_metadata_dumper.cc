@@ -12,7 +12,6 @@
 #include "cetlib/container_algorithms.h"
 #include "cetlib/parsed_program_options.h"
 #include "fhiclcpp/ParameterSet.h"
-#include "fhiclcpp/make_ParameterSet.h"
 
 #include "TError.h"
 #include "TFile.h"

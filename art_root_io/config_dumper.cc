@@ -10,7 +10,6 @@
 #include "cetlib/parsed_program_options.h"
 #include "fhiclcpp/ParameterSet.h"
 #include "fhiclcpp/ParameterSetRegistry.h"
-#include "fhiclcpp/make_ParameterSet.h"
 
 #include "boost/program_options.hpp"
 
@@ -173,9 +172,8 @@ read_all_parameter_sets(TFile& file, ostream& errors)
   }
   for (auto const& pr : psm) {
     // Read the next ParameterSet directly into the output vector.
-    fhicl::ParameterSet pset;
-    fhicl::make_ParameterSet(pr.second.pset_, pset);
-    fhicl::ParameterSetRegistry::put(pset);
+    fhicl::ParameterSetRegistry::put(
+      fhicl::ParameterSet::make(pr.second.pset_));
   }
   if (ffv.value_ >= 5) { // Should have metadata DB.
     // Open the DB

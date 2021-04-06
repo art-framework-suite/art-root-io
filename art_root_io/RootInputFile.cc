@@ -46,7 +46,6 @@
 #include "fhiclcpp/ParameterSet.h"
 #include "fhiclcpp/ParameterSetID.h"
 #include "fhiclcpp/ParameterSetRegistry.h"
-#include "fhiclcpp/make_ParameterSet.h"
 #include "messagefacility/MessageLogger/MessageLogger.h"
 
 #include "TBranch.h"
@@ -349,8 +348,7 @@ namespace art {
           detail::readMetadata(metaDataTree, psetMap)) {
         // Merge into the hashed registries.
         for (auto const& psEntry : psetMap) {
-          fhicl::ParameterSet pset;
-          fhicl::make_ParameterSet(psEntry.second.pset_, pset);
+          auto const pset = fhicl::ParameterSet::make(psEntry.second.pset_);
           // Note ParameterSet::id() has the side effect of making
           // sure the parameter set *has* an ID.
           pset.id();
