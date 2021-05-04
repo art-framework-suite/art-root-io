@@ -10,7 +10,6 @@
 #include "cetlib/parsed_program_options.h"
 #include "fhiclcpp/ParameterSet.h"
 #include "fhiclcpp/ParameterSetRegistry.h"
-#include "fhiclcpp/make_ParameterSet.h"
 
 #include "boost/program_options.hpp"
 
@@ -84,23 +83,23 @@ want_pset(ParameterSet const& ps, stringvec const& filters, PsetType mode)
 {
   string label;
   switch (mode) {
-    case PsetType::MODULE:
-      ps.get_if_present<string>("module_label", label);
-      break;
-    case PsetType::SERVICE:
-      ps.get_if_present<string>("service_provider", label) ||
-        ps.get_if_present<string>("service_type", label);
-      break;
-    case PsetType::PROCESS: {
-      fhicl::ParameterSet dummy;
-      if (ps.get_if_present("source", dummy)) {
-        ps.get_if_present<string>("process_name", label);
-      }
-    } break;
-    default:
-      throw std::string("INTERNAL ERROR: unknown mode ")
-        .append(std::to_string(int(mode)))
-        .append(".");
+  case PsetType::MODULE:
+    ps.get_if_present<string>("module_label", label);
+    break;
+  case PsetType::SERVICE:
+    ps.get_if_present<string>("service_provider", label) ||
+      ps.get_if_present<string>("service_type", label);
+    break;
+  case PsetType::PROCESS: {
+    fhicl::ParameterSet dummy;
+    if (ps.get_if_present("source", dummy)) {
+      ps.get_if_present<string>("process_name", label);
+    }
+  } break;
+  default:
+    throw std::string("INTERNAL ERROR: unknown mode ")
+      .append(std::to_string(int(mode)))
+      .append(".");
   }
   return (filters.empty() || label.empty() || cet::search_all(filters, label)) ?
            label :
@@ -112,20 +111,20 @@ strip_pset(ParameterSet const& ps, PsetType mode)
 {
   ParameterSet result(ps);
   switch (mode) {
-    case PsetType::MODULE:
-      result.erase("module_label");
-      break;
-    case PsetType::SERVICE:
-      result.erase("service_type");
-      result.erase("service_provider");
-      break;
-    case PsetType::PROCESS:
-      result.erase("process_name");
-      break;
-    default:
-      throw std::string("INTERNAL ERROR: unknown mode ")
-        .append(std::to_string(int(mode)))
-        .append(".");
+  case PsetType::MODULE:
+    result.erase("module_label");
+    break;
+  case PsetType::SERVICE:
+    result.erase("service_type");
+    result.erase("service_provider");
+    break;
+  case PsetType::PROCESS:
+    result.erase("process_name");
+    break;
+  default:
+    throw std::string("INTERNAL ERROR: unknown mode ")
+      .append(std::to_string(int(mode)))
+      .append(".");
   }
   return result;
 }
@@ -173,9 +172,8 @@ read_all_parameter_sets(TFile& file, ostream& errors)
   }
   for (auto const& pr : psm) {
     // Read the next ParameterSet directly into the output vector.
-    fhicl::ParameterSet pset;
-    fhicl::make_ParameterSet(pr.second.pset_, pset);
-    fhicl::ParameterSetRegistry::put(pset);
+    fhicl::ParameterSetRegistry::put(
+      fhicl::ParameterSet::make(pr.second.pset_));
   }
   if (ffv.value_ >= 5) { // Should have metadata DB.
     // Open the DB

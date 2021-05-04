@@ -131,27 +131,27 @@ input::ItemType
 RootInput::nextItemType()
 {
   switch (accessState_.state()) {
-    case AccessState::SEQUENTIAL:
-      return DecrepitRelicInputSourceImplementation::nextItemType();
-    case AccessState::SEEKING_FILE:
-      return input::IsFile;
-    case AccessState::SEEKING_RUN:
-      primaryFileSequence_->readIt(accessState_.wantedEventID().runID());
-      return input::IsRun;
-    case AccessState::SEEKING_SUBRUN:
-      primaryFileSequence_->readIt(accessState_.wantedEventID().subRunID());
-      return input::IsSubRun;
-    case AccessState::SEEKING_EVENT: {
-      primaryFileSequence_->readIt(accessState_.wantedEventID(), true);
-      accessState_.setLastReadEventID(accessState_.wantedEventID());
-      accessState_.setRootFileForLastReadEvent(
-        primaryFileSequence_->rootFileForLastReadEvent());
-      return input::IsEvent;
-    }
-    default:
-      throw Exception(errors::LogicError) << "RootInputSource::nextItemType "
-                                             "encountered an unknown "
-                                             "AccessState.\n";
+  case AccessState::SEQUENTIAL:
+    return DecrepitRelicInputSourceImplementation::nextItemType();
+  case AccessState::SEEKING_FILE:
+    return input::IsFile;
+  case AccessState::SEEKING_RUN:
+    primaryFileSequence_->readIt(accessState_.wantedEventID().runID());
+    return input::IsRun;
+  case AccessState::SEEKING_SUBRUN:
+    primaryFileSequence_->readIt(accessState_.wantedEventID().subRunID());
+    return input::IsSubRun;
+  case AccessState::SEEKING_EVENT: {
+    primaryFileSequence_->readIt(accessState_.wantedEventID(), true);
+    accessState_.setLastReadEventID(accessState_.wantedEventID());
+    accessState_.setRootFileForLastReadEvent(
+      primaryFileSequence_->rootFileForLastReadEvent());
+    return input::IsEvent;
+  }
+  default:
+    throw Exception(errors::LogicError) << "RootInputSource::nextItemType "
+                                           "encountered an unknown "
+                                           "AccessState.\n";
   }
 }
 
@@ -159,16 +159,16 @@ unique_ptr<FileBlock>
 RootInput::readFile()
 {
   switch (accessState_.state()) {
-    case AccessState::SEQUENTIAL:
-      return DecrepitRelicInputSourceImplementation::readFile();
-    case AccessState::SEEKING_FILE:
-      accessState_.setState(AccessState::SEEKING_RUN);
-      setState(input::IsFile);
-      return DecrepitRelicInputSourceImplementation::readFile();
-    default:
-      throw Exception(errors::LogicError) << "RootInputSource::readFile "
-                                             "encountered an unknown or "
-                                             "inappropriate AccessState.\n";
+  case AccessState::SEQUENTIAL:
+    return DecrepitRelicInputSourceImplementation::readFile();
+  case AccessState::SEEKING_FILE:
+    accessState_.setState(AccessState::SEEKING_RUN);
+    setState(input::IsFile);
+    return DecrepitRelicInputSourceImplementation::readFile();
+  default:
+    throw Exception(errors::LogicError) << "RootInputSource::readFile "
+                                           "encountered an unknown or "
+                                           "inappropriate AccessState.\n";
   }
 }
 
@@ -182,16 +182,16 @@ unique_ptr<RunPrincipal>
 RootInput::readRun()
 {
   switch (accessState_.state()) {
-    case AccessState::SEQUENTIAL:
-      return DecrepitRelicInputSourceImplementation::readRun();
-    case AccessState::SEEKING_RUN:
-      accessState_.setState(AccessState::SEEKING_SUBRUN);
-      setState(input::IsRun);
-      return DecrepitRelicInputSourceImplementation::readRun();
-    default:
-      throw Exception(errors::LogicError) << "RootInputSource::readRun "
-                                             "encountered an unknown or "
-                                             "inappropriate AccessState.\n";
+  case AccessState::SEQUENTIAL:
+    return DecrepitRelicInputSourceImplementation::readRun();
+  case AccessState::SEEKING_RUN:
+    accessState_.setState(AccessState::SEEKING_SUBRUN);
+    setState(input::IsRun);
+    return DecrepitRelicInputSourceImplementation::readRun();
+  default:
+    throw Exception(errors::LogicError) << "RootInputSource::readRun "
+                                           "encountered an unknown or "
+                                           "inappropriate AccessState.\n";
   }
 }
 
@@ -211,23 +211,23 @@ unique_ptr<SubRunPrincipal>
 RootInput::readSubRun(cet::exempt_ptr<RunPrincipal const> rp)
 {
   switch (accessState_.state()) {
-    case AccessState::SEQUENTIAL:
-      return DecrepitRelicInputSourceImplementation::readSubRun(rp);
-    case AccessState::SEEKING_SUBRUN:
-      accessState_.setState(AccessState::SEEKING_EVENT);
-      setState(input::IsSubRun);
-      return DecrepitRelicInputSourceImplementation::readSubRun(rp);
-    default:
-      throw Exception(errors::LogicError) << "RootInputSource::readSubRun "
-                                             "encountered an unknown or "
-                                             "inappropriate AccessState.\n";
+  case AccessState::SEQUENTIAL:
+    return DecrepitRelicInputSourceImplementation::readSubRun(rp);
+  case AccessState::SEEKING_SUBRUN:
+    accessState_.setState(AccessState::SEEKING_EVENT);
+    setState(input::IsSubRun);
+    return DecrepitRelicInputSourceImplementation::readSubRun(rp);
+  default:
+    throw Exception(errors::LogicError) << "RootInputSource::readSubRun "
+                                           "encountered an unknown or "
+                                           "inappropriate AccessState.\n";
   }
 }
 
 unique_ptr<SubRunPrincipal>
-RootInput::readSubRun_(cet::exempt_ptr<RunPrincipal const> rp)
+RootInput::readSubRun_(cet::exempt_ptr<RunPrincipal const> rp [[maybe_unused]])
 {
-  return primaryFileSequence_->readSubRun_(rp);
+  return primaryFileSequence_->readSubRun_();
 }
 
 unique_ptr<RangeSetHandler>
@@ -246,16 +246,16 @@ unique_ptr<EventPrincipal>
 RootInput::readEvent_(cet::exempt_ptr<SubRunPrincipal const> srp)
 {
   switch (accessState_.state()) {
-    case AccessState::SEQUENTIAL:
-      return DecrepitRelicInputSourceImplementation::readEvent(srp);
-    case AccessState::SEEKING_EVENT:
-      accessState_.resetState();
-      setState(input::IsEvent);
-      return DecrepitRelicInputSourceImplementation::readEvent(srp);
-    default:
-      throw Exception(errors::LogicError) << "RootInputSource::readEvent "
-                                             "encountered an unknown or "
-                                             "inappropriate AccessState.\n";
+  case AccessState::SEQUENTIAL:
+    return DecrepitRelicInputSourceImplementation::readEvent(srp);
+  case AccessState::SEEKING_EVENT:
+    accessState_.resetState();
+    setState(input::IsEvent);
+    return DecrepitRelicInputSourceImplementation::readEvent(srp);
+  default:
+    throw Exception(errors::LogicError) << "RootInputSource::readEvent "
+                                           "encountered an unknown or "
+                                           "inappropriate AccessState.\n";
   }
 }
 

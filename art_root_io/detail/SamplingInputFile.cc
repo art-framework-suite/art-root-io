@@ -14,6 +14,7 @@
 #include "art_root_io/detail/readFileIndex.h"
 #include "art_root_io/detail/readMetadata.h"
 #include "art_root_io/rootErrMsgs.h"
+#include "canvas/Persistency/Common/Wrapper.h"
 #include "canvas/Persistency/Provenance/BranchChildren.h"
 #include "canvas/Persistency/Provenance/BranchDescription.h"
 #include "canvas/Persistency/Provenance/BranchKey.h"
@@ -239,11 +240,11 @@ detail::SamplingInputFile::updateEventEntry_(FileIndex::const_iterator& it,
 {
   for (; it != fiEnd_; ++it) {
     if (it->getEntryType() != art::FileIndex::kEvent ||
-        it->eventID_ < firstEvent_) {
+        it->eventID < firstEvent_) {
       continue;
     }
 
-    entry = it->entry_;
+    entry = it->entry;
     return true;
   }
 
@@ -255,7 +256,7 @@ detail::SamplingInputFile::nextEvent() const
 {
   auto local_it = fiIter_;
   input::EntryNumber entry;
-  return updateEventEntry_(local_it, entry) ? local_it->eventID_ :
+  return updateEventEntry_(local_it, entry) ? local_it->eventID :
                                               EventID::invalidEvent();
 }
 
@@ -275,14 +276,14 @@ namespace art {
     to_entry_type(BranchType const bt)
     {
       switch (bt) {
-        case InRun:
-          return FileIndex::kRun;
-        case InSubRun:
-          return FileIndex::kSubRun;
-        case InEvent:
-          return FileIndex::kEvent;
-        default:
-          return FileIndex::kEnd;
+      case InRun:
+        return FileIndex::kRun;
+      case InSubRun:
+        return FileIndex::kSubRun;
+      case InEvent:
+        return FileIndex::kEvent;
+      default:
+        return FileIndex::kEnd;
       }
     }
   }
@@ -296,7 +297,7 @@ detail::SamplingInputFile::treeEntries(BranchType const bt)
     if (element.getEntryType() != to_entry_type(bt)) {
       continue;
     }
-    entries[element.eventID_].push_back(element.entry_);
+    entries[element.eventID].push_back(element.entry);
   }
   return entries;
 }
@@ -442,16 +443,16 @@ TTree*
 detail::SamplingInputFile::treeForBranchType_(BranchType const bt) const
 {
   switch (bt) {
-    case InEvent:
-      return eventTree_;
-    case InSubRun:
-      return subRunTree_;
-    case InRun:
-      return runTree_;
-    default: {
-      throw Exception{errors::LogicError}
-        << "Cannot call treeForBranchType_ for a branch type of " << bt;
-    }
+  case InEvent:
+    return eventTree_;
+  case InSubRun:
+    return subRunTree_;
+  case InRun:
+    return runTree_;
+  default: {
+    throw Exception{errors::LogicError}
+      << "Cannot call treeForBranchType_ for a branch type of " << bt;
+  }
   }
 }
 

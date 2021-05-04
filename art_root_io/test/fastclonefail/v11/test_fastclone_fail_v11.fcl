@@ -17,8 +17,5 @@ physics: {
       module_type: ClonedProdAnalyzer
     }
   }
-  trigpath1: [ ]
   endpath1: [ ClonedProdAnalyzer, out1 ]
-  trigger_paths: [ ]
-  end_paths: [ endpath1 ]
 }

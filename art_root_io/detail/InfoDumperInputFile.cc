@@ -50,9 +50,9 @@ namespace {
       return {};
 
     EntryNumbers entries;
-    auto const eid = it->eventID_;
-    for (; it != end && eid == it->eventID_; ++it) {
-      entries.push_back(it->entry_);
+    auto const eid = it->eventID;
+    for (; it != end && eid == it->eventID; ++it) {
+      entries.push_back(it->entry);
     }
     return entries;
   }
@@ -180,7 +180,7 @@ art::detail::InfoDumperInputFile::print_range_sets(
       if (element.getEntryType() != art::FileIndex::kRun)
         continue;
       auto const& rs = rangeSetFromFileIndex(
-        fileIndex_, element.eventID_.runID(), compactRanges);
+        fileIndex_, element.eventID.runID(), compactRanges);
       os << rs << '\n';
     }
     return;

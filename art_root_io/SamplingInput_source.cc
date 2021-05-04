@@ -37,6 +37,7 @@
 #include "art/Persistency/Provenance/ProcessHistoryRegistry.h"
 #include "art_root_io/detail/DataSetBroker.h"
 #include "art_root_io/setup.h"
+#include "canvas/Persistency/Common/Wrapper.h"
 #include "canvas/Persistency/Provenance/EventID.h"
 #include "canvas/Persistency/Provenance/FileFormatVersion.h"
 #include "canvas/Persistency/Provenance/ProcessConfiguration.h"
@@ -387,20 +388,20 @@ art::input::ItemType
 art::SamplingInput::nextItemType()
 {
   switch (currentItemType_) {
-    case input::IsInvalid: {
-      return currentItemType_ = input::IsFile;
-    }
-    case input::IsFile: {
-      return currentItemType_ = input::IsRun;
-    }
-    case input::IsRun: {
-      return currentItemType_ = input::IsSubRun;
-    }
-    case input::IsSubRun: {
-      // Do not return prematurely when moving to the event.
-      currentItemType_ = input::IsEvent;
-    }
-    default: {} // Handle other transitions below.
+  case input::IsInvalid: {
+    return currentItemType_ = input::IsFile;
+  }
+  case input::IsFile: {
+    return currentItemType_ = input::IsRun;
+  }
+  case input::IsRun: {
+    return currentItemType_ = input::IsSubRun;
+  }
+  case input::IsSubRun: {
+    // Do not return prematurely when moving to the event.
+    currentItemType_ = input::IsEvent;
+  }
+  default: {} // Handle other transitions below.
   }
 
   if (eventsLeft_ == 0u) {

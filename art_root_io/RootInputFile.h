@@ -12,6 +12,7 @@
 #include "art/Framework/Principal/SubRunPrincipal.h"
 #include "art_root_io/FastCloningInfoProvider.h"
 #include "art_root_io/Inputfwd.h"
+#include "art_root_io/RootDelayedReader.h"
 #include "art_root_io/RootInputFileSequence.h"
 #include "canvas/Persistency/Provenance/Compatibility/BranchIDList.h"
 #include "canvas/Persistency/Provenance/EventAuxiliary.h"
@@ -56,25 +57,19 @@ namespace art {
   class UpdateOutputCallbacks;
 
   class RootInputFile {
-  private: // TYPES
     class RootInputTree {
-    public: // TYPES
+    public:
       using BranchMap = input::BranchMap;
       using EntryNumber = input::EntryNumber;
       using EntryNumbers = input::EntryNumbers;
 
-    public: // MEMBER FUNCTIONS -- Special Member Functions
       ~RootInputTree();
-      RootInputTree(cet::exempt_ptr<TFile>,
-                    BranchType,
-                    cet::exempt_ptr<RootInputFile>,
-                    bool missingOK = false);
+      RootInputTree(cet::exempt_ptr<TFile>, BranchType, bool missingOK = false);
       RootInputTree(RootInputTree const&) = delete;
       RootInputTree(RootInputTree&&) = delete;
       RootInputTree& operator=(RootInputTree const&) = delete;
       RootInputTree&& operator=(RootInputTree&&) = delete;
 
-    public: // MEMBER FUNCTIONS
       bool isValid() const;
       EntryNumber entries() const;
       TTree* tree() const;
@@ -85,7 +80,7 @@ namespace art {
       void addBranch(BranchDescription const&);
       void dropBranch(std::string const& branchName);
 
-    private: // MEMBER DATA
+    private:
       TTree* tree_{nullptr};
       TTree* metaTree_{nullptr};
       TBranch* auxBranch_{nullptr};
@@ -94,22 +89,19 @@ namespace art {
       BranchMap branches_{};
     };
 
-  public: // TYPES
     using RootInputTreePtrArray =
       std::array<std::unique_ptr<RootInputTree>, NumBranchTypes>;
     using EntryNumber = RootInputTree::EntryNumber;
     using EntryNumbers = RootInputTree::EntryNumbers;
 
-  public: // MEMBER FUNCTIONS -- Special Member Functions
+  public:
     ~RootInputFile();
     RootInputFile(RootInputFile const&) = delete;
     RootInputFile(RootInputFile&&) = delete;
     RootInputFile& operator=(RootInputFile const&) = delete;
     RootInputFile& operator=(RootInputFile&&) = delete;
     RootInputFile(std::string const& fileName,
-                  std::string const& catalogName,
                   ProcessConfiguration const& processConfiguration,
-                  std::string const& logicalFileName,
                   std::unique_ptr<TFile>&& filePtr,
                   EventID const& origEventID,
                   unsigned int eventsToSkip,
@@ -125,25 +117,30 @@ namespace art {
                   int forcedRunOffset,
                   bool noEventSort,
                   GroupSelectorRules const& groupSelectorRules,
-                  std::shared_ptr<DuplicateChecker> duplicateChecker,
                   bool dropDescendantsOfDroppedProducts,
                   bool readIncomingParameterSets,
-                  cet::exempt_ptr<RootInputFile> primaryFile,
-                  std::vector<std::string> const& secondaryFileNames,
-                  RootInputFileSequence* rifSequence,
-                  UpdateOutputCallbacks& outputCallbacks);
+                  UpdateOutputCallbacks& outputCallbacks,
+                  secondary_reader_t openSecondaryFile = {},
+                  std::shared_ptr<DuplicateChecker> duplicateChecker = nullptr);
 
-  public: // MEMBER FUNCTIONS
     void reportOpened();
-    void close(bool reallyClose);
+    void close();
+
+    // Assumes sequential access
     std::unique_ptr<ResultsPrincipal> readResults();
     std::unique_ptr<RunPrincipal> readRun();
-    std::unique_ptr<SubRunPrincipal> readSubRun(
-      cet::exempt_ptr<RunPrincipal const>);
+    std::unique_ptr<SubRunPrincipal> readSubRun();
     std::unique_ptr<EventPrincipal> readEvent();
-    bool readRunForSecondaryFile(RunID);
-    bool readSubRunForSecondaryFile(SubRunID);
-    bool readEventForSecondaryFile(EventID eID);
+
+    // Random access
+    std::unique_ptr<RunPrincipal> readRunWithID(
+      RunID id,
+      bool thenAdvanceToNextRun = false);
+    std::unique_ptr<SubRunPrincipal> readSubRunWithID(
+      SubRunID id,
+      bool thenAdvanceToNextSubRun = false);
+    std::unique_ptr<EventPrincipal> readEventWithID(EventID const& id);
+
     std::string const& fileName() const;
     RootInputTreePtrArray& treePointers();
     FileFormatVersion fileFormatVersion() const;
@@ -164,13 +161,10 @@ namespace art {
     FileIndex::EntryType getNextEntryTypeWanted();
     std::shared_ptr<FileIndex> fileIndexSharedPtr() const;
     EventID eventIDForFileIndexPosition() const;
-    std::vector<std::string> const& secondaryFileNames() const;
-    std::vector<std::unique_ptr<RootInputFile>> const& secondaryFiles() const;
-    void openSecondaryFile(int const idx);
     std::unique_ptr<RangeSetHandler> runRangeSetHandler();
     std::unique_ptr<RangeSetHandler> subRunRangeSetHandler();
 
-  private: // MEMBER FUNCTIONS -- Implementation details
+  private:
     RootInputTree const& eventTree() const;
     RootInputTree const& subRunTree() const;
     RootInputTree const& runTree() const;
@@ -186,9 +180,9 @@ namespace art {
     void fillAuxiliary_SubRun(EntryNumber const entry);
     void fillAuxiliary_Run(EntryNumber const entry);
     void fillAuxiliary_Results(EntryNumber const entry);
-    std::unique_ptr<RangeSetHandler> fillAuxiliary_SubRun(
-      EntryNumbers const& entries);
-    std::unique_ptr<RangeSetHandler> fillAuxiliary_Run(
+    std::pair<SubRunAuxiliary, std::unique_ptr<RangeSetHandler>>
+    fillAuxiliary_SubRun(EntryNumbers const& entries);
+    std::pair<RunAuxiliary, std::unique_ptr<RangeSetHandler>> fillAuxiliary_Run(
       EntryNumbers const& entries);
     void overrideRunNumber(RunAuxiliary&);
     void overrideRunNumber(SubRunID& id);
@@ -201,18 +195,9 @@ namespace art {
     void readEventHistoryTree(unsigned int treeCacheSize);
     void initializeDuplicateChecker();
     std::pair<EntryNumbers, bool> getEntryNumbers(BranchType);
-    std::unique_ptr<RunPrincipal> readCurrentRun(EntryNumbers const&);
-    std::unique_ptr<SubRunPrincipal> readCurrentSubRun(
-      EntryNumbers const&,
-      cet::exempt_ptr<RunPrincipal const>);
-    std::unique_ptr<EventPrincipal> readCurrentEvent(
-      std::pair<EntryNumbers, bool> const&);
 
-  private: // MEMBER DATA
     std::string const fileName_;
-    std::string const catalog_;
     ProcessConfiguration const& processConfiguration_;
-    std::string const logicalFileName_;
     std::unique_ptr<TFile> filePtr_;
     // Start with invalid connection.
     std::unique_ptr<cet::sqlite::Connection> sqliteDB_{nullptr};
@@ -226,10 +211,9 @@ namespace art {
     InputSource::ProcessingMode processingMode_;
     int forcedRunOffset_;
     bool noEventSort_;
+    secondary_reader_t readFromSecondaryFile_;
     std::shared_ptr<DuplicateChecker> duplicateChecker_;
     cet::exempt_ptr<RootInputFile> primaryFile_;
-    std::vector<std::string> secondaryFileNames_;
-    cet::exempt_ptr<RootInputFileSequence> rifSequence_;
     FileFormatVersion fileFormatVersion_{};
     std::shared_ptr<FileIndex> fileIndexSharedPtr_{new FileIndex};
     FileIndex& fileIndex_{*fileIndexSharedPtr_};
@@ -244,7 +228,6 @@ namespace art {
     ProductTables presentProducts_{ProductTables::invalid()};
     std::unique_ptr<BranchIDLists> branchIDLists_{};
     TTree* eventHistoryTree_{nullptr};
-    std::vector<std::unique_ptr<RootInputFile>> secondaryFiles_{};
     // We need to add the secondary principals to the primary
     // principal when they are delay read, so we need to keep
     // around a pointer to the primary.  Note that these are

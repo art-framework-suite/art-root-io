@@ -17,21 +17,21 @@ namespace {
   {
     std::string result;
     switch (type) {
-      case SQLITE3_TKEYDB:
-        result = "tkeyvfs";
-        break;
-      case SQLITE3_MEMDB:
-        result = "in-memory";
-        break;
-      case SQLITE3_FILEDB:
-        result = "file";
-        break;
-      case SQLITE3_TMPDB:
-        result = "tmp";
-        break;
-      default:
-        result = "UNKNOWN";
-        break;
+    case SQLITE3_TKEYDB:
+      result = "tkeyvfs";
+      break;
+    case SQLITE3_MEMDB:
+      result = "in-memory";
+      break;
+    case SQLITE3_FILEDB:
+      result = "file";
+      break;
+    case SQLITE3_TMPDB:
+      result = "tmp";
+      break;
+    default:
+      result = "UNKNOWN";
+      break;
     }
     return result;
   }
@@ -114,22 +114,22 @@ art::SQLite3Wrapper::initDB(int flags, TFile* tfile)
                         (key_ == ":memory:" ? SQLITE3_MEMDB : SQLITE3_FILEDB) :
                         SQLITE3_TMPDB;
   switch (type) {
-    case SQLITE3_TKEYDB:
-      if (!key_.size()) {
-        throw Exception{errors::FileOpenError}
-          << "Failed to open TKEYVFS DB due to empty key spec.\n";
-      }
-      err = tkeyvfs_open_v2(key_.c_str(), &db_, flags, tfile);
-      break;
-    case SQLITE3_MEMDB:
-      err = sqlite3_open(key_.c_str(), &db_);
-      break;
-    case SQLITE3_FILEDB:
-      err = sqlite3_open_v2(key_.c_str(), &db_, flags, nullptr);
-      break;
-    case SQLITE3_TMPDB:
-      err = sqlite3_open(key_.c_str(), &db_);
-      break;
+  case SQLITE3_TKEYDB:
+    if (!key_.size()) {
+      throw Exception{errors::FileOpenError}
+        << "Failed to open TKEYVFS DB due to empty key spec.\n";
+    }
+    err = tkeyvfs_open_v2(key_.c_str(), &db_, flags, tfile);
+    break;
+  case SQLITE3_MEMDB:
+    err = sqlite3_open(key_.c_str(), &db_);
+    break;
+  case SQLITE3_FILEDB:
+    err = sqlite3_open_v2(key_.c_str(), &db_, flags, nullptr);
+    break;
+  case SQLITE3_TMPDB:
+    err = sqlite3_open(key_.c_str(), &db_);
+    break;
   }
   if (err) {
     throw Exception{errors::FileOpenError}

@@ -22,7 +22,7 @@ namespace {
     operator()(FileIndex::Element const element) const
     {
       return element.getEntryType() == FileIndex::kSubRun &&
-             element.eventID_.runID() == runID_;
+             element.eventID.runID() == runID_;
     }
 
   private:
@@ -36,7 +36,7 @@ namespace {
     operator()(FileIndex::Element const& element) const
     {
       return element.getEntryType() == FileIndex::kEvent &&
-             element.eventID_.subRunID() == subRunID_;
+             element.eventID.subRunID() == subRunID_;
     }
 
   private:
@@ -49,7 +49,7 @@ namespace {
     bool
     operator()(FileIndex::Element const element) const
     {
-      return element.eventID_.subRunID() != subRunID_;
+      return element.eventID.subRunID() != subRunID_;
     }
 
   private:
@@ -62,7 +62,7 @@ namespace {
     bool
     operator()(FileIndex::Element const element) const
     {
-      return element.eventID_.runID() != runID_;
+      return element.eventID.runID() != runID_;
     }
 
   private:
@@ -93,7 +93,7 @@ detail::rangeSetFromFileIndex(FileIndex const& fileIndex,
     return rangeSet;
   }
 
-  auto const& eid = event_it->eventID_;
+  auto const& eid = event_it->eventID;
   auto event_end =
     std::find_if_not(event_it, end, next_event_in_subrun{subRunID});
 
@@ -108,13 +108,13 @@ detail::rangeSetFromFileIndex(FileIndex const& fileIndex,
     auto const ebegin = eid.event();
     auto const eend = (count == 1) ?
                         eid.next().event() :
-                        std::prev(event_end)->eventID_.next().event();
+                        std::prev(event_end)->eventID.next().event();
     rangeSet.emplace_range(subrun, ebegin, eend);
     return rangeSet;
   }
 
   std::for_each(event_it, event_end, [&rangeSet](auto const& element) {
-    rangeSet.update(element.eventID_);
+    rangeSet.update(element.eventID);
   });
   return rangeSet;
 }
@@ -139,7 +139,7 @@ detail::rangeSetFromFileIndex(FileIndex const& fileIndex,
 
   auto const run_end = std::find_if(subrun_begin, end, end_of_run{runID});
   while (subrun_begin != run_end) {
-    auto const subRunID = subrun_begin->eventID_.subRunID();
+    auto const subRunID = subrun_begin->eventID.subRunID();
     auto rs = rangeSetFromFileIndex(fileIndex, subRunID, compactRanges);
     if (rs.is_valid()) {
       rangeSet.merge(rs);
