@@ -16,6 +16,7 @@
 #include "art/test/TestObjects/ToyProducts.h"
 #include "art_root_io/test/bad-assns/DummyA.h"
 #include "canvas/Utilities/InputTag.h"
+#include "canvas/Persistency/Common/Assns.h"
 #include "fhiclcpp/ParameterSet.h"
 #include "messagefacility/MessageLogger/MessageLogger.h"
 
