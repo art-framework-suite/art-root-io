@@ -2,10 +2,8 @@
 #include "art/Framework/Core/ModuleMacros.h"
 #include "art/Framework/Principal/Event.h"
 #include "art_root_io/test/fastclonefail/v10/ClonedProd.h"
-#include "fhiclcpp/ParameterSet.h"
 
 #include <memory>
-#include <vector>
 
 using namespace art;
 using namespace fhicl;

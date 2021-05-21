@@ -1,9 +1,6 @@
 #ifndef art_root_io_detail_InfoDumperInputFile_h
 #define art_root_io_detail_InfoDumperInputFile_h
 
-#include "TBranch.h"
-#include "TFile.h"
-#include "TTree.h"
 #include "art_root_io/Inputfwd.h"
 #include "canvas/Persistency/Provenance/Compatibility/BranchIDList.h"
 #include "canvas/Persistency/Provenance/FileFormatVersion.h"
@@ -11,6 +8,9 @@
 #include "canvas/Persistency/Provenance/ProcessHistory.h"
 #include "canvas/Persistency/Provenance/RangeSet.h"
 #include "canvas/Persistency/Provenance/RunAuxiliary.h"
+
+#include "TFile.h"
+class Tree;
 
 #ifdef __cplusplus
 extern "C" {

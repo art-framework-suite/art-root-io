@@ -46,7 +46,6 @@
 #include "canvas/Persistency/Provenance/RunID.h"
 #include "canvas/Persistency/Provenance/SubRunID.h"
 #include "canvas/Persistency/Provenance/TypeLabel.h"
-#include "canvas/Utilities/Exception.h"
 #include "canvas/Utilities/TypeID.h"
 #include "messagefacility/MessageLogger/MessageLogger.h"
 

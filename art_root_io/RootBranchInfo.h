@@ -5,7 +5,7 @@ namespace art {
   class RootBranchInfo;
 }
 
-#include "TBranch.h"
+class TBranch;
 
 #include <string>
 

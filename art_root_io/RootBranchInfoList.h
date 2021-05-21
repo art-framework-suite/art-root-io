@@ -7,7 +7,7 @@
 
 #include <vector>
 
-#include "TTree.h"
+class TTree;
 
 namespace art {
   class RootBranchInfoList;

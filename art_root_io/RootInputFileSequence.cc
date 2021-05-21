@@ -1,7 +1,7 @@
 #include "art_root_io/RootInputFileSequence.h"
 // vim: set sw=2:
 
-#include "TFile.h"
+#include "art/Framework/Core/FileBlock.h"
 #include "art/Framework/IO/Catalog/FileCatalog.h"
 #include "art/Framework/IO/Catalog/InputFileCatalog.h"
 #include "art/Framework/IO/detail/logFileAction.h"
@@ -9,17 +9,14 @@
 #include "art/Framework/Principal/RunPrincipal.h"
 #include "art/Framework/Principal/SubRunPrincipal.h"
 #include "art/Utilities/Globals.h"
-#include "art_root_io/RootFileBlock.h"
 #include "art_root_io/RootInputFile.h"
 #include "art_root_io/setup.h"
-#include "cetlib/container_algorithms.h"
-#include "fhiclcpp/ParameterSet.h"
 #include "messagefacility/MessageLogger/MessageLogger.h"
+
+#include "TFile.h"
 
 #include <ctime>
 #include <map>
-#include <set>
-#include <stack>
 #include <string>
 #include <utility>
 

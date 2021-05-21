@@ -3,18 +3,16 @@
 // vim: set sw=2 expandtab :
 
 #include "art/Framework/Principal/DelayedReader.h"
+#include "art/Framework/Principal/fwd.h"
 #include "art_root_io/Inputfwd.h"
 #include "canvas/Persistency/Provenance/BranchType.h"
 #include "canvas/Persistency/Provenance/Compatibility/BranchIDList.h"
 #include "canvas/Persistency/Provenance/EventID.h"
 #include "canvas/Persistency/Provenance/FileFormatVersion.h"
-#include "canvas/Persistency/Provenance/ProductID.h"
+#include "canvas/Persistency/Provenance/ProvenanceFwd.h"
 #include "canvas/Persistency/Provenance/RangeSet.h"
 
-#include <atomic>
-#include <map>
 #include <memory>
-#include <string>
 
 #ifdef __cplusplus
 extern "C" {
@@ -25,7 +23,6 @@ typedef struct sqlite3 sqlite3;
 #endif
 
 class TBranch;
-class TFile;
 
 namespace art {
   using secondary_reader_t =

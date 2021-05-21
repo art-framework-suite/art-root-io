@@ -6,7 +6,7 @@
 ////////////////////////////////////////////////////////////////////////
 
 #include "canvas/Persistency/Provenance/BranchType.h"
-#include "canvas/Persistency/Provenance/rootNames.h"
+#include "canvas/Persistency/Provenance/FileIndex.h"
 #include "cetlib/parsed_program_options.h"
 
 #include "boost/program_options.hpp"
@@ -16,7 +16,6 @@
 #include <string>
 #include <vector>
 
-#include "TBranch.h"
 #include "TError.h"
 #include "TFile.h"
 #include "TTree.h"

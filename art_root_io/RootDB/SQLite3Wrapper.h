@@ -4,13 +4,13 @@
 // Sentry-like entity to manage the lifetime of an SQL database handle.
 #include <string>
 
+class TFile;
+
 #include <sqlite3.h>
 
 namespace art {
   class SQLite3Wrapper;
 }
-
-#include "TFile.h"
 
 class art::SQLite3Wrapper {
 public:

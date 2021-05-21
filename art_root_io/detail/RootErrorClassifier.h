@@ -1,9 +1,8 @@
 #ifndef art_root_io_detail_RootErrorClassifier_h
 #define art_root_io_detail_RootErrorClassifier_h
 
-#include "art_root_io/detail/RootErrorParser.h"
-
 namespace art::detail {
+  struct RootErrorPayload;
 
   class RootErrorClassifier {
   public:

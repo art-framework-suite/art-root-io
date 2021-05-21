@@ -2,6 +2,7 @@
 #include "art/Framework/Core/InputSourceMutex.h"
 #include "art_root_io/RootDB/tkeyvfs.h"
 #include "art_root_io/detail/RootErrorClassifier.h"
+#include "art_root_io/detail/RootErrorParser.h"
 #include "canvas/Utilities/Exception.h"
 #include "canvas_root_io/Streamers/BranchDescriptionStreamer.h"
 #include "canvas_root_io/Streamers/CacheStreamers.h"
@@ -17,9 +18,8 @@
 #include "TSystem.h"
 #include "TTree.h"
 
-#include <regex>
 #include <sstream>
-#include <string.h>
+#include <string>
 
 using namespace std::string_literals;
 using art::detail::RootErrorClassifier;

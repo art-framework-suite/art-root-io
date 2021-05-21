@@ -1,5 +1,4 @@
 #include "art_root_io/detail/InfoDumperInputFile.h"
-#include "art/Persistency/Provenance/ProcessHistoryRegistry.h"
 #include "art/Persistency/Provenance/orderedProcessNamesCollection.h"
 #include "art_root_io/RootDB/SQLite3Wrapper.h"
 #include "art_root_io/detail/rangeSetFromFileIndex.h"
@@ -11,9 +10,12 @@
 #include "canvas/Utilities/Exception.h"
 #include "cetlib/HorizontalRule.h"
 
-#include <algorithm>
+#include "TBranch.h"
+#include "TTree.h"
+
 #include <iomanip>
-#include <iostream>
+#include <ostream>
+#include <sstream>
 
 namespace {
 

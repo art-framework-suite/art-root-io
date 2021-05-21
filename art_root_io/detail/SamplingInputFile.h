@@ -1,6 +1,7 @@
 #ifndef art_root_io_detail_SamplingInputFile_h
 #define art_root_io_detail_SamplingInputFile_h
 
+#include "art/Framework/Core/Frameworkfwd.h"
 #include "art/Framework/Principal/EventPrincipal.h"
 #include "art/Framework/Principal/SubRunPrincipal.h"
 #include "art_root_io/Inputfwd.h"
@@ -20,7 +21,7 @@
 #include "cetlib/sqlite/Connection.h"
 
 #include "TFile.h"
-#include "TTree.h"
+class TTree;
 
 #include <map>
 #include <memory>
@@ -30,9 +31,7 @@
 namespace art {
   class BranchChildren;
   class GroupSelectorRules;
-  class UpdateOutputCallbacks;
   class ModuleDescription;
-  class ProcessConfiguration;
 
   namespace detail {
 

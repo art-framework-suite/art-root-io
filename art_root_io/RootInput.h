@@ -4,23 +4,17 @@
 
 #include "art/Framework/Core/DecrepitRelicInputSourceImplementation.h"
 #include "art/Framework/Core/Frameworkfwd.h"
-#include "art/Framework/Core/InputSourceDescription.h"
 #include "art/Framework/IO/Catalog/InputFileCatalog.h"
+#include "art/Framework/Principal/fwd.h"
 #include "art_root_io/Inputfwd.h"
 #include "art_root_io/RootInputFileSequence.h"
-#include "canvas/Persistency/Provenance/BranchDescription.h"
-#include "canvas/Persistency/Provenance/BranchType.h"
 #include "fhiclcpp/types/ConfigurationTable.h"
-#include "fhiclcpp/types/KeysToIgnore.h"
 #include "fhiclcpp/types/Table.h"
 #include "fhiclcpp/types/TableFragment.h"
 #include "messagefacility/MessageLogger/MessageLogger.h"
 
-#include <array>
 #include <memory>
 #include <string>
-#include <type_traits>
-#include <vector>
 
 namespace art {
 

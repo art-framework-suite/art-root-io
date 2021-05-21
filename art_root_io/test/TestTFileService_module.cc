@@ -8,7 +8,6 @@
 #include "art/Framework/Services/Registry/ServiceHandle.h"
 #include "art/Utilities/SharedResource.h"
 #include "art_root_io/TFileService.h"
-#include "fhiclcpp/ParameterSet.h"
 #include <string>
 
 using namespace art;

@@ -19,7 +19,6 @@
 #include "canvas/Persistency/Provenance/BranchDescription.h"
 #include "canvas/Persistency/Provenance/BranchKey.h"
 #include "canvas/Persistency/Provenance/SampledInfo.h"
-#include "canvas/Persistency/Provenance/TypeLabel.h"
 #include "canvas/Persistency/Provenance/rootNames.h"
 #include "canvas/Utilities/uniform_type_name.h"
 #include "canvas_root_io/Streamers/ProductIDStreamer.h"

@@ -25,7 +25,6 @@
 #include "art_root_io/detail/readFileIndex.h"
 #include "art_root_io/detail/readMetadata.h"
 #include "art_root_io/detail/resolveRangeSet.h"
-#include "canvas/Persistency/Common/EDProduct.h"
 #include "canvas/Persistency/Provenance/BranchChildren.h"
 #include "canvas/Persistency/Provenance/BranchDescription.h"
 #include "canvas/Persistency/Provenance/BranchType.h"
@@ -38,13 +37,9 @@
 #include "canvas/Persistency/Provenance/RunID.h"
 #include "canvas/Persistency/Provenance/rootNames.h"
 #include "canvas/Utilities/Exception.h"
-#include "canvas/Utilities/FriendlyName.h"
 #include "canvas_root_io/Streamers/ProductIDStreamer.h"
 #include "canvas_root_io/Utilities/DictionaryChecker.h"
-#include "cetlib/compiler_macros.h"
-#include "cetlib/container_algorithms.h"
 #include "fhiclcpp/ParameterSet.h"
-#include "fhiclcpp/ParameterSetID.h"
 #include "fhiclcpp/ParameterSetRegistry.h"
 #include "messagefacility/MessageLogger/MessageLogger.h"
 
@@ -53,9 +48,6 @@
 #include "TLeaf.h"
 #include "TTree.h"
 
-#include <algorithm>
-#include <iomanip>
-#include <iostream>
 #include <string>
 #include <utility>
 

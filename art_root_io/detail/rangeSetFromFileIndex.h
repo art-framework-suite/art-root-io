@@ -1,20 +1,16 @@
 #ifndef art_root_io_detail_rangeSetFromFileIndex_h
 #define art_root_io_detail_rangeSetFromFileIndex_h
 
-#include "canvas/Persistency/Provenance/FileIndex.h"
-#include "canvas/Persistency/Provenance/IDNumber.h"
-#include "canvas/Persistency/Provenance/RangeSet.h"
+#include "canvas/Persistency/Provenance/ProvenanceFwd.h"
 
-namespace art {
-  namespace detail {
-    RangeSet rangeSetFromFileIndex(FileIndex const& fileIndex,
-                                   RunID runID,
-                                   bool compactRanges);
+namespace art::detail {
+  RangeSet rangeSetFromFileIndex(FileIndex const& fileIndex,
+                                 RunID runID,
+                                 bool compactRanges);
 
-    RangeSet rangeSetFromFileIndex(FileIndex const& fileIndex,
-                                   SubRunID subRunID,
-                                   bool compactRanges);
-  }
+  RangeSet rangeSetFromFileIndex(FileIndex const& fileIndex,
+                                 SubRunID subRunID,
+                                 bool compactRanges);
 }
 
 #endif /* art_root_io_detail_rangeSetFromFileIndex_h */

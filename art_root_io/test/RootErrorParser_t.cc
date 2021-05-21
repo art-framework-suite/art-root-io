@@ -1,9 +1,6 @@
 #include "art_root_io/detail/RootErrorParser.h"
 
-#include "TError.h"
-
 #include <catch2/catch.hpp>
-#include <string>
 
 using art::detail::RootErrorParser;
 

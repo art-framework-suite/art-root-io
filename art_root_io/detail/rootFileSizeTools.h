@@ -6,25 +6,26 @@
 //
 // This is known to work for root 5.34.*
 
-#include "TBranch.h"
-#include "TObjArray.h"
-#include "TTree.h"
+#include "RtypesCore.h"
+class TBranch;
+class TObjArray;
+class TTree;
 
-namespace art {
-  namespace detail {
+#include <iosfwd>
 
-    Long64_t GetBasketSize(TObjArray* branches, bool ondisk, bool inclusive);
-    Long64_t GetBasketSize(TBranch* b, bool ondisk, bool inclusive);
-    Long64_t GetTotalSize(TBranch* br, bool ondisk, bool inclusive);
-    Long64_t GetTotalSize(TObjArray* branches, bool ondisk);
-    Long64_t GetTotalSize(TTree* t, bool ondisk);
-    Long64_t sizeOnDisk(TTree* t);
-    Long64_t sizeOnDisk(TBranch* branch, bool inclusive);
-    void printBranchSummary(std::ostream& os, TBranch* br);
-    void printTreeSummary(std::ostream& os, TTree* t);
+namespace art::detail {
 
-  } // namespace detail
-} // namespace art
+  Long64_t GetBasketSize(TObjArray* branches, bool ondisk, bool inclusive);
+  Long64_t GetBasketSize(TBranch* b, bool ondisk, bool inclusive);
+  Long64_t GetTotalSize(TBranch* br, bool ondisk, bool inclusive);
+  Long64_t GetTotalSize(TObjArray* branches, bool ondisk);
+  Long64_t GetTotalSize(TTree* t, bool ondisk);
+  Long64_t sizeOnDisk(TTree* t);
+  Long64_t sizeOnDisk(TBranch* branch, bool inclusive);
+  void printBranchSummary(std::ostream& os, TBranch* br);
+  void printTreeSummary(std::ostream& os, TTree* t);
+
+} // namespace art::detail
 
 #endif /* art_root_io_detail_rootFileSizeTools_h */
 

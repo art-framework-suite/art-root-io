@@ -1,10 +1,7 @@
-#include "art_root_io/GetFileFormatEra.h"
 #include "art_root_io/RootDB/SQLite3Wrapper.h"
 #include "art_root_io/RootDB/tkeyvfs.h"
 #include "art_root_io/detail/InfoDumperInputFile.h"
 #include "boost/program_options.hpp"
-#include "canvas/Persistency/Provenance/FileFormatVersion.h"
-#include "canvas/Persistency/Provenance/rootNames.h"
 #include "cetlib/HorizontalRule.h"
 #include "cetlib/container_algorithms.h"
 #include "cetlib/parsed_program_options.h"
@@ -16,10 +13,8 @@ extern "C" {
 #include "sqlite3.h"
 }
 
-#include <algorithm>
 #include <bitset>
 #include <iostream>
-#include <ostream>
 #include <sstream>
 #include <string>
 

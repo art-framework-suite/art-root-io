@@ -4,7 +4,6 @@
 #include "art/Framework/Core/ModuleMacros.h"
 #include "art/Framework/Services/Registry/ServiceHandle.h"
 #include "art_root_io/TFileService.h"
-#include "fhiclcpp/ParameterSet.h"
 #include "fhiclcpp/types/Atom.h"
 
 #include <string>

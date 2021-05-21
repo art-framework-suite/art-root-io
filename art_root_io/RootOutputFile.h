@@ -3,46 +3,34 @@
 // vim: set sw=2 expandtab :
 
 #include "art/Framework/Core/Frameworkfwd.h"
-#include "art/Framework/Core/OutputModule.h"
 #include "art/Framework/IO/ClosingCriteria.h"
-#include "art/Framework/IO/FileStatsCollector.h"
-#include "art/Framework/Principal/RangeSetsSupported.h"
-#include "art/Persistency/Provenance/Selections.h"
+#include "art/Framework/Principal/EventPrincipal.h"
+#include "art/Framework/Principal/fwd.h"
+#include "art/Framework/Services/System/FileCatalogMetadata.h"
 #include "art_root_io/DropMetaData.h"
 #include "art_root_io/DummyProductCache.h"
 #include "art_root_io/RootOutputTree.h"
-#include "boost/filesystem.hpp"
 #include "canvas/Persistency/Provenance/BranchDescription.h"
 #include "canvas/Persistency/Provenance/BranchType.h"
 #include "canvas/Persistency/Provenance/FileIndex.h"
-#include "canvas/Persistency/Provenance/ParameterSetBlob.h"
-#include "canvas/Persistency/Provenance/ParameterSetMap.h"
 #include "canvas/Persistency/Provenance/ProductID.h"
 #include "canvas/Persistency/Provenance/ProductProvenance.h"
+#include "canvas/Persistency/Provenance/ProvenanceFwd.h"
 #include "cetlib/sqlite/Connection.h"
 
 #include <array>
 #include <map>
 #include <memory>
 #include <mutex>
-#include <set>
 #include <string>
 #include <vector>
 
 #include "TFile.h"
-#include "TROOT.h"
 
 class TTree;
 
 namespace art {
-  class ResultsPrincipal;
-  class RootOutput;
-  class History;
-  class FileBlock;
-  class EventAuxiliary;
-  class SubRunAuxiliary;
-  class RunAuxiliary;
-  class ResultsAuxiliary;
+  class FileStatsCollector;
   class RootFileBlock;
 
   struct OutputItem {

@@ -6,7 +6,6 @@
 #include "art/Framework/Core/ModuleMacros.h"
 #include "art/Framework/Principal/Event.h"
 #include "art/test/TestObjects/ToyProducts.h"
-#include "fhiclcpp/ParameterSet.h"
 
 #include <memory>
 

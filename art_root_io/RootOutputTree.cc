@@ -7,7 +7,7 @@
 #include "cetlib/container_algorithms.h"
 #include "messagefacility/MessageLogger/MessageLogger.h"
 
-#include "Rtypes.h"
+#include "RtypesCore.h"
 #include "TBranch.h"
 #include "TClass.h"
 #include "TClassRef.h"
@@ -15,9 +15,6 @@
 #include "TTreeCloner.h"
 
 #include <atomic>
-#include <functional>
-#include <iomanip>
-#include <iostream>
 #include <limits>
 #include <string>
 

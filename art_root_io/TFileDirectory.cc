@@ -3,13 +3,11 @@
 // vim: set sw=2 expandtab :
 
 #include "canvas/Utilities/Exception.h"
-//#include "cetlib_except/exception.h"
 
+#include "TDirectory.h"
 #include "TFile.h"
-#include "TROOT.h"
 
 #include <map>
-#include <ostream>
 #include <string>
 #include <utility>
 #include <vector>
