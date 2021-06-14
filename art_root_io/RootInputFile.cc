@@ -326,6 +326,7 @@ namespace art {
     fileFormatVersion_ = detail::readMetadata<FileFormatVersion>(metaDataTree);
     // Read file index
     auto findexPtr = &fileIndex_;
+
     detail::readFileIndex(filePtr_.get(), metaDataTree, findexPtr);
     // To support files that contain BranchIDLists
     BranchIDLists branchIDLists;
@@ -1034,6 +1035,10 @@ namespace art {
   unique_ptr<EventPrincipal>
   RootInputFile::readEventWithID(EventID const& eventID)
   {
+    if (fiIter_ == fiEnd_ and not setEntry_Event(eventID)) {
+      return nullptr;
+    }
+
     if (eventID != fiIter_->eventID and not setEntry_Event(eventID)) {
       return nullptr;
     }
@@ -1084,6 +1089,10 @@ namespace art {
   std::unique_ptr<RunPrincipal>
   RootInputFile::readRunWithID(RunID const id, bool const thenAdvanceToNextRun)
   {
+    if (fiIter_ == fiEnd_ and not setEntry_Run(id)) {
+      return nullptr;
+    }
+
     if (fiIter_->eventID.runID() != id and not setEntry_Run(id)) {
       return nullptr;
     }
@@ -1150,6 +1159,10 @@ namespace art {
   RootInputFile::readSubRunWithID(SubRunID const id,
                                   bool const thenAdvanceToNextSubRun)
   {
+    if (fiIter_ == fiEnd_ and not setEntry_SubRun(id)) {
+      return nullptr;
+    }
+
     if (fiIter_->eventID.subRunID() != id and not setEntry_SubRun(id)) {
       return nullptr;
     }
