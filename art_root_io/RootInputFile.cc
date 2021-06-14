@@ -479,9 +479,9 @@ namespace art {
   }
 
   bool
-  RootInputFile::setEntry_Event(EventID const& id, bool exact /*= true*/)
+  RootInputFile::setEntry_Event(EventID const& id)
   {
-    fiIter_ = fileIndex_.findPosition(id, exact);
+    fiIter_ = fileIndex_.findPosition(id, true);
     if (fiIter_ == fiEnd_) {
       return false;
     }
@@ -489,9 +489,9 @@ namespace art {
   }
 
   bool
-  RootInputFile::setEntry_SubRun(SubRunID const& id, bool exact /*= true*/)
+  RootInputFile::setEntry_SubRun(SubRunID const& id)
   {
-    fiIter_ = fileIndex_.findPosition(id, exact);
+    fiIter_ = fileIndex_.findPosition(id, true);
     if (fiIter_ == fiEnd_) {
       return false;
     }
@@ -499,9 +499,9 @@ namespace art {
   }
 
   bool
-  RootInputFile::setEntry_Run(RunID const& id, bool exact /*= true*/)
+  RootInputFile::setEntry_Run(RunID const& id)
   {
-    fiIter_ = fileIndex_.findPosition(id, exact);
+    fiIter_ = fileIndex_.findPosition(id, true);
     if (fiIter_ == fiEnd_) {
       return false;
     }

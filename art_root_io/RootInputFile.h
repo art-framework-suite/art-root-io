@@ -131,9 +131,9 @@ namespace art {
     FileFormatVersion fileFormatVersion() const;
     bool fastClonable() const;
     std::unique_ptr<FileBlock> createFileBlock();
-    bool setEntry_Event(EventID const& id, bool exact = true);
-    bool setEntry_SubRun(SubRunID const& id, bool exact = true);
-    bool setEntry_Run(RunID const& id, bool exact = true);
+    bool setEntry_Event(EventID const& id);
+    bool setEntry_SubRun(SubRunID const& id);
+    bool setEntry_Run(RunID const& id);
     void rewind();
     void setToLastEntry();
     void nextEntry();
