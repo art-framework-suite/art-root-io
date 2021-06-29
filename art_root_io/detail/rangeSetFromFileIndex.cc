@@ -1,5 +1,11 @@
 #include "art_root_io/detail/rangeSetFromFileIndex.h"
 
+#include "canvas/Persistency/Provenance/EventID.h"
+#include "canvas/Persistency/Provenance/FileIndex.h"
+#include "canvas/Persistency/Provenance/RangeSet.h"
+#include "canvas/Persistency/Provenance/RunID.h"
+#include "canvas/Persistency/Provenance/SubRunID.h"
+
 #include <algorithm>
 
 using namespace art;

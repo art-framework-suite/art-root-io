@@ -40,6 +40,8 @@
 //                 used to represent a full run.
 // ART_2011a  13   The BranchListIndexes data member has been removed
 //                 from the History class.
+// ART_2011a  14   Underscore have been removed from the data members of
+//                 FileIndex::Element
 //
 ////////////////////////////////////////////////////////////////////////
 
@@ -47,6 +49,6 @@ namespace art {
   int
   getFileFormatVersion()
   {
-    return 13;
+    return 14;
   }
 } // namespace art

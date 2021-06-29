@@ -5,8 +5,8 @@
 
 #include <regex>
 
-#include "TIterator.h"
 #include "TObjArray.h"
+#include "TTree.h"
 
 art::RootBranchInfoList::RootBranchInfoList() = default;
 

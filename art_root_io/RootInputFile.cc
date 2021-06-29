@@ -25,7 +25,6 @@
 #include "art_root_io/detail/readFileIndex.h"
 #include "art_root_io/detail/readMetadata.h"
 #include "art_root_io/detail/resolveRangeSet.h"
-#include "canvas/Persistency/Common/EDProduct.h"
 #include "canvas/Persistency/Provenance/BranchChildren.h"
 #include "canvas/Persistency/Provenance/BranchDescription.h"
 #include "canvas/Persistency/Provenance/BranchType.h"
@@ -38,13 +37,9 @@
 #include "canvas/Persistency/Provenance/RunID.h"
 #include "canvas/Persistency/Provenance/rootNames.h"
 #include "canvas/Utilities/Exception.h"
-#include "canvas/Utilities/FriendlyName.h"
 #include "canvas_root_io/Streamers/ProductIDStreamer.h"
 #include "canvas_root_io/Utilities/DictionaryChecker.h"
-#include "cetlib/compiler_macros.h"
-#include "cetlib/container_algorithms.h"
 #include "fhiclcpp/ParameterSet.h"
-#include "fhiclcpp/ParameterSetID.h"
 #include "fhiclcpp/ParameterSetRegistry.h"
 #include "messagefacility/MessageLogger/MessageLogger.h"
 
@@ -53,9 +48,6 @@
 #include "TLeaf.h"
 #include "TTree.h"
 
-#include <algorithm>
-#include <iomanip>
-#include <iostream>
 #include <string>
 #include <utility>
 
@@ -334,6 +326,7 @@ namespace art {
     fileFormatVersion_ = detail::readMetadata<FileFormatVersion>(metaDataTree);
     // Read file index
     auto findexPtr = &fileIndex_;
+
     detail::readFileIndex(filePtr_.get(), metaDataTree, findexPtr);
     // To support files that contain BranchIDLists
     BranchIDLists branchIDLists;
@@ -1042,6 +1035,10 @@ namespace art {
   unique_ptr<EventPrincipal>
   RootInputFile::readEventWithID(EventID const& eventID)
   {
+    if (fiIter_ == fiEnd_ and not setEntry_Event(eventID)) {
+      return nullptr;
+    }
+
     if (eventID != fiIter_->eventID and not setEntry_Event(eventID)) {
       return nullptr;
     }
@@ -1092,6 +1089,10 @@ namespace art {
   std::unique_ptr<RunPrincipal>
   RootInputFile::readRunWithID(RunID const id, bool const thenAdvanceToNextRun)
   {
+    if (fiIter_ == fiEnd_ and not setEntry_Run(id)) {
+      return nullptr;
+    }
+
     if (fiIter_->eventID.runID() != id and not setEntry_Run(id)) {
       return nullptr;
     }
@@ -1158,6 +1159,10 @@ namespace art {
   RootInputFile::readSubRunWithID(SubRunID const id,
                                   bool const thenAdvanceToNextSubRun)
   {
+    if (fiIter_ == fiEnd_ and not setEntry_SubRun(id)) {
+      return nullptr;
+    }
+
     if (fiIter_->eventID.subRunID() != id and not setEntry_SubRun(id)) {
       return nullptr;
     }

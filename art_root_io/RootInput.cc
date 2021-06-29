@@ -2,7 +2,6 @@
 
 #include "art/Framework/Core/FileBlock.h"
 #include "art/Framework/Core/InputSourceDescription.h"
-#include "art/Framework/Core/InputSourceMacros.h"
 #include "art/Framework/Principal/EventPrincipal.h"
 #include "art/Framework/Principal/RangeSetHandler.h"
 #include "art/Framework/Principal/RunPrincipal.h"
@@ -12,11 +11,7 @@
 #include "canvas/Persistency/Provenance/EventID.h"
 #include "canvas/Utilities/Exception.h"
 
-#include "TTreeCache.h"
-
-#include <cassert>
 #include <memory>
-#include <set>
 
 using namespace art;
 using namespace std;

@@ -1,4 +1,5 @@
 #include "art_root_io/detail/RootErrorClassifier.h"
+#include "art_root_io/detail/RootErrorParser.h"
 
 #include "TError.h"
 

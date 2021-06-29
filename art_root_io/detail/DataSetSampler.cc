@@ -2,7 +2,6 @@
 #include "canvas/Utilities/Exception.h"
 #include "cetlib/container_algorithms.h"
 
-#include <iomanip>
 #include <iterator>
 
 art::detail::DataSetSampler::DataSetSampler(

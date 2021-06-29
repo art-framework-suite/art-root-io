@@ -2,11 +2,11 @@
 // vim: set sw=2:
 
 #include "canvas/Persistency/Provenance/BranchDescription.h"
+#include "canvas/Utilities/TypeID.h"
 #include "canvas/Utilities/WrappedClassName.h"
 #include "canvas_root_io/Streamers/AssnsStreamer.h"
 #include "canvas_root_io/Streamers/BranchDescriptionStreamer.h"
 #include "canvas_root_io/Utilities/DictionaryChecker.h"
-#include "canvas_root_io/Utilities/TypeTools.h"
 #include "hep_concurrency/assert_only_one_thread.h"
 
 void

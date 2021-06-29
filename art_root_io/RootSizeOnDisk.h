@@ -25,6 +25,9 @@
 #include "TFile.h"
 #include "TTree.h"
 
+class TFile;
+class TTree;
+
 namespace art {
 
   class RootSizeOnDisk {

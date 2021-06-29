@@ -4,17 +4,15 @@
 
 // Used by ROOT output modules.
 
-#include "art/Framework/Core/Frameworkfwd.h"
 #include "canvas/Persistency/Provenance/BranchType.h"
 #include "canvas/Persistency/Provenance/ProductProvenance.h"
+#include "canvas/Persistency/Provenance/ProvenanceFwd.h"
 #include "cetlib/container_algorithms.h"
 #include "cetlib/exempt_ptr.h"
 
 #include "TTree.h"
 
 #include <atomic>
-#include <memory>
-#include <set>
 #include <string>
 #include <vector>
 

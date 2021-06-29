@@ -20,68 +20,51 @@ TFileService_r_08()
   // variable gDirectory, because that's what the 'cd' calls
   // manipulate. Really.
   // Make sure we have a directory named by our module label, "hist".
-  bool rc = gDirectory->cd("hist");
-  if (!rc) {
+  if (not gDirectory->cd("hist")) {
     return 1;
   }
   // Make sure we have the subdirectory "a", containing the TH1F
   // histogram named "test1".
-  rc = gDirectory->cd("a");
-  if (!rc) {
+
+  if (not gDirectory->cd("a")) {
     return 2;
   }
-  TH1F* h1 = nullptr;
-  TH2F* h2 = nullptr;
-  TH1F* h3 = nullptr;
-  gDirectory->GetObject("test1", h1);
-  if (h1 == nullptr) {
+  if (gDirectory->Get<TH1F>("test1") == nullptr) {
     cerr << "test1 not found\n";
     return 1;
   }
-  h1 = nullptr;
-  gDirectory->GetObject("z", h1);
-  if (h1 != nullptr) {
+  if (gDirectory->Get<TH1F>("z") != nullptr) {
     cerr << "z incorrectly found\n";
     return 1;
   }
-  h2 = nullptr;
-  gDirectory->GetObject("test1", h2);
-  if (h2 != nullptr) {
+  if (gDirectory->Get<TH2F>("test1") != nullptr) {
     cerr << "test1 incorrectly identified as a TH2F\n";
     return 1;
   }
   // Make sure we have the subdirectory "b", containing the TH2F
   // histogram named "test2".
-  rc = gDirectory->cd("../b");
-  if (!rc) {
+  if (not gDirectory->cd("../b")) {
     return 3;
   }
-  h2 = nullptr;
-  gDirectory->GetObject("test2", h2);
-  if (h2 == nullptr) {
+  if (gDirectory->Get<TH2F>("test2") == nullptr) {
     cerr << "test2 not found\n";
     return 3;
   }
   // Make sure we have the subdirectory "respondToOpenInputFile",
   // containing the TH1F histogrm named "test3"
-  rc = gDirectory->cd("../respondToOpenInputFile");
-  if (!rc) {
+  if (not gDirectory->cd("../respondToOpenInputFile")) {
     return 4;
   }
-  h3 = nullptr;
-  gDirectory->GetObject("test3", h3);
-  if (h3 == nullptr) {
+  if (gDirectory->Get<TH1F>("test3") == nullptr) {
     cerr << "test3 not found\n";
     return 4;
   }
   // Make sure the top-level directory contains a TGraph named
   // "graphAtTopLevel".
-  rc = gDirectory->cd("/hist");
-  if (!rc) {
+  if (not gDirectory->cd("/hist")) {
     return 5;
   }
-  TGraph* pgraph = nullptr;
-  gDirectory->GetObject("graphAtTopLevel", pgraph);
+  auto pgraph = gDirectory->Get<TGraph>("graphAtTopLevel");
   if (pgraph == nullptr) {
     cerr << "graphAtTopLevel not found\n";
     return 5;
@@ -93,12 +76,10 @@ TFileService_r_08()
   }
   // Make sure the direcotyr "b" contains a TGraph named
   // "graphInSubdirectory"
-  rc = gDirectory->cd("b");
-  if (!rc) {
+  if (not gDirectory->cd("b")) {
     return 6;
   }
-  TGraphPolar* ppolar = nullptr;
-  gDirectory->GetObject("graphInSubdirectory", ppolar);
+  auto ppolar = gDirectory->Get<TGraphPolar>("graphInSubdirectory");
   if (ppolar == nullptr) {
     cerr << "graphInSubdirectory not found\n";
     return 6;

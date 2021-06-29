@@ -10,14 +10,9 @@
 #include "art/Framework/IO/detail/SafeFileNameConfig.h"
 #include "art/Framework/IO/detail/logFileAction.h"
 #include "art/Framework/IO/detail/validateFileNamePattern.h"
-#include "art/Framework/Principal/Event.h"
 #include "art/Framework/Principal/EventPrincipal.h"
-#include "art/Framework/Principal/Principal.h"
-#include "art/Framework/Principal/Results.h"
 #include "art/Framework/Principal/ResultsPrincipal.h"
-#include "art/Framework/Principal/Run.h"
 #include "art/Framework/Principal/RunPrincipal.h"
-#include "art/Framework/Principal/SubRun.h"
 #include "art/Framework/Principal/SubRunPrincipal.h"
 #include "art/Utilities/parent_path.h"
 #include "art/Utilities/unique_filename.h"
@@ -26,7 +21,6 @@
 #include "art_root_io/RootOutputFile.h"
 #include "art_root_io/detail/rootOutputConfigurationTools.h"
 #include "art_root_io/setup.h"
-#include "canvas/Persistency/Provenance/FileFormatVersion.h"
 #include "canvas/Persistency/Provenance/ProductTables.h"
 #include "canvas/Utilities/Exception.h"
 #include "fhiclcpp/ParameterSet.h"
@@ -37,13 +31,11 @@
 #include "fhiclcpp/types/TableFragment.h"
 #include "messagefacility/MessageLogger/MessageLogger.h"
 
-#include <iomanip>
-#include <iostream>
 #include <memory>
 #include <mutex>
-#include <sstream>
+#include <set>
 #include <string>
-#include <utility>
+#include <vector>
 
 using namespace std;
 using namespace hep::concurrency;
@@ -53,8 +45,6 @@ namespace {
 }
 
 namespace art {
-
-  class RootOutputFile;
 
   class RootOutput final : public OutputModule {
 

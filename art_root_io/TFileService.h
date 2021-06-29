@@ -9,7 +9,6 @@
 #include "art/Framework/IO/detail/SafeFileNameConfig.h"
 #include "art/Framework/Services/Registry/ServiceDeclarationMacros.h"
 #include "art_root_io/TFileDirectory.h"
-#include "fhiclcpp/fwd.h"
 #include "fhiclcpp/types/Atom.h"
 #include "fhiclcpp/types/Name.h"
 #include "fhiclcpp/types/OptionalTable.h"

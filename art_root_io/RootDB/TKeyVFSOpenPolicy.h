@@ -1,7 +1,7 @@
 #ifndef art_root_io_RootDB_TKeyVFSOpenPolicy_h
 #define art_root_io_RootDB_TKeyVFSOpenPolicy_h
 
-#include "TFile.h"
+class TFile;
 
 #include <sqlite3.h>
 #include <string>

@@ -1,9 +1,12 @@
 #include "art_root_io/detail/rootFileSizeTools.h"
 
-#include "Riostream.h"
+#include "TBranch.h"
 #include "TBranchRef.h"
+#include "TDirectory.h"
+#include "TFile.h"
 #include "TKey.h"
 #include "TMemFile.h"
+#include "TTree.h"
 
 #include <ostream>
 

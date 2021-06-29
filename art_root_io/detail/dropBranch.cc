@@ -4,6 +4,7 @@
 #include "TBranch.h"
 #include "TLeaf.h"
 #include "TObjArray.h"
+#include "TTree.h"
 
 void
 art::detail::dropBranch(TTree* tree, std::string const& branchName)

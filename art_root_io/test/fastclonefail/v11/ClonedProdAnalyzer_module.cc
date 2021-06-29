@@ -3,7 +3,6 @@
 #include "art/Framework/Principal/Event.h"
 #include "art/Framework/Principal/Handle.h"
 #include "art_root_io/test/fastclonefail/v11/ClonedProd.h"
-#include "fhiclcpp/ParameterSet.h"
 
 using namespace art;
 using namespace fhicl;

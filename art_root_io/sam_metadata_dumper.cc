@@ -1,17 +1,11 @@
 // sam_metadata_dumper.cc
 
-#include "art_root_io/GetFileFormatEra.h"
 #include "art_root_io/RootDB/SQLite3Wrapper.h"
 #include "art_root_io/RootDB/tkeyvfs.h"
 #include "boost/program_options.hpp"
-#include "canvas/Persistency/Provenance/FileFormatVersion.h"
-#include "canvas/Persistency/Provenance/ParameterSetBlob.h"
-#include "canvas/Persistency/Provenance/ParameterSetMap.h"
-#include "canvas/Persistency/Provenance/rootNames.h"
 #include "cetlib/canonical_string.h"
 #include "cetlib/container_algorithms.h"
 #include "cetlib/parsed_program_options.h"
-#include "fhiclcpp/ParameterSet.h"
 
 #include "TError.h"
 #include "TFile.h"
@@ -21,11 +15,10 @@ extern "C" {
 }
 
 #include <algorithm>
-#include <cstddef>
 #include <cstdlib>
 #include <cstring>
 #include <iostream>
-#include <ostream>
+#include <memory>
 #include <sstream>
 #include <string>
 #include <vector>
@@ -33,9 +26,6 @@ extern "C" {
 using namespace std::string_literals;
 namespace bpo = boost::program_options;
 
-using art::ParameterSetBlob;
-using art::ParameterSetMap;
-using fhicl::ParameterSet;
 using std::back_inserter;
 using std::cerr;
 using std::cout;

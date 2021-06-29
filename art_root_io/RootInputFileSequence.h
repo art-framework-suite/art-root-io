@@ -9,11 +9,8 @@
 #include "art_root_io/FastCloningInfoProvider.h"
 #include "art_root_io/Inputfwd.h"
 #include "art_root_io/RootInputFile.h"
-#include "canvas/Persistency/Provenance/BranchDescription.h"
 #include "canvas/Persistency/Provenance/EventID.h"
-#include "canvas/Persistency/Provenance/RunID.h"
-#include "canvas/Persistency/Provenance/SubRunID.h"
-#include "cetlib/exempt_ptr.h"
+#include "canvas/Persistency/Provenance/ProvenanceFwd.h"
 #include "fhiclcpp/types/Atom.h"
 #include "fhiclcpp/types/OptionalAtom.h"
 #include "fhiclcpp/types/OptionalSequence.h"
@@ -27,9 +24,6 @@
 
 namespace art {
 
-  class DuplicateChecker;
-  class FileCatalogItem;
-  class FileIndex;
   class InputFileCatalog;
   class UpdateOutputCallbacks;
 

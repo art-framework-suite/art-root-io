@@ -18,10 +18,8 @@ using i64 = sqlite_int64;
 #include "TKey.h"
 #endif // TKEYVFS_NO_ROOT
 
-#include <array>
 #include <cassert>
 #include <cerrno>
-#include <cstddef>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
@@ -29,9 +27,7 @@ using i64 = sqlite_int64;
 extern "C" {
 #include <dlfcn.h>
 #include <fcntl.h>
-#include <sys/stat.h>
 #include <sys/time.h>
-#include <sys/types.h>
 #include <time.h>
 #include <unistd.h>
 }

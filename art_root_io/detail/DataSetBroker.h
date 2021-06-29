@@ -3,8 +3,11 @@
 
 #include "art_root_io/detail/DataSetSampler.h"
 #include "art_root_io/detail/SamplingInputFile.h"
-#include "canvas/Persistency/Provenance/ProcessHistoryID.h"
-#include "canvas/Persistency/Provenance/SubRunID.h"
+#include "canvas/Persistency/Provenance/BranchKey.h"
+#include "canvas/Persistency/Provenance/EventID.h"
+#include "canvas/Persistency/Provenance/ProcessConfiguration.h"
+#include "canvas/Persistency/Provenance/SampledInfo.h"
+#include "cetlib/exempt_ptr.h"
 
 #include <cstdint>
 #include <map>

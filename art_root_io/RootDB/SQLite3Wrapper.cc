@@ -1,12 +1,10 @@
 #include "art_root_io/RootDB/SQLite3Wrapper.h"
 
-#include "art_root_io/RootDB/SQLErrMsg.h"
 #include "art_root_io/RootDB/tkeyvfs.h"
 #include "canvas/Utilities/Exception.h"
 #include "messagefacility/MessageLogger/MessageLogger.h"
 
 #include <cassert>
-#include <cstddef>
 
 namespace {
 

@@ -4,24 +4,18 @@
 #include "art/Framework/Core/InputSourceMutex.h"
 #include "art/Framework/Principal/Principal.h"
 #include "art/Framework/Principal/RangeSetsSupported.h"
-#include "art_root_io/RootInputFile.h"
 #include "art_root_io/detail/resolveRangeSet.h"
 #include "canvas/Persistency/Provenance/BranchDescription.h"
 #include "canvas/Persistency/Provenance/Compatibility/BranchIDList.h"
 #include "canvas/Persistency/Provenance/ProductProvenance.h"
 #include "canvas/Persistency/Provenance/RangeSet.h"
-#include "canvas/Utilities/TypeID.h"
 #include "canvas_root_io/Streamers/ProductIDStreamer.h"
 #include "canvas_root_io/Streamers/RefCoreStreamer.h"
-#include "cetlib/crc32.h"
 
 #include "TBranch.h"
-#include "TBranchElement.h"
 #include "TClass.h"
 
-#include <atomic>
 #include <cassert>
-#include <cstring>
 #include <utility>
 #include <vector>
 
