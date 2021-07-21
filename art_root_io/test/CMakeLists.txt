@@ -2,11 +2,11 @@ cet_enable_asserts()
 
 include(CetTest)
 
-cet_find_package(ROOT PRIVATE COMPONENTS Core Graf Hist RIO REQUIRED)
-cet_find_package(art PRIVATE REQUIRED)
-cet_find_package(canvas PRIVATE REQUIRED)
-cet_find_package(cetlib PRIVATE REQUIRED)
-cet_find_package(fhiclcpp PRIVATE REQUIRED)
+find_package(ROOT PRIVATE COMPONENTS Core Graf Hist RIO REQUIRED)
+find_package(art PRIVATE REQUIRED)
+find_package(canvas PRIVATE REQUIRED)
+find_package(cetlib PRIVATE REQUIRED)
+find_package(fhiclcpp PRIVATE REQUIRED)
 
 # Put everything in a different export set.
 cet_register_export_set(SET_NAME Testing NAMESPACE art_root_io_test SET_DEFAULT)
