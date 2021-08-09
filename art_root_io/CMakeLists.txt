@@ -43,7 +43,6 @@ cet_make_library(LIBRARY_NAME art_root_io_detail
     ROOT::Tree
   PRIVATE
     canvas_root_io::canvas_root_io
-    art::Framework_Services_System_DatabaseConnection_service
     art::Framework_Services_Registry
     messagefacility::MF_MessageLogger
     fhiclcpp::types
