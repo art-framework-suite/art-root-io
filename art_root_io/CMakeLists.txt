@@ -43,7 +43,6 @@ cet_make_library(LIBRARY_NAME art_root_io_detail
     ROOT::Tree
   PRIVATE
     canvas_root_io::canvas_root_io
-    art::Framework_Services_System_DatabaseConnection_service
     art::Framework_Services_Registry
     messagefacility::MF_MessageLogger
     fhiclcpp::types
@@ -113,7 +112,7 @@ cet_make_library(LIBRARY_NAME art_root_io_tfile_support
     ROOT::RIO
   )
 
-build_plugin(TFileService "service" ALLOW_UNDERSCORES LIBRARIES
+cet_build_plugin(TFileService art::service ALLOW_UNDERSCORES LIBRARIES
   PUBLIC
     art_root_io::tfile_support
     art::Framework_IO
@@ -130,7 +129,7 @@ build_plugin(TFileService "service" ALLOW_UNDERSCORES LIBRARIES
     ROOT::Core
   )
 
-build_plugin(RootInput "source" BASE DRISISource ALLOW_UNDERSCORES
+cet_build_plugin(RootInput art::DRISISource ALLOW_UNDERSCORES
   LIBRARIES
   PUBLIC
     art_root_io::art_root_io
@@ -144,7 +143,7 @@ build_plugin(RootInput "source" BASE DRISISource ALLOW_UNDERSCORES
     canvas::canvas
   )
 
-build_plugin(RootOutput "module" ALLOW_UNDERSCORES
+cet_build_plugin(RootOutput art::Output ALLOW_UNDERSCORES
   LIBRARIES REG
     art_root_io::detail
     art_root_io::art_root_io
@@ -160,7 +159,7 @@ build_plugin(RootOutput "module" ALLOW_UNDERSCORES
     hep_concurrency::hep_concurrency
   )
 
-build_plugin(SamplingInput "source" BASE InputSource ALLOW_UNDERSCORES
+cet_build_plugin(SamplingInput art::InputSource ALLOW_UNDERSCORES
   REG_SOURCE
     SamplingInput_source.cc
     detail/DataSetBroker.cc

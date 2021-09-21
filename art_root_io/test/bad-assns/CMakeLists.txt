@@ -1,6 +1,6 @@
 set(CCV_DEFAULT_RECURSIVE FALSE)
 
-build_plugin(BadAssnsProducer "module" ALLOW_UNDERSCORES NO_INSTALL
+cet_build_plugin(BadAssnsProducer art::Producer ALLOW_UNDERSCORES NO_INSTALL
   LIBRARIES PRIVATE messagefacility::MF_MessageLogger)
 
 art_dictionary(DICTIONARY_LIBRARIES art_test::TestObjects NO_INSTALL)
