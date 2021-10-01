@@ -19,30 +19,23 @@ namespace art {
   // There are no public constructors, so can only be made by derived classes.
   class TFileDirectory {
   public:
-    virtual ~TFileDirectory();
-
-    // These constructors may be deleted once C++17 is adopted,
-    // relying on copy elision requirements.
-    TFileDirectory(TFileDirectory const&);
-    TFileDirectory(TFileDirectory&&);
-    TFileDirectory& operator=(TFileDirectory const&) = delete;
-    TFileDirectory& operator=(TFileDirectory&&) = delete;
-
     // Make new ROOT object of type T using args. It will be made in the current
     // directory, as established with a call to cd.
     template <typename T, typename... ARGS>
-    T* make(ARGS... args) const;
+    T* make(ARGS&&... args) const;
 
     // Make and register a new ROOT object of type T, giving it the specified
     // name and title, using args. The type must be registerable, and must
     // support naming and titling.
     template <typename T, typename... ARGS>
-    T* makeAndRegister(char const* name, char const* title, ARGS... args) const;
+    T* makeAndRegister(char const* name,
+                       char const* title,
+                       ARGS&&... args) const;
 
     template <typename T, typename... ARGS>
     T* makeAndRegister(std::string const& name,
                        std::string const& title,
-                       ARGS... args) const;
+                       ARGS&&... args) const;
 
     // Create a new TFileDirectory, sharing the same TFile as this one, but with
     // an additional dir, and with path being the absolute path of this one.
@@ -81,26 +74,24 @@ namespace art {
 
   template <typename T, typename... ARGS>
   T*
-  TFileDirectory::make(ARGS... args) const
+  TFileDirectory::make(ARGS&&... args) const
   {
-
     std::lock_guard lock{mutex_};
     detail::RootDirectorySentry rds;
     cd();
-    auto ret = new T(args...);
-    return ret;
+    return new T(std::forward<ARGS>(args)...);
   }
 
   template <typename T, typename... ARGS>
   T*
   TFileDirectory::makeAndRegister(char const* name,
                                   char const* title,
-                                  ARGS... args) const
+                                  ARGS&&... args) const
   {
     std::lock_guard lock{mutex_};
     detail::RootDirectorySentry rds;
     cd();
-    auto ret = new T(args...);
+    auto ret = new T(std::forward<ARGS>(args)...);
     ret->SetName(name);
     ret->SetTitle(title);
     gDirectory->Append(ret);
@@ -111,11 +102,10 @@ namespace art {
   T*
   TFileDirectory::makeAndRegister(std::string const& name,
                                   std::string const& title,
-                                  ARGS... args) const
+                                  ARGS&&... args) const
   {
-    std::lock_guard lock{mutex_};
-    auto ret = makeAndRegister<T>(name.c_str(), title.c_str(), args...);
-    return ret;
+    return makeAndRegister<T>(
+      name.c_str(), title.c_str(), std::forward<ARGS>(args)...);
   }
 
 } // namespace art
