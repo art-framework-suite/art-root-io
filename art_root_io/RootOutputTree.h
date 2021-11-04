@@ -6,7 +6,7 @@
 
 #include "canvas/Persistency/Provenance/BranchType.h"
 #include "canvas/Persistency/Provenance/ProductProvenance.h"
-#include "canvas/Persistency/Provenance/ProvenanceFwd.h"
+#include "canvas/Persistency/Provenance/fwd.h"
 #include "cetlib/container_algorithms.h"
 #include "cetlib/exempt_ptr.h"
 
