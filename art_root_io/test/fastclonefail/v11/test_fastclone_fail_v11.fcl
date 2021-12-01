@@ -8,6 +8,7 @@ outputs: {
   out1: {
     module_type: RootOutput
     fileName: "copy.root"
+    splitLevel: 99
   }
 }
 
