@@ -4,17 +4,15 @@
 #include "art/Framework/Principal/Handle.h"
 #include "art_root_io/test/fastclonefail/v11/ClonedProd.h"
 
-using namespace art;
-using namespace fhicl;
-using namespace std;
-
-namespace arttest {
+namespace art::test {
 
   class ClonedProdAnalyzer : public EDAnalyzer {
   public:
     struct Config {};
     using Parameters = Table<Config>;
     explicit ClonedProdAnalyzer(Parameters const&);
+
+  private:
     void analyze(Event const&) override;
   };
 
@@ -24,10 +22,10 @@ namespace arttest {
   void
   ClonedProdAnalyzer::analyze(Event const& e)
   {
-    Handle<ClonedProd> h;
-    e.getByLabel("ClonedProdProducer", h);
+    auto clonedProd = e.getProduct<ClonedProd>("ClonedProdProducer");
+    assert(clonedProd.value == 3.);
   }
 
 } // namespace arttest
 
-DEFINE_ART_MODULE(arttest::ClonedProdAnalyzer)
+DEFINE_ART_MODULE(art::test::ClonedProdAnalyzer)
