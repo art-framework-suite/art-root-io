@@ -41,13 +41,7 @@ namespace art {
     using EntryNumber = Long64_t;
     using EntryNumbers = std::vector<EntryNumber>;
     Int_t getEntry(TBranch* branch, EntryNumber entryNumber);
-    Int_t getEntry(TBranch* branch,
-                   EntryNumber entryNumber,
-                   unsigned long long& ticks);
     Int_t getEntry(TTree* tree, EntryNumber entryNumber);
-    Int_t getEntry(TTree* tree,
-                   EntryNumber entryNumber,
-                   unsigned long long& ticks);
 
   } // namespace input
 } // namespace art
