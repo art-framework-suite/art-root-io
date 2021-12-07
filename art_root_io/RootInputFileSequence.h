@@ -2,15 +2,15 @@
 #define art_root_io_RootInputFileSequence_h
 // vim: set sw=2:
 
-#include "art/Framework/Core/Frameworkfwd.h"
 #include "art/Framework/Core/GroupSelectorRules.h"
 #include "art/Framework/Core/InputSource.h"
+#include "art/Framework/Core/fwd.h"
 #include "art_root_io/DuplicateChecker.h"
 #include "art_root_io/FastCloningInfoProvider.h"
 #include "art_root_io/Inputfwd.h"
 #include "art_root_io/RootInputFile.h"
 #include "canvas/Persistency/Provenance/EventID.h"
-#include "canvas/Persistency/Provenance/ProvenanceFwd.h"
+#include "canvas/Persistency/Provenance/fwd.h"
 #include "fhiclcpp/types/Atom.h"
 #include "fhiclcpp/types/OptionalAtom.h"
 #include "fhiclcpp/types/OptionalSequence.h"

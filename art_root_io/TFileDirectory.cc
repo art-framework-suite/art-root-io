@@ -17,8 +17,6 @@ using namespace std::string_literals;
 
 namespace art {
 
-  TFileDirectory::~TFileDirectory() = default;
-
   TFileDirectory::TFileDirectory(string const& dir,
                                  string const& descr,
                                  TFile* file,
@@ -26,35 +24,14 @@ namespace art {
     : file_{(root::setup(), file)}, dir_{dir}, descr_{descr}, path_{path}
   {}
 
-  TFileDirectory::TFileDirectory(TFileDirectory const& rhs)
-    : file_{rhs.file_}
-    , dir_{rhs.dir_}
-    , descr_{rhs.descr_}
-    , requireCallback_{rhs.requireCallback_}
-    , path_{rhs.path_}
-    , callbacks_{rhs.callbacks_}
-  {}
-
-  TFileDirectory::TFileDirectory(TFileDirectory&& rhs)
-    : file_{move(rhs.file_)}
-    , dir_{move(rhs.dir_)}
-    , descr_{move(rhs.descr_)}
-    , requireCallback_{move(rhs.requireCallback_)}
-    , path_{move(rhs.path_)}
-    , callbacks_{move(rhs.callbacks_)}
-  {}
-
   string
   TFileDirectory::fullPath() const
   {
     std::lock_guard lock{mutex_};
-    string ret;
     if (path_.empty()) {
-      ret = dir_;
-    } else {
-      ret = path_ + "/"s + dir_;
+      return dir_;
     }
-    return ret;
+    return path_ + "/"s + dir_;
   }
 
   void
@@ -62,22 +39,19 @@ namespace art {
   {
     std::lock_guard lock{mutex_};
     auto const fpath = fullPath();
-    if (requireCallback_) {
-      auto iter = callbacks_.find(dir_);
-      if (iter == callbacks_.end()) {
-        throw Exception{errors::Configuration,
-                        "A TFileService error occured while attempting to make "
-                        "a directory or ROOT object.\n"}
-          << "File-switching has been enabled for TFileService.  All modules "
-             "must register\n"
-          << "a callback function to be invoked whenever a file switch occurs. "
-             " The callback\n"
-          << "must ensure that any pointers to ROOT objects have been "
-             "updated.\n\n"
-          << "  No callback has been registered for directory '" << dir_
-          << "'.\n\n"
-          << "Contact artists@fnal.gov for guidance.";
-      }
+    if (requireCallback_ and callbacks_.find(dir_) == callbacks_.end()) {
+      throw Exception{errors::Configuration,
+                      "A TFileService error occured while attempting to make "
+                      "a directory or ROOT object.\n"}
+        << "File-switching has been enabled for TFileService.  All modules "
+           "must register\n"
+        << "a callback function to be invoked whenever a file switch occurs. "
+           " The callback\n"
+        << "must ensure that any pointers to ROOT objects have been "
+           "updated.\n\n"
+        << "  No callback has been registered for directory '" << dir_
+        << "'.\n\n"
+        << "Contact artists@fnal.gov for guidance.";
     }
     TDirectory* dir = file_->GetDirectory(fpath.c_str());
     if (dir == nullptr) {
@@ -116,9 +90,9 @@ namespace art {
   TFileDirectory::invokeCallbacks()
   {
     std::lock_guard lock{mutex_};
-    for (auto const& dirAndvcallback : callbacks_) {
-      dir_ = dirAndvcallback.first;
-      for (auto cb : dirAndvcallback.second) {
+    for (auto const& [dir, callbacks] : callbacks_) {
+      dir_ = dir;
+      for (auto const& cb : callbacks) {
         cb();
       }
     }

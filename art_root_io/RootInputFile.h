@@ -2,8 +2,8 @@
 #define art_root_io_RootInputFile_h
 // vim: set sw=2 expandtab :
 
-#include "art/Framework/Core/Frameworkfwd.h"
 #include "art/Framework/Core/InputSource.h"
+#include "art/Framework/Core/fwd.h"
 #include "art/Framework/Principal/EventPrincipal.h"
 #include "art/Framework/Principal/RangeSetHandler.h"
 #include "art/Framework/Principal/ResultsPrincipal.h"
@@ -16,10 +16,10 @@
 #include "canvas/Persistency/Provenance/FileFormatVersion.h"
 #include "canvas/Persistency/Provenance/FileIndex.h"
 #include "canvas/Persistency/Provenance/ProductTables.h"
-#include "canvas/Persistency/Provenance/ProvenanceFwd.h"
 #include "canvas/Persistency/Provenance/ResultsAuxiliary.h"
 #include "canvas/Persistency/Provenance/RunAuxiliary.h"
 #include "canvas/Persistency/Provenance/SubRunAuxiliary.h"
+#include "canvas/Persistency/Provenance/fwd.h"
 #include "cetlib/exempt_ptr.h"
 #include "cetlib/sqlite/Connection.h"
 

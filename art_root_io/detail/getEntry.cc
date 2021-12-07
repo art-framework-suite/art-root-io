@@ -7,9 +7,6 @@
 #include "TBranch.h"
 #include "TTree.h"
 
-using namespace std;
-using namespace hep::concurrency;
-
 namespace art::input {
 
   Int_t
@@ -26,14 +23,6 @@ namespace art::input {
   }
 
   Int_t
-  getEntry(TBranch* branch,
-           EntryNumber entryNumber,
-           unsigned long long& ticks [[maybe_unused]])
-  {
-    return getEntry(branch, entryNumber);
-  }
-
-  Int_t
   getEntry(TTree* tree, EntryNumber entryNumber)
   {
     InputSourceMutexSentry sentry;
@@ -44,14 +33,6 @@ namespace art::input {
       throw art::Exception(art::errors::FileReadError)
         << e.explain_self() << "\n";
     }
-  }
-
-  Int_t
-  getEntry(TTree* tree,
-           EntryNumber entryNumber,
-           unsigned long long& ticks [[maybe_unused]])
-  {
-    return getEntry(tree, entryNumber);
   }
 
 } // namespace art::input

@@ -382,7 +382,7 @@ detail::SamplingInputFile::readEvent(EventID const& eventID,
           std::make_unique<ProductProvenance const>(pd.productID(),
                                                     productstatus::present()),
           std::move(wp),
-          std::make_unique<RangeSet>());
+          std::make_unique<RangeSet>(RangeSet::invalid()));
   return ep;
 }
 

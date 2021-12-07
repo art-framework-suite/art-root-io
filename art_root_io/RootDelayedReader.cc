@@ -167,8 +167,7 @@ namespace art {
       unique_ptr<EDProduct> p{static_cast<EDProduct*>(cl->New())};
       EDProduct* pp = p.get();
       br->SetAddress(&pp);
-      unsigned long long ticks = 0;
-      auto const bytesRead = input::getEntry(br, entry, ticks);
+      auto const bytesRead = input::getEntry(br, entry);
       if ((saveMemoryObjectThreshold_ > -1) &&
           (bytesRead > saveMemoryObjectThreshold_)) {
         br->DropBaskets("all");

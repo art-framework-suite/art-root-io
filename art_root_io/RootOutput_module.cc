@@ -71,7 +71,7 @@ namespace art {
       Atom<int64_t> saveMemoryObjectThreshold{Name("saveMemoryObjectThreshold"),
                                               -1l};
       Atom<int64_t> treeMaxVirtualSize{Name("treeMaxVirtualSize"), -1};
-      Atom<int> splitLevel{Name("splitLevel"), 99};
+      Atom<int> splitLevel{Name("splitLevel"), 1};
       Atom<int> basketSize{Name("basketSize"), 16384};
       Atom<bool> dropMetaDataForDroppedData{Name("dropMetaDataForDroppedData"),
                                             false};

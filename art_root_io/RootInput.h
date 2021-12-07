@@ -3,7 +3,7 @@
 // vim: set sw=2 expandtab :
 
 #include "art/Framework/Core/DecrepitRelicInputSourceImplementation.h"
-#include "art/Framework/Core/Frameworkfwd.h"
+#include "art/Framework/Core/fwd.h"
 #include "art/Framework/IO/Catalog/InputFileCatalog.h"
 #include "art/Framework/Principal/fwd.h"
 #include "art_root_io/Inputfwd.h"

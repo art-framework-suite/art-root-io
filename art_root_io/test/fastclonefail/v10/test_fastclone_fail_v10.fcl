@@ -9,6 +9,7 @@ outputs: {
   out1: {
     module_type: RootOutput
     fileName: "out.root"
+    splitLevel: 99
   }
 }
 

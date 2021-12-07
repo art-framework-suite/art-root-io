@@ -2,15 +2,10 @@
 #define art_root_io_test_fastclonefail_v11_ClonedProd_h
 // vim: set sw=2 expandtab :
 
-namespace arttest {
+namespace art::test {
 
-  class ClonedProd {
-  public:
-    ~ClonedProd() noexcept;
-    ClonedProd() noexcept;
-
-  public:
-    double dp1_{5.0};
+  struct ClonedProd {
+    double value{5.0};
   };
 
 } // namespace arttest

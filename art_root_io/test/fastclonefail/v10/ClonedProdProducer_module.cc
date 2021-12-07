@@ -5,11 +5,7 @@
 
 #include <memory>
 
-using namespace art;
-using namespace fhicl;
-using namespace std;
-
-namespace arttest {
+namespace art::test {
 
   class ClonedProdProducer : public EDProducer {
   public:
@@ -34,4 +30,4 @@ namespace arttest {
 
 } // namespace arttest
 
-DEFINE_ART_MODULE(arttest::ClonedProdProducer)
+DEFINE_ART_MODULE(art::test::ClonedProdProducer)

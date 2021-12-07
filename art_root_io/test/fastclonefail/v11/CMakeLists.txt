@@ -1,27 +1,17 @@
-cet_make_library(NO_INSTALL SOURCE ClonedProd.cc
-  LIBRARIES PRIVATE art::Framework_Core ROOT::Core)
-
-art_dictionary(NO_INSTALL
-  DICTIONARY_LIBRARIES art_root_io_test_fastclonefail_v11)
+art_dictionary(NO_INSTALL)
 
 basic_plugin(ClonedProdAnalyzer "module" ALLOW_UNDERSCORES NO_INSTALL
-  LIBRARIES PRIVATE
-    art_root_io_test_fastclonefail_v11
-    art::Framework_Core
-)
+  LIBRARIES PRIVATE art::Framework_Core)
 
 set_target_properties(
-  art_root_io_test_fastclonefail_v11
   art_root_io_test_fastclonefail_v11_dict
   art_root_io_test_fastclonefail_v11_ClonedProdAnalyzer_module
   PROPERTIES
   LIBRARY_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
 
-#  Write data to an output file using a private dictionary from this
-#  directory. The intention is that the data members of the data product
-#  class will be changed in such a way that the later test that reads
-#  this file will need to use schema evolution which will cause fast
-#  cloning to fail.
+# Read data product in a way that requires schema evolution, which
+# requires fast-cloning to fail (see comment in
+# v10/test_fastclonefail_w.sh).
 cet_test(test_fastclonefail_r.sh PREBUILT
   TEST_ARGS test_fastclone_fail_v11.fcl ../../v10/test_fastclonefail_w.sh.d/out.root
   TEST_PROPERTIES DEPENDS test_fastclonefail_w.sh

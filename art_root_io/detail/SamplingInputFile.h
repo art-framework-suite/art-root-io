@@ -1,7 +1,7 @@
 #ifndef art_root_io_detail_SamplingInputFile_h
 #define art_root_io_detail_SamplingInputFile_h
 
-#include "art/Framework/Core/Frameworkfwd.h"
+#include "art/Framework/Core/fwd.h"
 #include "art/Framework/Principal/EventPrincipal.h"
 #include "art/Framework/Principal/SubRunPrincipal.h"
 #include "art_root_io/Inputfwd.h"
