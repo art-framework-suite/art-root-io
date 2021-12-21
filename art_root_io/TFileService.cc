@@ -157,21 +157,18 @@ namespace art {
       return dev_null;
     }
     // Use named return value optimization.
-    auto ret = unique_filename(
+    return unique_filename(
       ((tmpDir_ == default_tmpDir) ? parent_path(filePattern_) : tmpDir_) +
       "/TFileService");
-    return ret;
   }
 
   string
   TFileService::fileNameAtClose_(string const& filename)
   {
     std::lock_guard lock{mutex_};
-    // Use named return value optimization.
-    auto ret = (filePattern_ == dev_null) ?
-                 dev_null :
-                 fRenamer_.maybeRenameFile(filename, filePattern_);
-    return ret;
+    return filePattern_ == dev_null ?
+             dev_null :
+             fRenamer_.maybeRenameFile(filename, filePattern_);
   }
 
   void

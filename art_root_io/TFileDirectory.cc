@@ -9,13 +9,19 @@
 
 #include <map>
 #include <string>
+#include <type_traits>
 #include <utility>
 #include <vector>
 
-using namespace std;
+using std::string;
 using namespace std::string_literals;
 
 namespace art {
+
+  std::recursive_mutex TFileDirectory::mutex_{};
+
+  static_assert(std::is_copy_constructible_v<TFileDirectory>);
+  static_assert(std::is_copy_assignable_v<TFileDirectory>);
 
   TFileDirectory::TFileDirectory(string const& dir,
                                  string const& descr,

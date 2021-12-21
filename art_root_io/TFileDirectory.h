@@ -54,7 +54,7 @@ namespace art {
     void invokeCallbacks();
 
     // Protects all data members, including derived classes.
-    mutable std::recursive_mutex mutex_{};
+    static std::recursive_mutex mutex_;
     // The root file.
     TFile* file_;
     // Directory name in the root file.
