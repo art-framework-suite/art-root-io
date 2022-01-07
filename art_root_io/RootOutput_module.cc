@@ -381,7 +381,7 @@ namespace art {
     auto resp = make_unique<ResultsPrincipal>(
       ResultsAuxiliary{}, moduleDescription().processConfiguration(), nullptr);
     resp->createGroupsForProducedProducts(producedResultsProducts_);
-    resp->enableLookupOfProducedProducts(producedResultsProducts_);
+    resp->enableLookupOfProducedProducts();
     if (!producedResultsProducts_.descriptions(InResults).empty() ||
         hasNewlyDroppedBranch()[InResults]) {
       resp->addToProcessHistory();
