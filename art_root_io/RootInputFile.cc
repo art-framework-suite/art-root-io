@@ -1055,7 +1055,7 @@ namespace art {
       eventAux_,
       processConfiguration_,
       &presentProducts_.get(InEvent),
-      move(history),
+      history->processHistoryID(),
       make_unique<RootDelayedReader>(fileFormatVersion_,
                                      nullptr,
                                      entryNumbers.first,

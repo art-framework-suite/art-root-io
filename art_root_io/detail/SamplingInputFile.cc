@@ -360,7 +360,7 @@ detail::SamplingInputFile::readEvent(EventID const& eventID,
     aux,
     current_pc,
     &presentEventProducts_,
-    std::make_unique<History>(std::move(history)),
+    id,
     std::make_unique<SamplingDelayedReader>(
       fileFormatVersion_,
       sqliteDB_->get(),
