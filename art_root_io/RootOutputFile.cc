@@ -616,10 +616,9 @@ namespace art {
     // to the file about this event.
     fillBranches<InEvent>(e, pEventProductProvenanceVector_);
     // History branch.
-    History historyForOutput{e.history()};
-    historyForOutput.addEventSelectionEntry(om_->selectorConfig());
+    History historyForOutput{e.processHistoryID()};
     pHistory_ = &historyForOutput;
-    int sz = eventHistoryTree_->Fill();
+    int const sz = eventHistoryTree_->Fill();
     if (sz <= 0) {
       throw Exception(errors::FatalRootError)
         << "Failed to fill the History tree for event: " << e.eventID()
@@ -633,7 +632,7 @@ namespace art {
       }
       dataTypeReported_ = true;
     }
-    pHistory_ = &e.history();
+    pHistory_ = nullptr;
     // Add event to index
     fileIndex_.addEntry(pEventAux_->eventID(), fp_.eventEntryNumber());
     fp_.update_event();

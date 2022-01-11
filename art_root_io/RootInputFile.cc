@@ -1047,7 +1047,7 @@ namespace art {
     assert(entryNumbers.first.size() == 1ull);
     fillAuxiliary_Event(entryNumbers.first.front());
 
-    unique_ptr<History> history = make_unique<History>();
+    auto history = make_unique<History>();
     fillHistory(entryNumbers.first.front(), *history);
     overrideRunNumber(const_cast<EventID&>(eventAux_.eventID()),
                       eventAux_.isRealData());
