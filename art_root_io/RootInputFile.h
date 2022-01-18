@@ -160,11 +160,11 @@ namespace art {
     RootInputTree& resultsTree();
     bool setIfFastClonable(FastCloningInfoProvider const& fcip) const;
     void validateFile();
-    void fillHistory(EntryNumber const entry, History&);
-    void fillAuxiliary_Event(EntryNumber const entry);
-    void fillAuxiliary_SubRun(EntryNumber const entry);
-    void fillAuxiliary_Run(EntryNumber const entry);
-    void fillAuxiliary_Results(EntryNumber const entry);
+    void fillHistory(EntryNumber entry, History&);
+    void fillAuxiliary_Event(EntryNumber entry);
+    void fillAuxiliary_SubRun(EntryNumber entry);
+    void fillAuxiliary_Run(EntryNumber entry);
+    void fillAuxiliary_Results(EntryNumber entry);
     std::pair<SubRunAuxiliary, std::unique_ptr<RangeSetHandler>>
     fillAuxiliary_SubRun(EntryNumbers const& entries);
     std::pair<RunAuxiliary, std::unique_ptr<RangeSetHandler>> fillAuxiliary_Run(

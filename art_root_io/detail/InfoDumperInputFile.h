@@ -44,7 +44,7 @@ namespace art::detail {
     }
 
   private:
-    RunAuxiliary getAuxiliary(TTree* tree, EntryNumber const entry) const;
+    RunAuxiliary getAuxiliary(TTree* tree, EntryNumber entry) const;
 
     RangeSet getRangeSet(TTree* tree,
                          EntryNumbers const& entries,

@@ -21,13 +21,12 @@ class TBranch;
 
 namespace art {
   class RootOutputTree {
-  public: // STATIC MEMBER FUNCTIONS
+  public:
     static TTree* makeTTree(TFile*, std::string const& name, int splitLevel);
-    // This routine MAY THROW if art converts
-    // a ROOT error message to an exception.
+    // This routine MAY THROW if art converts a ROOT error message to
+    // an exception.
     static void writeTTree(TTree*) noexcept(false);
 
-  public: // MEMBER FUNCTIONS -- Special Member Functions
     // Constructor for trees with no fast cloning
     template <typename Aux>
     RootOutputTree(cet::exempt_ptr<TFile> filePtr,
@@ -39,16 +38,16 @@ namespace art {
                    int64_t const treeMaxVirtualSize,
                    int64_t const saveMemoryObjectThreshold)
       : filePtr_{filePtr}
+      , tree_{makeTTree(filePtr.get(),
+                        BranchTypeToProductTreeName(branchType),
+                        splitLevel)}
+      , metaTree_{makeTTree(filePtr.get(),
+                            BranchTypeToMetaDataTreeName(branchType),
+                            0)}
+      , basketSize_{bufSize}
+      , splitLevel_{splitLevel}
+      , saveMemoryObjectThreshold_{saveMemoryObjectThreshold}
     {
-      tree_ = makeTTree(
-        filePtr.get(), BranchTypeToProductTreeName(branchType), splitLevel);
-      metaTree_ =
-        makeTTree(filePtr.get(), BranchTypeToMetaDataTreeName(branchType), 0);
-      fastCloningEnabled_ = false;
-      basketSize_ = bufSize;
-      splitLevel_ = splitLevel;
-      saveMemoryObjectThreshold_ = saveMemoryObjectThreshold;
-      nEntries_ = 0;
       if (treeMaxVirtualSize >= 0) {
         tree_.load()->SetMaxVirtualSize(treeMaxVirtualSize);
       }
@@ -124,11 +123,11 @@ namespace art {
     // The default for 'fastCloningEnabled_' is false so that SubRuns
     // and Runs are not fast-cloned.  We explicitly set this variable
     // to true for the event tree.
-    std::atomic<bool> fastCloningEnabled_;
-    std::atomic<int> basketSize_;
-    std::atomic<int> splitLevel_;
-    std::atomic<int64_t> saveMemoryObjectThreshold_;
-    std::atomic<int> nEntries_;
+    std::atomic<bool> fastCloningEnabled_{false};
+    int const basketSize_;
+    int const splitLevel_;
+    int64_t const saveMemoryObjectThreshold_;
+    std::atomic<int> nEntries_{0};
   };
 } // namespace art
 

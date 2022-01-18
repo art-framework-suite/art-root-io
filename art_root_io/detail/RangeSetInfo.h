@@ -21,7 +21,7 @@ namespace art {
 
     struct RangeSetInfo {
 
-      explicit RangeSetInfo(RunNumber_t const r, std::vector<EventRange>&& ers);
+      explicit RangeSetInfo(RunNumber_t r, std::vector<EventRange>&& ers);
 
       bool is_invalid() const;
       static RangeSetInfo
