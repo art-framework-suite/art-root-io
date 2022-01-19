@@ -42,6 +42,8 @@
 //                 from the History class.
 // ART_2011a  14   Underscore have been removed from the data members of
 //                 FileIndex::Element
+// ART_2011a  15   Remove art::History and add art::ProcessHistoryID to
+//                 art::EventAuxiliary
 //
 ////////////////////////////////////////////////////////////////////////
 
@@ -49,6 +51,6 @@ namespace art {
   int
   getFileFormatVersion()
   {
-    return 14;
+    return 15;
   }
 } // namespace art
