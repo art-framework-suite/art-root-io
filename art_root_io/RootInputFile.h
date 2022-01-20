@@ -11,7 +11,7 @@
 #include "art/Framework/Principal/SubRunPrincipal.h"
 #include "art_root_io/Inputfwd.h"
 #include "art_root_io/RootDelayedReader.h"
-#include "canvas/Persistency/Provenance/Compatibility/BranchIDList.h"
+#include "canvas/Persistency/Provenance/Compatibility/fwd.h"
 #include "canvas/Persistency/Provenance/EventAuxiliary.h"
 #include "canvas/Persistency/Provenance/FileFormatVersion.h"
 #include "canvas/Persistency/Provenance/FileIndex.h"

@@ -151,7 +151,6 @@ namespace art {
     void startEndFile() override;
     void writeFileFormatVersion() override;
     void writeFileIndex() override;
-    void writeEventHistory() override;
     void writeProcessConfigurationRegistry() override;
     void writeProcessHistoryRegistry() override;
     void writeParameterSetRegistry() override;
@@ -330,6 +329,7 @@ namespace art {
     }
     if (hasNewlyDroppedBranch()[InEvent]) {
       ep.addToProcessHistory();
+      ep.refreshProcessHistoryID();
     }
     rootOutputFile_->writeOne(ep);
     fstats_.recordEvent(ep.eventID());
@@ -403,13 +403,6 @@ namespace art {
   {
     std::lock_guard sentry{mutex_};
     rootOutputFile_->writeFileIndex();
-  }
-
-  void
-  RootOutput::writeEventHistory()
-  {
-    std::lock_guard sentry{mutex_};
-    rootOutputFile_->writeEventHistory();
   }
 
   void

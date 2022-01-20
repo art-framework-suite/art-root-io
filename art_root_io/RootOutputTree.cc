@@ -101,7 +101,19 @@ namespace art {
 
     bool cloned{false};
     if (intree->GetEntries() != 0) {
-      TTreeCloner cloner(const_cast<TTree*>(intree.get()),
+      auto event_tree = const_cast<TTree*>(intree.get());
+
+      // Remove EventAuxiliary branches from fast cloning so we can
+      // update the stored ProcessHistoryID.
+      auto branches = event_tree->GetListOfBranches();
+      auto aux_branch = event_tree->GetBranch("EventAuxiliary");
+      assert(aux_branch);
+      auto const aux_index = branches->IndexOf(aux_branch);
+      assert(aux_index >= 0);
+      branches->RemoveAt(aux_index);
+      branches->Compress();
+
+      TTreeCloner cloner(event_tree,
                          tree_.load(),
                          "",
                          TTreeCloner::kIgnoreMissingTopLevel |
@@ -119,6 +131,18 @@ namespace art {
           << "INFO: ROOT reason is:\n"
           << "INFO: " << cloner.GetWarning() << '\n'
           << "INFO: Processing will continue, tree will be slow cloned.";
+      }
+
+      // Add EventAuxiliary branch back
+      auto last = branches->GetLast();
+      if (last >= 0) {
+        branches->AddAtAndExpand(branches->At(last), last + 1);
+        for (Int_t ind = last - 1; ind >= aux_index; --ind) {
+          branches->AddAt(branches->At(ind), ind + 1);
+        }
+        branches->AddAt(aux_branch, aux_index);
+      } else {
+        branches->Add(aux_branch);
       }
     }
     for (auto branch : readBranches_) {

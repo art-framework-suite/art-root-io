@@ -78,7 +78,6 @@ namespace art {
     void writeRun(RunPrincipal const&);
     void writeFileFormatVersion();
     void writeFileIndex();
-    void writeEventHistory();
     void writeProcessConfigurationRegistry();
     void writeProcessHistoryRegistry();
     void writeParameterSetRegistry();
@@ -130,7 +129,6 @@ namespace art {
     TTree* metaDataTree_;
     TTree* fileIndexTree_;
     TTree* parentageTree_;
-    TTree* eventHistoryTree_;
     EventAuxiliary const* pEventAux_;
     SubRunAuxiliary const* pSubRunAux_;
     RunAuxiliary const* pRunAux_;
@@ -143,7 +141,6 @@ namespace art {
     ProductProvenances* pSubRunProductProvenanceVector_;
     ProductProvenances* pRunProductProvenanceVector_;
     ProductProvenances* pResultsProductProvenanceVector_;
-    History const* pHistory_;
     RootOutputTreePtrArray treePointers_;
     bool dataTypeReported_;
     std::array<ProductDescriptionsByID, NumBranchTypes> descriptionsToPersist_;

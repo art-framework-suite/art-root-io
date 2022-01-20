@@ -124,8 +124,8 @@ detail::SamplingInputFile::SamplingInputFile(
   }
 
   // Event-level trees
-  eventHistoryTree_ = get_tree(*file_, rootNames::eventHistoryTreeName());
-  {
+  if (fileFormatVersion_.value_ < 15) {
+    eventHistoryTree_ = get_tree(*file_, rootNames::eventHistoryTreeName());
     auto eventHistoryBranch =
       eventHistoryTree_->GetBranch(rootNames::eventHistoryBranchName().c_str());
     eventHistoryBranch->SetAddress(nullptr);
@@ -334,11 +334,15 @@ detail::SamplingInputFile::readEvent(EventID const& eventID,
                                      ProcessConfiguration const& current_pc)
 {
   auto const on_disk_aux = auxiliaryForEntry_(currentEventEntry_);
-  auto history = historyForEntry_(currentEventEntry_);
 
   ProcessHistory ph;
-  bool const found [[maybe_unused]]{
-    ProcessHistoryRegistry::get(history.processHistoryID(), ph)};
+  bool found{false};
+  if (fileFormatVersion_.value_ < 15) {
+    auto history = historyForEntry_(currentEventEntry_);
+    found = ProcessHistoryRegistry::get(history.processHistoryID(), ph);
+  } else {
+    found = ProcessHistoryRegistry::get(on_disk_aux.processHistoryID(), ph);
+  }
   assert(found);
 
   for (auto const& sampled_pc : sampled_pcs) {
@@ -347,15 +351,15 @@ detail::SamplingInputFile::readEvent(EventID const& eventID,
   ph.push_back(current_pc);
   auto const id = ph.id();
   ProcessHistoryRegistry::emplace(id, ph);
-  history.setProcessHistoryID(id);
 
   // We do *not* keep the on-disk EventID for the primary event; we
   // instead create it as an event product.
-  art::EventAuxiliary const aux{eventID,
-                                on_disk_aux.time(),
-                                on_disk_aux.isRealData(),
-                                on_disk_aux.experimentType()};
+  art::EventAuxiliary aux{eventID,
+                          on_disk_aux.time(),
+                          on_disk_aux.isRealData(),
+                          on_disk_aux.experimentType()};
   auto const on_disk_id = on_disk_aux.id();
+  aux.setProcessHistoryID(id);
   auto ep = std::make_unique<art::EventPrincipal>(
     aux,
     current_pc,

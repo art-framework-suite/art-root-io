@@ -28,7 +28,7 @@
 #include "canvas/Persistency/Provenance/BranchChildren.h"
 #include "canvas/Persistency/Provenance/BranchDescription.h"
 #include "canvas/Persistency/Provenance/BranchType.h"
-#include "canvas/Persistency/Provenance/History.h"
+#include "canvas/Persistency/Provenance/Compatibility/History.h"
 #include "canvas/Persistency/Provenance/ParameterSetBlob.h"
 #include "canvas/Persistency/Provenance/ParameterSetMap.h"
 #include "canvas/Persistency/Provenance/ParentageRegistry.h"
@@ -48,6 +48,7 @@
 #include "TLeaf.h"
 #include "TTree.h"
 
+#include <cassert>
 #include <string>
 #include <utility>
 
@@ -972,6 +973,7 @@ namespace art {
     // We could consider doing delayed reading, but because we have to
     // store this History object in a different tree than the event
     // data tree, this is too hard to do in this first version.
+    assert(eventHistoryTree_);
     auto pHistory = &history;
     auto eventHistoryBranch =
       eventHistoryTree_->GetBranch(rootNames::eventHistoryBranchName().c_str());
@@ -1047,15 +1049,19 @@ namespace art {
     assert(entryNumbers.first.size() == 1ull);
     fillAuxiliary_Event(entryNumbers.first.front());
 
-    auto history = make_unique<History>();
-    fillHistory(entryNumbers.first.front(), *history);
+    // Older file versions have process history IDs stored in the History tree.
+    if (fileFormatVersion_.value_ < 15) {
+      auto history = make_unique<History>();
+      fillHistory(entryNumbers.first.front(), *history);
+      eventAux_.setProcessHistoryID(history->processHistoryID());
+    }
     overrideRunNumber(const_cast<EventID&>(eventAux_.eventID()),
                       eventAux_.isRealData());
     auto ep = make_unique<EventPrincipal>(
       eventAux_,
       processConfiguration_,
       &presentProducts_.get(InEvent),
-      history->processHistoryID(),
+      eventAux_.processHistoryID(),
       make_unique<RootDelayedReader>(fileFormatVersion_,
                                      nullptr,
                                      entryNumbers.first,
@@ -1249,6 +1255,12 @@ namespace art {
   void
   RootInputFile::readEventHistoryTree(unsigned int treeCacheSize)
   {
+    if (fileFormatVersion_.value_ >= 15) {
+      // The process history ID is stored directly in the
+      // EventAuxiliary object for file formats 15 and above.
+      return;
+    }
+
     // Read in the event history tree, if we have one...
     eventHistoryTree_ =
       filePtr_->Get<TTree>(rootNames::eventHistoryTreeName().c_str());

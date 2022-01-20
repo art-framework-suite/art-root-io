@@ -51,11 +51,11 @@ namespace art {
       if (treeMaxVirtualSize >= 0) {
         tree_.load()->SetMaxVirtualSize(treeMaxVirtualSize);
       }
-      auto auxBranch = tree_.load()->Branch(
+      auxBranch_ = tree_.load()->Branch(
         BranchTypeToAuxiliaryBranchName(branchType).c_str(), &pAux, bufSize, 0);
       delete pAux;
       pAux = nullptr;
-      readBranches_.push_back(auxBranch);
+      readBranches_.push_back(auxBranch_);
       auto productProvenanceBranch = metaTree_.load()->Branch(
         productProvenanceBranchName(branchType).c_str(),
         &pProductProvenanceVector,
@@ -113,6 +113,7 @@ namespace art {
   private: // MEMBER DATA
     cet::exempt_ptr<TFile> filePtr_;
     std::atomic<TTree*> tree_;
+    TBranch* auxBranch_{nullptr};
     std::atomic<TTree*> metaTree_;
     // does not include cloned branches
     std::vector<TBranch*> producedBranches_{};

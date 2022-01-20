@@ -26,7 +26,6 @@
 #include "canvas/Persistency/Provenance/EventAuxiliary.h"
 #include "canvas/Persistency/Provenance/EventID.h"
 #include "canvas/Persistency/Provenance/FileFormatVersion.h"
-#include "canvas/Persistency/Provenance/History.h"
 #include "canvas/Persistency/Provenance/Parentage.h"
 #include "canvas/Persistency/Provenance/ParentageRegistry.h"
 #include "canvas/Persistency/Provenance/ProductStatus.h"
@@ -391,13 +390,6 @@ namespace art {
       filePtr_.get(), rootNames::fileIndexTreeName(), 0);
     parentageTree_ = RootOutputTree::makeTTree(
       filePtr_.get(), rootNames::parentageTreeName(), 0);
-    // Create the tree that will carry (event) History objects.
-    eventHistoryTree_ = RootOutputTree::makeTTree(
-      filePtr_.get(), rootNames::eventHistoryTreeName(), splitLevel);
-    if (!eventHistoryTree_) {
-      throw Exception(errors::FatalRootError)
-        << "Failed to create the tree for History objects\n";
-    }
     pEventAux_ = nullptr;
     pSubRunAux_ = nullptr;
     pRunAux_ = nullptr;
@@ -406,16 +398,6 @@ namespace art {
     pSubRunProductProvenanceVector_ = &subRunProductProvenanceVector_;
     pRunProductProvenanceVector_ = &runProductProvenanceVector_;
     pResultsProductProvenanceVector_ = &resultsProductProvenanceVector_;
-    pHistory_ = new History;
-    if (!eventHistoryTree_->Branch(rootNames::eventHistoryBranchName().c_str(),
-                                   &pHistory_,
-                                   basketSize,
-                                   0)) {
-      throw Exception(errors::FatalRootError)
-        << "Failed to create a branch for History in the output file\n";
-    }
-    delete pHistory_;
-    pHistory_ = nullptr;
     treePointers_[0] =
       make_unique<RootOutputTree>(filePtr_.get(),
                                   InEvent,
@@ -607,23 +589,13 @@ namespace art {
   RootOutputFile::writeOne(EventPrincipal const& e)
   {
     std::lock_guard sentry{mutex_};
-    // Auxiliary branch.
-    // Note: pEventAux_ must be set before calling fillBranches
-    // since it gets written out in that routine.
+    // Note: The pEventAux_ must be set before calling fillBranches
+    //       since it gets written out in that routine.
     pEventAux_ = &e.eventAux();
-    // Because getting the data may cause an exception to be
-    // thrown we want to do that first before writing anything
-    // to the file about this event.
+    // Because getting the data may cause an exception to be thrown we
+    // want to do that first before writing anything to the file about
+    // this event.
     fillBranches<InEvent>(e, pEventProductProvenanceVector_);
-    // History branch.
-    History historyForOutput{e.processHistoryID()};
-    pHistory_ = &historyForOutput;
-    int const sz = eventHistoryTree_->Fill();
-    if (sz <= 0) {
-      throw Exception(errors::FatalRootError)
-        << "Failed to fill the History tree for event: " << e.eventID()
-        << "\nTTree::Fill() returned " << sz << " bytes written." << endl;
-    }
     // Add the dataType to the job report if it hasn't already been done
     if (!dataTypeReported_) {
       string dataType{"MC"};
@@ -632,7 +604,6 @@ namespace art {
       }
       dataTypeReported_ = true;
     }
-    pHistory_ = nullptr;
     // Add event to index
     fileIndex_.addEntry(pEventAux_->eventID(), fp_.eventEntryNumber());
     fp_.update_event();
@@ -722,13 +693,6 @@ namespace art {
       b->Fill();
     }
     b->SetAddress(0);
-  }
-
-  void
-  RootOutputFile::writeEventHistory()
-  {
-    std::lock_guard sentry{mutex_};
-    RootOutputTree::writeTTree(eventHistoryTree_);
   }
 
   void
