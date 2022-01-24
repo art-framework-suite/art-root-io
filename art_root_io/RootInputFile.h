@@ -56,7 +56,7 @@ namespace art {
       RootInputTree&& operator=(RootInputTree&&) = delete;
 
       bool isValid() const;
-      EntryNumber entries() const;
+      EntryNumber nEntries() const;
       TTree* tree() const;
       TTree* metaTree() const;
       TBranch* auxBranch() const;
@@ -70,7 +70,7 @@ namespace art {
       TTree* metaTree_{nullptr};
       TBranch* auxBranch_{nullptr};
       TBranch* productProvenanceBranch_{nullptr};
-      EntryNumber entries_{0};
+      EntryNumber nEntries_{0};
       BranchMap branches_{};
     };
 
@@ -154,6 +154,8 @@ namespace art {
     RootInputTree const& subRunTree() const;
     RootInputTree const& runTree() const;
     RootInputTree const& resultsTree() const;
+    std::unique_ptr<RootInputTree> makeInputTree(BranchType bt,
+                                                 bool missingOK) const;
     RootInputTree& eventTree();
     RootInputTree& subRunTree();
     RootInputTree& runTree();

@@ -713,8 +713,7 @@ namespace art {
   std::unique_ptr<SubRunPrincipal>
   RootInputFileSequence::readSubRun_()
   {
-    auto srp = rootFile_->readSubRun();
-    return srp;
+    return rootFile_->readSubRun();
   }
 
   void
@@ -757,8 +756,7 @@ namespace art {
   std::unique_ptr<RunPrincipal>
   RootInputFileSequence::readRun_()
   {
-    auto rp = rootFile_->readRun();
-    return rp;
+    return rootFile_->readRun();
   }
 
   input::ItemType

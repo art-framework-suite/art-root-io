@@ -24,6 +24,7 @@
 #include "canvas_root_io/Streamers/ProductIDStreamer.h"
 #include "fhiclcpp/ParameterSetRegistry.h"
 #include "messagefacility/MessageLogger/MessageLogger.h"
+#include "range/v3/view.hpp"
 
 #include <set>
 #include <string>
@@ -173,8 +174,7 @@ detail::SamplingInputFile::SamplingInputFile(
     dropOnInput_(
       groupSelectorRules, branchChildren, dropDescendants, descriptionsByID);
 
-    for (auto const& pr : descriptionsByID) {
-      auto const& pd = pr.second;
+    for (auto const& pd : descriptionsByID | ranges::views::values) {
       auto const bt = pd.branchType();
       auto branch = treeForBranchType_(bt)->GetBranch(pd.branchName().c_str());
       if (branch == nullptr) {
@@ -336,7 +336,7 @@ detail::SamplingInputFile::readEvent(EventID const& eventID,
   auto const on_disk_aux = auxiliaryForEntry_(currentEventEntry_);
 
   ProcessHistory ph;
-  bool found{false};
+  bool found [[maybe_unused]]{false};
   if (fileFormatVersion_.value_ < 15) {
     auto history = historyForEntry_(currentEventEntry_);
     found = ProcessHistoryRegistry::get(history.processHistoryID(), ph);
@@ -354,17 +354,16 @@ detail::SamplingInputFile::readEvent(EventID const& eventID,
 
   // We do *not* keep the on-disk EventID for the primary event; we
   // instead create it as an event product.
-  art::EventAuxiliary aux{eventID,
-                          on_disk_aux.time(),
-                          on_disk_aux.isRealData(),
-                          on_disk_aux.experimentType()};
+  art::EventAuxiliary const aux{eventID,
+                                on_disk_aux.time(),
+                                on_disk_aux.isRealData(),
+                                on_disk_aux.experimentType(),
+                                id};
   auto const on_disk_id = on_disk_aux.id();
-  aux.setProcessHistoryID(id);
   auto ep = std::make_unique<art::EventPrincipal>(
     aux,
     current_pc,
     &presentEventProducts_,
-    id,
     std::make_unique<SamplingDelayedReader>(
       fileFormatVersion_,
       sqliteDB_->get(),
@@ -406,8 +405,7 @@ detail::SamplingInputFile::dropOnInput_(GroupSelectorRules const& rules,
   // FIXME: ProductID does not include BranchType, so this algorithm
   //        may be problematic.
   std::set<ProductID> branchesToDrop;
-  for (auto const& prod : descriptions) {
-    auto const& pd = prod.second;
+  for (auto const& pd : descriptions | ranges::views::values) {
     // We explicitly do not support results products for the Sampling
     // input source.
     if (pd.branchType() == InResults || !groupSelector.selected(pd)) {
