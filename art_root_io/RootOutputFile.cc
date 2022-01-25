@@ -45,6 +45,7 @@
 #include "cetlib/sqlite/insert.h"
 #include "fhiclcpp/ParameterSetRegistry.h"
 #include "messagefacility/MessageLogger/MessageLogger.h"
+#include "range/v3/view.hpp"
 
 #include "TFile.h"
 #include "TTree.h"
@@ -495,8 +496,7 @@ namespace art {
     std::lock_guard sentry{mutex_};
     auto selectProductsToWrite = [this](BranchType const bt) {
       auto& items = selectedOutputItemList_[bt];
-      for (auto const& pr : om_->keptProducts()[bt]) {
-        auto const& pd = pr.second;
+      for (auto const& pd : om_->keptProducts()[bt] | ranges::views::values) {
         // Persist Results products only if they have been produced by
         // the current process.
         if (bt == InResults && !pd.produced()) {
@@ -512,9 +512,9 @@ namespace art {
         }
         items.try_emplace(pd.productID(), pd);
       }
-      for (auto const& val : items) {
-        treePointers_[bt]->addOutputBranch(val.second.branchDescription_,
-                                           val.second.product_);
+      for (auto const& item : items | ranges::views::values) {
+        treePointers_[bt]->addOutputBranch(item.branchDescription_,
+                                           item.product_);
       }
     };
     for_each_branch_type(selectProductsToWrite);
@@ -732,8 +732,8 @@ namespace art {
     using namespace cet::sqlite;
     Ntuple<string, string> fileCatalogMetadata{
       *rootFileDB_, "FileCatalog_metadata", {{"Name", "Value"}}, true};
-    for (auto const& kv : md) {
-      fileCatalogMetadata.insert(kv.first, kv.second);
+    for (auto const& [key, value] : md) {
+      fileCatalogMetadata.insert(key, value);
     }
 
     // Add our own specific information: File format and friends.
@@ -806,8 +806,8 @@ namespace art {
                                std::to_string(getFileFormatVersion()));
 
     // Incoming stream-specific metadata overrides.
-    for (auto const& kv : ssmd) {
-      fileCatalogMetadata.insert(kv.first, kv.second);
+    for (auto const& [key, value] : ssmd) {
+      fileCatalogMetadata.insert(key, value);
     }
   }
 
@@ -826,8 +826,8 @@ namespace art {
     // removing any transient or pruned products.
     ProductRegistry reg;
     auto productDescriptionsToWrite = [this, &reg](BranchType const bt) {
-      for (auto const& pr : descriptionsToPersist_[bt]) {
-        auto const& desc = pr.second;
+      for (auto const& desc :
+           descriptionsToPersist_[bt] | ranges::views::values) {
         reg.productList_.emplace(BranchKey{desc}, desc);
       }
     };

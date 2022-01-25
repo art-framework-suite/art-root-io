@@ -207,6 +207,7 @@ cet_make_exec(NAME config_dumper LIBRARIES PRIVATE
   Boost::program_options
   ROOT::Tree
   ROOT::RIO
+  range-v3::range-v3
 )
 
 cet_make_exec(NAME sam_metadata_dumper LIBRARIES PRIVATE

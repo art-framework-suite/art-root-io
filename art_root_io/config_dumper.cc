@@ -12,6 +12,7 @@
 #include "fhiclcpp/ParameterSetRegistry.h"
 
 #include "boost/program_options.hpp"
+#include "range/v3/view.hpp"
 
 #include "TFile.h"
 #include "TTree.h"
@@ -219,8 +220,7 @@ print_pset_from_file(TFile& file,
 
   // Cache pointers to the ParameterSets to avoid exorbitant copying.
   std::map<std::string, cet::exempt_ptr<fhicl::ParameterSet const>> sorted_pses;
-  for (auto const& pr : collection) {
-    auto const& pset = pr.second;
+  for (auto const& pset : collection | ranges::views::values) {
     std::string const label{want_pset(pset, filters, mode)};
     if (label.empty())
       continue;
@@ -228,10 +228,9 @@ print_pset_from_file(TFile& file,
     sorted_pses.emplace(label, &pset);
   }
 
-  for (auto const& pr : sorted_pses) {
-    auto const& pset = *pr.second;
-    output << pr.first << ": {\n";
-    output << strip_pset(pset, mode).to_indented_string(1);
+  for (auto const& [key, pset_ptr] : sorted_pses) {
+    output << key << ": {\n";
+    output << strip_pset(*pset_ptr, mode).to_indented_string(1);
     output << "}\n\n";
   }
 

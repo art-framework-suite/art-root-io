@@ -48,6 +48,7 @@
 #include "canvas/Persistency/Provenance/TypeLabel.h"
 #include "canvas/Utilities/TypeID.h"
 #include "messagefacility/MessageLogger/MessageLogger.h"
+#include "range/v3/view.hpp"
 
 #include "fhiclcpp/types/Atom.h"
 #include "fhiclcpp/types/DelegatedParameter.h"
@@ -60,9 +61,10 @@
 #include <type_traits>
 #include <vector>
 
-using namespace fhicl;
-using namespace std::string_literals;
 using namespace art;
+using namespace fhicl;
+using namespace ranges;
+using namespace std::string_literals;
 
 using art::detail::Products_t;
 
@@ -99,17 +101,16 @@ namespace {
     std::map<BranchKey, BranchDescription> const& descriptions,
     ProcessConfiguration const& pc)
   {
-    std::set<std::string> processNames;
-    cet::transform_all(descriptions,
-                       inserter(processNames, end(processNames)),
-                       [](auto const& pr) { return pr.second.processName(); });
+    auto processNames =
+      descriptions |
+      views::transform([](auto const& pr) { return pr.second.processName(); }) |
+      to<std::set>();
 
-    ProcessConfigurations result;
-    cet::transform_all(
-      processNames, back_inserter(result), [&pc](auto const& name) {
-        return ProcessConfiguration{
-          name, pc.parameterSetID(), pc.releaseVersion()};
-      });
+    auto result = processNames | views::transform([&pc](auto const& name) {
+                    return ProcessConfiguration{
+                      name, pc.parameterSetID(), pc.releaseVersion()};
+                  }) |
+                  to<ProcessConfigurations>();
     // Current process goes last
     result.push_back(pc);
     return result;
@@ -355,8 +356,8 @@ art::SamplingInput::SamplingInput(Parameters const& config,
     sampled_process_configurations(oldKeyToSampledProductDescription_, pc_);
   sampledProcessHistoryID_ = sampled_process_history_id(sampledProcessConfigs_);
 
-  for (auto const& pr : oldKeyToSampledProductDescription_) {
-    presentSampledProducts.push_back(pr.second);
+  for (auto const& pd : oldKeyToSampledProductDescription_ | views::values) {
+    presentSampledProducts.push_back(pd);
   }
 
   // Specify present products for SubRuns and Runs.  Only the
@@ -424,12 +425,9 @@ art::SamplingInput::putSampledProductsInto_(T& principal,
                                             Products_t read_products,
                                             RangeSet&& rs) const
 {
-  for (auto const& pr : oldKeyToSampledProductDescription_) {
-    auto const& old_key = pr.first;
+  for (auto const& [old_key, sampled_pd] : oldKeyToSampledProductDescription_) {
     if (old_key.branchType_ != principal.branchType())
       continue;
-
-    auto const& sampled_pd = pr.second;
 
     principal.put(sampled_pd,
                   std::make_unique<ProductProvenance const>(

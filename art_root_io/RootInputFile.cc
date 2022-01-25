@@ -336,8 +336,8 @@ namespace art {
       if (readIncomingParameterSets &&
           detail::readMetadata(metaDataTree, psetMap)) {
         // Merge into the hashed registries.
-        for (auto const& psEntry : psetMap) {
-          auto const pset = fhicl::ParameterSet::make(psEntry.second.pset_);
+        for (auto const& blob : psetMap | ranges::views::values) {
+          auto const pset = fhicl::ParameterSet::make(blob.pset_);
           // Note ParameterSet::id() has the side effect of making
           // sure the parameter set *has* an ID.
           pset.id();
@@ -1316,8 +1316,7 @@ namespace art {
         // Do drop on input. On the first pass, just fill in a set of
         // branches to be dropped.
         std::set<ProductID> branchesToDrop;
-        for (auto const& prod : prodList) {
-          auto const& pd = prod.second;
+        for (auto const& pd : prodList | ranges::views::values) {
           if (!groupSelector.selected(pd)) {
             if (dropDescendants) {
               children.appendToDescendants(pd.productID(), branchesToDrop);
