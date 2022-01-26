@@ -11,9 +11,7 @@ namespace art {
 
   DuplicateChecker::DuplicateChecker(
     fhicl::TableFragment<DuplicateChecker::Config> const& config)
-    :
-
-    duplicateCheckMode_(checkEachRealDataFile)
+    : duplicateCheckMode_(checkEachRealDataFile)
     , dataType_(unknown)
     , eventIDs_()
     , itIsKnownTheFileHasNoDuplicates_(false)
@@ -66,12 +64,6 @@ namespace art {
     dataType_ = unknown;
     eventIDs_.clear();
     itIsKnownTheFileHasNoDuplicates_ = false;
-  }
-
-  void
-  DuplicateChecker::rewind()
-  {
-    eventIDs_.clear();
   }
 
   bool

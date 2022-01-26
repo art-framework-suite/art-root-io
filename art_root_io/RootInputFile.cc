@@ -693,12 +693,6 @@ namespace art {
   }
 
   void
-  RootInputFile::rewind()
-  {
-    fiIter_ = fiBegin_;
-  }
-
-  void
   RootInputFile::setToLastEntry()
   {
     fiIter_ = fiEnd_;

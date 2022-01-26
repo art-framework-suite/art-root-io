@@ -134,7 +134,6 @@ namespace art {
     bool setEntry_Event(EventID const& id, bool exact = true);
     bool setEntry_SubRun(SubRunID const& id, bool exact = true);
     bool setEntry_Run(RunID const& id, bool exact = true);
-    void rewind();
     void setToLastEntry();
     void nextEntry();
     void previousEntry();

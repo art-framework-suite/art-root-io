@@ -1,33 +1,37 @@
 #include "art_root_io/FastCloningInfoProvider.h"
 
-#include "art/Framework/Core/DecrepitRelicInputSourceImplementation.h"
+#include "art/Framework/Core/ProcessingLimits.h"
 #include "canvas/Utilities/Exception.h"
 
-art::FastCloningInfoProvider::FastCloningInfoProvider(
-  cet::exempt_ptr<DecrepitRelicInputSourceImplementation> input)
-  : input_(input)
-{}
+namespace art {
 
-off_t
-art::FastCloningInfoProvider::remainingEvents() const
-{
-  if (!fastCloningPermitted()) {
-    throw Exception(errors::LogicError)
-      << "FastCloningInfoProvider::remainingEvents() has no meaning"
-      << " in this context:\n"
-      << "Check fastCloningPermitted() first.\n";
-  }
-  return input_->remainingEvents();
-}
+  FastCloningInfoProvider::FastCloningInfoProvider(
+    cet::exempt_ptr<ProcessingLimits> limits)
+    : limits_{limits}
+  {}
 
-off_t
-art::FastCloningInfoProvider::remainingSubRuns() const
-{
-  if (!fastCloningPermitted()) {
-    throw Exception(errors::LogicError)
-      << "FastCloningInfoProvider::remainingSubRuns() has no meaning"
-      << " in this context:\n"
-      << "Check fastCloningPermitted() first.\n";
+  int
+  FastCloningInfoProvider::remainingEvents() const
+  {
+    if (!fastCloningPermitted()) {
+      throw Exception(errors::LogicError)
+        << "FastCloningInfoProvider::remainingEvents() has no meaning"
+        << " in this context:\n"
+        << "Check fastCloningPermitted() first.\n";
+    }
+    return limits_->remainingEvents();
   }
-  return input_->remainingSubRuns();
+
+  int
+  FastCloningInfoProvider::remainingSubRuns() const
+  {
+    if (!fastCloningPermitted()) {
+      throw Exception(errors::LogicError)
+        << "FastCloningInfoProvider::remainingSubRuns() has no meaning"
+        << " in this context:\n"
+        << "Check fastCloningPermitted() first.\n";
+    }
+    return limits_->remainingSubRuns();
+  }
+
 }

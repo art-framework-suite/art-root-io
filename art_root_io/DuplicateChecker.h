@@ -39,8 +39,6 @@ namespace art {
 
     void inputFileClosed();
 
-    void rewind();
-
     bool isDuplicateAndCheckActive(EventID const& eventID,
                                    std::string const& fileName);
 

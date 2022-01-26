@@ -119,11 +119,8 @@ namespace art {
 
     void skip(int offset);
 
-    void rewind_();
-
     EventID seekToEvent(EventID const&, bool exact = false);
-
-    EventID seekToEvent(off_t offset, bool exact = false);
+    EventID seekToEvent(int offset, bool exact = false);
 
     input::ItemType getNextItemType();
 
@@ -223,21 +220,19 @@ namespace art {
     void finish();
 
   private:
-    void initFile(bool skipBadFiles);
-    bool nextFile();
-    bool previousFile();
-    void rewindFile();
+    std::shared_ptr<RootInputFile> initFile(bool skipBadFiles = false);
+    std::shared_ptr<RootInputFile> nextFile();
+    std::shared_ptr<RootInputFile> previousFile();
     ProcessConfiguration const& processConfiguration() const;
 
     RootInputFile& secondaryFile(int idx);
     bool atEnd(int idx);
 
     InputFileCatalog& catalog_;
-    bool firstFile_{true};
-    bool seekingFile_{false};
     RootInputFileSharedPtr rootFile_{nullptr};
     std::vector<std::unique_ptr<RootInputFile>> secondaryFilesForPrimary_;
     std::vector<std::shared_ptr<FileIndex>> fileIndexes_;
+    bool firstFile_{true};
     EventID origEventID_{};
     EventNumber_t eventsToSkip_;
     bool const compactSubRunRanges_;
@@ -250,7 +245,6 @@ namespace art {
     bool const delayedReadSubRunProducts_;
     bool const delayedReadRunProducts_;
     int forcedRunOffset_{};
-    RunNumber_t setRun_{};
     GroupSelectorRules groupSelectorRules_;
     std::shared_ptr<DuplicateChecker> duplicateChecker_{nullptr};
     bool const dropDescendants_;
