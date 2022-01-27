@@ -7,7 +7,6 @@
 #include "art/Framework/Principal/RangeSetHandler.h"
 #include "art/Framework/Principal/RunPrincipal.h"
 #include "art/Framework/Principal/SubRunPrincipal.h"
-#include "art_root_io/FastCloningInfoProvider.h"
 #include "art_root_io/RootInputFileSequence.h"
 #include "canvas/Persistency/Provenance/EventID.h"
 #include "canvas/Utilities/Exception.h"
@@ -79,15 +78,14 @@ RootInput::~RootInput() = default;
 
 RootInput::RootInput(Parameters const& config, InputSourceDescription& desc)
   : InputSource{desc.moduleDescription}
-  , limits_{config().limits_config()}
+  , limits_{config().limits_config(),
+            [this] { return primaryFileSequence_.getNextItemType(); }}
   , catalog_{config().ifc_config}
-  , primaryFileSequence_{
-      config().rifs_config,
-      catalog_,
-      FastCloningInfoProvider{cet::make_exempt_ptr(&limits_)},
-      limits_.processingMode(),
-      desc.productRegistry,
-      processConfiguration()}
+  , primaryFileSequence_{config().rifs_config,
+                         catalog_,
+                         limits_,
+                         desc.productRegistry,
+                         processConfiguration()}
 {}
 
 void
@@ -103,26 +101,11 @@ RootInput::closeFile()
 }
 
 input::ItemType
-RootInput::getNextItemType()
-{
-  if (limits_.atLimit()) {
-    return input::IsStop;
-  }
-
-  auto next_item_type = primaryFileSequence_.getNextItemType();
-  while (not limits_.itemTypeAllowed(next_item_type)) {
-    next_item_type = primaryFileSequence_.getNextItemType();
-  }
-
-  return next_item_type;
-}
-
-input::ItemType
 RootInput::nextItemType()
 {
   switch (accessState_.state()) {
   case AccessState::SEQUENTIAL:
-    return getNextItemType();
+    return limits_.nextItemType();
   case AccessState::SEEKING_FILE:
     return input::IsFile;
   case AccessState::SEEKING_RUN:
@@ -186,26 +169,19 @@ RootInput::readSubRun(cet::exempt_ptr<RunPrincipal const> rp)
   unique_ptr<SubRunPrincipal> result;
   switch (accessState_.state()) {
   case AccessState::SEQUENTIAL:
-    result = readSubRun_(rp);
+    result = primaryFileSequence_.readSubRun_();
     break;
   case AccessState::SEEKING_SUBRUN:
     accessState_.setState(AccessState::SEEKING_EVENT);
-    result = readSubRun_(rp);
+    result = primaryFileSequence_.readSubRun_();
     break;
   default:
     throw Exception(errors::LogicError) << "RootInputSource::readSubRun "
                                            "encountered an unknown or "
                                            "inappropriate AccessState.\n";
   }
-  limits_.update(result->subRunID());
-  return result;
-}
-
-unique_ptr<SubRunPrincipal>
-RootInput::readSubRun_(cet::exempt_ptr<RunPrincipal const> rp)
-{
-  auto result = primaryFileSequence_.readSubRun_();
   result->setRunPrincipal(rp);
+  limits_.update(result->subRunID());
   return result;
 }
 
@@ -221,30 +197,21 @@ RootInput::readEvent(cet::exempt_ptr<SubRunPrincipal const> srp)
   unique_ptr<EventPrincipal> result;
   switch (accessState_.state()) {
   case AccessState::SEQUENTIAL:
-    result = readEvent_(srp);
+    result = primaryFileSequence_.readEvent_();
     break;
   case AccessState::SEEKING_EVENT:
     accessState_.resetState();
-    result = readEvent_(srp);
+    result = primaryFileSequence_.readEvent_();
     break;
   default:
     throw Exception(errors::LogicError) << "RootInputSource::readEvent "
                                            "encountered an unknown or "
                                            "inappropriate AccessState.\n";
   }
-  limits_.update(result->eventID());
-  return result;
-}
-
-unique_ptr<EventPrincipal>
-RootInput::readEvent_(cet::exempt_ptr<SubRunPrincipal const> srp)
-{
-  auto result = primaryFileSequence_.readEvent_();
-  if (result) {
-    accessState_.setLastReadEventID(result->eventID());
-    accessState_.setRootFileForLastReadEvent(
-      primaryFileSequence_.rootFileForLastReadEvent());
-  }
+  accessState_.setLastReadEventID(result->eventID());
+  accessState_.setRootFileForLastReadEvent(
+    primaryFileSequence_.rootFileForLastReadEvent());
   result->setSubRunPrincipal(srp);
+  limits_.update(result->eventID());
   return result;
 }

@@ -91,14 +91,13 @@ namespace art {
                   EventID const& origEventID,
                   unsigned int eventsToSkip,
                   bool compactSubRunRanges,
-                  FastCloningInfoProvider const& fcip,
                   unsigned int treeCacheSize,
                   int64_t treeMaxVirtualSize,
                   int64_t saveMemoryObjectThreashold,
                   bool delayedReadEventProducts,
                   bool delayedReadSubRunProducts,
                   bool delayedReadRunProducts,
-                  InputSource::ProcessingMode processingMode,
+                  ProcessingLimits const& limits,
                   int forcedRunOffset,
                   bool noEventSort,
                   GroupSelectorRules const& groupSelectorRules,
@@ -159,7 +158,7 @@ namespace art {
     RootInputTree& subRunTree();
     RootInputTree& runTree();
     RootInputTree& resultsTree();
-    bool setIfFastClonable(FastCloningInfoProvider const& fcip) const;
+    bool setIfFastClonable() const;
     void validateFile();
     void fillHistory(EntryNumber entry, History&);
     void fillAuxiliary_Event(EntryNumber entry);
@@ -194,7 +193,7 @@ namespace art {
     bool delayedReadEventProducts_;
     bool delayedReadSubRunProducts_;
     bool delayedReadRunProducts_;
-    InputSource::ProcessingMode processingMode_;
+    ProcessingLimits const& processingLimits_;
     int forcedRunOffset_;
     bool noEventSort_;
     secondary_reader_t readFromSecondaryFile_;

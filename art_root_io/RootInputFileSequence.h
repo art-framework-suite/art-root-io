@@ -6,7 +6,6 @@
 #include "art/Framework/Core/InputSource.h"
 #include "art/Framework/Core/fwd.h"
 #include "art_root_io/DuplicateChecker.h"
-#include "art_root_io/FastCloningInfoProvider.h"
 #include "art_root_io/Inputfwd.h"
 #include "art_root_io/RootInputFile.h"
 #include "canvas/Persistency/Provenance/EventID.h"
@@ -100,8 +99,7 @@ namespace art {
 
     RootInputFileSequence(fhicl::TableFragment<Config> const&,
                           InputFileCatalog&,
-                          FastCloningInfoProvider const&,
-                          InputSource::ProcessingMode,
+                          ProcessingLimits const&,
                           UpdateOutputCallbacks&,
                           ProcessConfiguration const&);
     void endJob();
@@ -157,73 +155,12 @@ namespace art {
       return secondaryFileNames_;
     }
 
-    EventID
-    origEventID() const
-    {
-      return origEventID_;
-    }
-
-    EventNumber_t
-    eventsToSkip() const
-    {
-      return eventsToSkip_;
-    }
-
-    FastCloningInfoProvider const&
-    fastCloningInfo() const
-    {
-      return fastCloningInfo_;
-    }
-
-    unsigned int
-    treeCacheSize() const
-    {
-      return treeCacheSize_;
-    }
-
-    int64_t
-    treeMaxVirtualSize() const
-    {
-      return treeMaxVirtualSize_;
-    }
-
-    int64_t
-    saveMemoryObjectThreshold() const
-    {
-      return saveMemoryObjectThreshold_;
-    };
-
-    bool
-    delayedReadEventProducts() const
-    {
-      return delayedReadEventProducts_;
-    }
-
-    bool
-    delayedReadSubRunProducts() const
-    {
-      return delayedReadSubRunProducts_;
-    }
-
-    bool
-    delayedReadRunProducts() const
-    {
-      return delayedReadRunProducts_;
-    }
-
-    InputSource::ProcessingMode const&
-    processingMode()
-    {
-      return processingMode_;
-    }
-
     void finish();
 
   private:
     std::shared_ptr<RootInputFile> initFile(bool skipBadFiles = false);
     std::shared_ptr<RootInputFile> nextFile();
     std::shared_ptr<RootInputFile> previousFile();
-    ProcessConfiguration const& processConfiguration() const;
 
     RootInputFile& secondaryFile(int idx);
     bool atEnd(int idx);
@@ -250,8 +187,7 @@ namespace art {
     bool const dropDescendants_;
     bool const readParameterSets_;
     RootInputFileSharedPtr rootFileForLastReadEvent_;
-    FastCloningInfoProvider fastCloningInfo_;
-    InputSource::ProcessingMode processingMode_;
+    ProcessingLimits const& processingLimits_;
     ProcessConfiguration const& processConfiguration_;
     std::vector<std::vector<std::string>> secondaryFileNames_{};
     UpdateOutputCallbacks& outputCallbacks_;

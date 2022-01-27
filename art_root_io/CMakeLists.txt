@@ -56,7 +56,6 @@ cet_make_library(HEADERS_TARGET
     DropMetaData.cc
     DummyProductCache.cc
     DuplicateChecker.cc
-    FastCloningInfoProvider.cc
     GetFileFormatEra.cc
     GetFileFormatVersion.cc
     RootBranchInfo.cc

@@ -28,8 +28,7 @@ namespace art {
   RootInputFileSequence::RootInputFileSequence(
     fhicl::TableFragment<RootInputFileSequence::Config> const& config,
     InputFileCatalog& catalog,
-    FastCloningInfoProvider const& fcip,
-    InputSource::ProcessingMode pMode,
+    ProcessingLimits const& limits,
     UpdateOutputCallbacks& outputCallbacks,
     ProcessConfiguration const& processConfig)
     : catalog_{catalog}
@@ -49,8 +48,7 @@ namespace art {
                           "InputSource"}
     , dropDescendants_{config().dropDescendantsOfDroppedBranches()}
     , readParameterSets_{config().readParameterSets()}
-    , fastCloningInfo_{fcip}
-    , processingMode_{pMode}
+    , processingLimits_{limits}
     , processConfiguration_{processConfig}
     , outputCallbacks_{outputCallbacks}
   {
@@ -383,19 +381,18 @@ namespace art {
         };
 
     auto result = make_shared<RootInputFile>(catalog_.currentFile().fileName(),
-                                             processConfiguration(),
+                                             processConfiguration_,
                                              std::move(filePtr),
                                              origEventID_,
                                              eventsToSkip_,
                                              compactSubRunRanges_,
-                                             fastCloningInfo_,
                                              treeCacheSize_,
                                              treeMaxVirtualSize_,
                                              saveMemoryObjectThreshold_,
                                              delayedReadEventProducts_,
                                              delayedReadSubRunProducts_,
                                              delayedReadRunProducts_,
-                                             processingMode_,
+                                             processingLimits_,
                                              forcedRunOffset_,
                                              noEventSort_,
                                              groupSelectorRules_,
@@ -441,19 +438,18 @@ namespace art {
     detail::logFileAction("Opened secondary input file ", name);
 
     file = std::make_unique<RootInputFile>(name,
-                                           processConfiguration(),
+                                           processConfiguration_,
                                            std::move(filePtr),
                                            origEventID_,
                                            eventsToSkip_,
                                            compactSubRunRanges_,
-                                           fastCloningInfo_,
                                            treeCacheSize_,
                                            treeMaxVirtualSize_,
                                            saveMemoryObjectThreshold_,
                                            delayedReadEventProducts_,
                                            delayedReadSubRunProducts_,
                                            delayedReadRunProducts_,
-                                           processingMode_,
+                                           processingLimits_,
                                            forcedRunOffset_,
                                            noEventSort_,
                                            groupSelectorRules_,
@@ -769,12 +765,6 @@ namespace art {
       }
     }
     rootFile_->skipEvents(0);
-  }
-
-  ProcessConfiguration const&
-  RootInputFileSequence::processConfiguration() const
-  {
-    return processConfiguration_;
   }
 
 } // namespace art

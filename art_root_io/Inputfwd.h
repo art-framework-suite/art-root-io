@@ -14,7 +14,6 @@ namespace art {
 
   class BranchDescription;
   struct FileFormatVersion;
-  class FastCloningInfoProvider;
   class ProductID;
   class RootInputFile;
   class RootDelayedReader;

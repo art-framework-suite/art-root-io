@@ -108,13 +108,6 @@ namespace art {
 
     void doEndJob() override;
 
-    input::ItemType getNextItemType();
-    std::unique_ptr<SubRunPrincipal> readSubRun_(
-      cet::exempt_ptr<RunPrincipal const>);
-
-    std::unique_ptr<EventPrincipal> readEvent_(
-      cet::exempt_ptr<SubRunPrincipal const>);
-
     ProcessingLimits limits_;
     InputFileCatalog catalog_;
     RootInputFileSequence primaryFileSequence_;

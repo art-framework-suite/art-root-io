@@ -2,6 +2,7 @@
 // vim: set sw=2 expandtab :
 
 #include "art/Framework/Core/GroupSelector.h"
+#include "art/Framework/Core/ProcessingLimits.h"
 #include "art/Framework/Core/UpdateOutputCallbacks.h"
 #include "art/Framework/Principal/ClosedRangeSetHandler.h"
 #include "art/Framework/Principal/EventPrincipal.h"
@@ -14,7 +15,6 @@
 #include "art/Framework/Services/System/FileCatalogMetadata.h"
 #include "art/Persistency/Provenance/ProcessHistoryRegistry.h"
 #include "art_root_io/DuplicateChecker.h"
-#include "art_root_io/FastCloningInfoProvider.h"
 #include "art_root_io/GetFileFormatEra.h"
 #include "art_root_io/Inputfwd.h"
 #include "art_root_io/RootDB/TKeyVFSOpenPolicy.h"
@@ -252,14 +252,13 @@ namespace art {
     EventID const& origEventID,
     unsigned int const eventsToSkip,
     bool const compactSubRunRanges,
-    FastCloningInfoProvider const& fcip,
     unsigned int const treeCacheSize,
     int64_t const treeMaxVirtualSize,
     int64_t const saveMemoryObjectThreshold,
     bool const delayedReadEventProducts,
     bool const delayedReadSubRunProducts,
     bool const delayedReadRunProducts,
-    InputSource::ProcessingMode const processingMode,
+    ProcessingLimits const& limits,
     int const forcedRunOffset,
     bool const noEventSort,
     GroupSelectorRules const& groupSelectorRules,
@@ -281,7 +280,7 @@ namespace art {
     , delayedReadEventProducts_{delayedReadEventProducts}
     , delayedReadSubRunProducts_{delayedReadSubRunProducts}
     , delayedReadRunProducts_{delayedReadRunProducts}
-    , processingMode_{processingMode}
+    , processingLimits_{limits}
     , forcedRunOffset_{forcedRunOffset}
     , noEventSort_{noEventSort}
     , readFromSecondaryFile_{openSecondaryFile}
@@ -459,7 +458,7 @@ namespace art {
     outputCallbacks.invoke(presentProducts_);
 
     // Determine if this file is fast clonable.
-    fastClonable_ = setIfFastClonable(fcip);
+    fastClonable_ = setIfFastClonable();
     reportOpened();
 
     // Check if dictionaries exist for the auxiliary objects
@@ -781,11 +780,8 @@ namespace art {
   }
 
   bool
-  RootInputFile::setIfFastClonable(FastCloningInfoProvider const& fcip) const
+  RootInputFile::setIfFastClonable() const
   {
-    if (!fcip.fastCloningPermitted()) {
-      return false;
-    }
     if (readFromSecondaryFile_) {
       return false;
     }
@@ -795,15 +791,16 @@ namespace art {
     if (eventsToSkip_ != 0) {
       return false;
     }
-    if ((fcip.remainingEvents() >= 0) &&
-        (eventTree().nEntries() > fcip.remainingEvents())) {
+    if ((processingLimits_.remainingEvents() >= 0) &&
+        (eventTree().nEntries() > processingLimits_.remainingEvents())) {
       return false;
     }
-    if ((fcip.remainingSubRuns() >= 0) &&
-        (subRunTree().nEntries() > fcip.remainingSubRuns())) {
+    if ((processingLimits_.remainingSubRuns() >= 0) &&
+        (subRunTree().nEntries() > processingLimits_.remainingSubRuns())) {
       return false;
     }
-    if (processingMode_ != InputSource::RunsSubRunsAndEvents) {
+    if (processingLimits_.processingMode() !=
+        InputSource::RunsSubRunsAndEvents) {
       return false;
     }
     if (forcedRunOffset_ != 0) {
@@ -879,7 +876,7 @@ namespace art {
       }
       return FileIndex::kRun;
     }
-    if (processingMode_ == InputSource::Runs) {
+    if (processingLimits_.processingMode() == InputSource::Runs) {
       fiIter_ = fileIndex_.findPosition(
         currentRun.isValid() ? currentRun.next() : currentRun, false);
       return getNextEntryTypeWanted();
@@ -894,7 +891,7 @@ namespace art {
       }
       return FileIndex::kSubRun;
     }
-    if (processingMode_ == InputSource::RunsAndSubRuns) {
+    if (processingLimits_.processingMode() == InputSource::RunsAndSubRuns) {
       fiIter_ = fileIndex_.findSubRunOrRunPosition(currentSubRun.next());
       return getNextEntryTypeWanted();
     }
