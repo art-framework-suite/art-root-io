@@ -47,6 +47,7 @@
 #include "messagefacility/MessageLogger/MessageLogger.h"
 #include "range/v3/view.hpp"
 
+#include "TBranch.h"
 #include "TFile.h"
 #include "TTree.h"
 

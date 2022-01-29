@@ -5,6 +5,7 @@
 
 #include <regex>
 
+#include "TBranch.h"
 #include "TObjArray.h"
 #include "TTree.h"
 

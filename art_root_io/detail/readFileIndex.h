@@ -7,6 +7,7 @@
 #include "canvas/Persistency/Provenance/FileIndex.h"
 #include "canvas/Persistency/Provenance/rootNames.h"
 
+#include "TBranch.h"
 #include "TFile.h"
 #include "TTree.h"
 
