@@ -55,10 +55,8 @@ namespace {
       // because invalid events always compare less than valid events.
       return EventID::invalidEvent();
     }
-    RunNumber_t r;
-    SubRunNumber_t sr;
-    EventNumber_t e;
-    std::tie(r, sr, e) = art::detail::event_start_for_sampled_input(firstEvent);
+    auto const [r, sr, e] =
+      art::detail::event_start_for_sampled_input(firstEvent);
     return EventID{r, sr, e};
   }
 }
@@ -267,7 +265,7 @@ std::unique_ptr<SampledSubRunInfo>
 detail::DataSetBroker::readAllSubRunProducts(Products_t& read_products)
 {
   auto sampledSubRunInfo = std::make_unique<SampledSubRunInfo>();
-  for (auto& [dataset, file]: files_) {
+  for (auto& [dataset, file] : files_) {
     auto const entries = file.treeEntries(InSubRun);
 
     auto products = file.productsFor(entries, InSubRun);
