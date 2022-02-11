@@ -202,7 +202,7 @@ namespace art {
   RootOutput::~RootOutput() = default;
 
   RootOutput::RootOutput(Parameters const& config)
-    : OutputModule{config().omConfig, config.get_PSet()}
+    : OutputModule{config().omConfig}
     , catalog_{config().catalog()}
     , dropAllSubRuns_{config().dropAllSubRuns()}
     , moduleLabel_{config.get_PSet().get<string>("module_label")}
@@ -284,20 +284,12 @@ namespace art {
       return;
     }
     auto const* rfb = dynamic_cast<RootFileBlock const*>(&fb);
-    bool fastCloneThisOne = fastCloningEnabled_ && rfb &&
-                            (rfb->tree() != nullptr) &&
-                            ((remainingEvents() < 0) ||
-                             (remainingEvents() >= rfb->tree()->GetEntries()));
-    if (fastCloningEnabled_ && !fastCloneThisOne) {
-      mf::LogWarning("FastCloning")
-        << "Fast cloning deactivated for this input file due to "
-        << "empty event tree and/or event limits.";
-    }
-    if (fastCloneThisOne && !rfb->fastClonable()) {
+    bool const fastCloneThisOne =
+      fastCloningEnabled_ && rfb && rfb->fastClonable();
+    if (!fastCloneThisOne) {
       mf::LogWarning("FastCloning")
         << "Fast cloning deactivated for this input file due to "
         << "information in FileBlock.";
-      fastCloneThisOne = false;
     }
     rootOutputFile_->beginInputFile(rfb, fastCloneThisOne);
     fstats_.recordInputFile(fb.fileName());
