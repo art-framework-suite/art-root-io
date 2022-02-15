@@ -31,7 +31,7 @@ extern "C" {
 
 #define ArraySize(X) ((int)(sizeof(X) / sizeof(X[0])))
 
-typedef sqlite_int64 i64;
+using i64 = sqlite_int64;
 
 #define _LARGE_FILE 1
 #define _FILE_OFFSET_BITS 64
@@ -116,7 +116,7 @@ struct unixFile {
   unsigned char dbUpdate;      /* True if any part of database file changed */
   unsigned char inNormalWrite; /* True if in a normal write operation */
 };
-typedef struct unixFile unixFile;
+struct unixFile;
 
 /*
 ** Define various macros that are missing from some systems.
@@ -135,10 +135,6 @@ typedef struct unixFile unixFile;
 #ifndef O_BINARY
 #define O_BINARY 0
 #endif
-
-#if 0  // F13
-typedef void (*sqlite3_syscall_ptr)(void);
-#endif // 0
 
 /* Function Directory */
 static int sqlite3CantopenError(int lineno);
@@ -364,7 +360,7 @@ static const sqlite3_io_methods* (*const nolockIoFinder)(const char*,
                                                          unixFile* p) =
   nolockIoFinderImpl;
 
-typedef const sqlite3_io_methods* (*finder_type)(const char*, unixFile*);
+using finder_type = const sqlite3_io_methods* (*)(const char*, unixFile*);
 
 /*
 **

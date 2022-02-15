@@ -2,16 +2,12 @@
 #define art_root_io_RootIOPolicy_h
 
 ////////////////////////////////////////////////////////////////////////
-// RootIOPolicy
-//
-// Fill in.
-//
+// RootIOPolicy for mixing operations
 ////////////////////////////////////////////////////////////////////////
 
 #include "art/Framework/IO/ProductMix/MixIOPolicy.h"
 #include "art_root_io/RootBranchInfoList.h"
 #include "canvas/Persistency/Provenance/FileFormatVersion.h"
-#include "cetlib/value_ptr.h"
 
 #include "TFile.h"
 
@@ -53,7 +49,7 @@ namespace art {
     SpecProdList readFromFile(MixOpBase const& mixOp,
                               EntryNumberSequence const& seq) override;
 
-    cet::value_ptr<TFile> currentFile_{};
+    std::unique_ptr<TFile> currentFile_{};
     cet::exempt_ptr<TTree> currentMetaDataTree_{nullptr};
     std::array<cet::exempt_ptr<TTree>, art::BranchType::NumBranchTypes>
       currentDataTrees_{{nullptr}};

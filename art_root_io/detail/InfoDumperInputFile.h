@@ -10,15 +10,9 @@
 #include "canvas/Persistency/Provenance/RunAuxiliary.h"
 
 #include "TFile.h"
-class Tree;
+class TTree;
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-typedef struct sqlite3 sqlite3;
-#ifdef __cplusplus
-}
-#endif
+struct sqlite3;
 
 #include <memory>
 #include <ostream>

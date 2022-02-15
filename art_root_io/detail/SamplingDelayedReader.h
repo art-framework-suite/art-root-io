@@ -15,13 +15,7 @@
 #include <memory>
 #include <string>
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-typedef struct sqlite3 sqlite3;
-#ifdef __cplusplus
-}
-#endif
+struct sqlite3;
 
 namespace art::detail {
 

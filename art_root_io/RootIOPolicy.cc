@@ -13,17 +13,17 @@
 
 namespace {
   std::array<cet::exempt_ptr<TTree>, art::NumBranchTypes>
-  initDataTrees(cet::value_ptr<TFile> const& currentFile)
+  initDataTrees(TFile& currentFile)
   {
     std::array<cet::exempt_ptr<TTree>, art::NumBranchTypes> result;
     for (auto bt = 0; bt != art::NumBranchTypes; ++bt) {
-      result[bt].reset(currentFile->Get<TTree>(
+      result[bt].reset(currentFile.Get<TTree>(
         art::rootNames::dataTreeName(static_cast<art::BranchType>(bt))
           .c_str()));
       if (result[bt].get() == nullptr and bt != art::InResults) {
         throw art::Exception(art::errors::FileReadError)
           << "Unable to read event tree from secondary event stream file "
-          << currentFile->GetName() << ".\n";
+          << currentFile.GetName() << ".\n";
       }
     }
     return result;
@@ -63,7 +63,7 @@ art::RootIOPolicy::openAndReadMetaData(std::string filename, MixOpList& mixOps)
       << "Unable to read meta data tree from secondary event stream file "
       << filename << ".\n";
   }
-  currentDataTrees_ = initDataTrees(currentFile_);
+  currentDataTrees_ = initDataTrees(*currentFile_);
   auto nevents = currentDataTrees_[InEvent]->GetEntries();
   if (nevents < 0) {
     throw Exception(errors::FileReadError)

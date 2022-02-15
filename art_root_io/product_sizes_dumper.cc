@@ -16,12 +16,11 @@
 #include <string>
 
 namespace bpo = boost::program_options;
-typedef std::vector<std::string> stringvec;
+using stringvec = std::vector<std::string>;
 
 int
 main(int argc, char** argv)
 {
-
   // Parse and validate command line arguments.
   // ------------------
   // use the boost command line option processing library to help out

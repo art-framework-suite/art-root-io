@@ -42,7 +42,7 @@ using std::ostream;
 using std::string;
 using std::vector;
 
-typedef vector<string> stringvec;
+using stringvec = vector<string>;
 
 enum class PsetType { MODULE, SERVICE, PROCESS };
 
