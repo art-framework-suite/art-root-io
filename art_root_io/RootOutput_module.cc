@@ -1,6 +1,5 @@
 // vim: set sw=2 expandtab :
 
-#include "art/Framework/Core/ModuleMacros.h"
 #include "art/Framework/Core/OutputModule.h"
 #include "art/Framework/Core/RPManager.h"
 #include "art/Framework/Core/ResultsProducer.h"

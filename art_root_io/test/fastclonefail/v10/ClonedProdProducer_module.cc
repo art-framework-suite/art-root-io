@@ -1,5 +1,4 @@
 #include "art/Framework/Core/EDProducer.h"
-#include "art/Framework/Core/ModuleMacros.h"
 #include "art/Framework/Principal/Event.h"
 #include "art_root_io/test/fastclonefail/v10/ClonedProd.h"
 
