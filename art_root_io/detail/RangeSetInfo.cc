@@ -1,6 +1,8 @@
 #include "art_root_io/detail/RangeSetInfo.h"
 #include "canvas/Persistency/Provenance/RangeSet.h"
 
+#include <algorithm>
+
 art::detail::RangeSetInfo::RangeSetInfo(RunNumber_t const r,
                                         std::vector<EventRange>&& ers)
   : run{r}, ranges{std::move(ers)}
