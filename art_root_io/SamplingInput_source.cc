@@ -73,24 +73,21 @@ namespace {
   std::unique_ptr<EDProduct>
   make_sampled_product(Products_t& read_products, BranchKey const& original_key)
   {
-    InputTag const tag{original_key.moduleLabel_,
-                       original_key.productInstanceName_,
-                       original_key.processName_};
-
     auto& datasets_with_product = read_products.at(original_key);
 
     auto const first_entry = begin(datasets_with_product);
     auto const& products = first_entry->second;
     assert(!products.empty());
 
+    InputTag const tag{original_key.moduleLabel_,
+                       original_key.productInstanceName_,
+                       original_key.processName_};
+
     auto sampled_product =
       cbegin(products)->second->createEmptySampledProduct(tag);
-    for (auto&& pr : datasets_with_product) {
-      auto const& dataset = pr.first;
-      auto&& products_per_id = std::move(pr.second);
-      for (auto&& pr2 : products_per_id) {
-        sampled_product->insertIfSampledProduct(
-          dataset, pr2.first, move(pr2.second));
+    for (auto&& [dataset, products_per_id] : datasets_with_product) {
+      for (auto&& [id, products] : products_per_id) {
+        sampled_product->insertIfSampledProduct(dataset, id, move(products));
       }
     }
     return sampled_product;
@@ -102,8 +99,8 @@ namespace {
     ProcessConfiguration const& pc)
   {
     auto processNames =
-      descriptions |
-      views::transform([](auto const& pr) { return pr.second.processName(); }) |
+      descriptions | views::values |
+      views::transform([](auto const& pd) { return pd.processName(); }) |
       to<std::set>();
 
     auto result = processNames | views::transform([&pc](auto const& name) {

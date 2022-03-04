@@ -118,7 +118,7 @@ namespace art {
     void skip(int offset);
 
     EventID seekToEvent(EventID const&, bool exact = false);
-    EventID seekToEvent(int offset, bool exact = false);
+    EventID seekToEvent(int offset);
 
     input::ItemType getNextItemType();
 

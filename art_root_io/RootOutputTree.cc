@@ -270,6 +270,7 @@ namespace art {
             (bytesWritten > saveMemoryObjectThreshold_)) {
           branch->FlushBaskets();
           branch->DropBaskets("all");
+          bytesWritten = 0;
         }
       }
     }

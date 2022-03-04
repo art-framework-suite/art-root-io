@@ -136,7 +136,7 @@ namespace art {
           << "Duplicate Events found: "
           << "both events were " << foundID << ".\n"
           << "The duplicate will be skipped.\n";
-        foundID = primaryFileSequence_.seekToEvent(1, false);
+        foundID = primaryFileSequence_.seekToEvent(1);
       }
     }
     accessState_.setWantedEventID(foundID);

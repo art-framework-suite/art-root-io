@@ -100,22 +100,6 @@ namespace {
 
 namespace art {
 
-  namespace detail {
-
-    void
-    mergeAuxiliary(RunAuxiliary& left, RunAuxiliary const& right)
-    {
-      left.mergeAuxiliary(right);
-    }
-
-    void
-    mergeAuxiliary(SubRunAuxiliary& left, SubRunAuxiliary const& right)
-    {
-      left.mergeAuxiliary(right);
-    }
-
-  } // namespace detail
-
   RootInputFile::RootInputTree::~RootInputTree() = default;
 
   RootInputFile::RootInputTree::RootInputTree(cet::exempt_ptr<TFile> filePtr,
@@ -480,22 +464,9 @@ namespace art {
     return std::make_unique<RootInputTree>(filePtr_.get(), bt, missingOK);
   }
 
+  template <typename ID>
   bool
-  RootInputFile::setEntry_Event(EventID const& id, bool exact /*= true*/)
-  {
-    fiIter_ = fileIndex_.findPosition(id, exact);
-    return fiIter_ != fiEnd_;
-  }
-
-  bool
-  RootInputFile::setEntry_SubRun(SubRunID const& id, bool exact /*= true*/)
-  {
-    fiIter_ = fileIndex_.findPosition(id, exact);
-    return fiIter_ != fiEnd_;
-  }
-
-  bool
-  RootInputFile::setEntry_Run(RunID const& id, bool exact /*= true*/)
+  RootInputFile::setEntry(ID const& id, bool const exact /*= true*/)
   {
     fiIter_ = fileIndex_.findPosition(id, exact);
     return fiIter_ != fiEnd_;
@@ -549,121 +520,47 @@ namespace art {
     return *treePointers_[InResults];
   }
 
-  void
-  RootInputFile::fillAuxiliary_Event(EntryNumber const entry)
+  template <typename Aux>
+  Aux
+  RootInputFile::getAuxiliary(EntryNumber const entry) const
   {
-    auto auxbr = treePointers_[InEvent]->auxBranch();
-    auto pAux = &eventAux_;
+    Aux result{};
+    auto auxbr = treePointers_[Aux::branch_type]->auxBranch();
+    auto pAux = &result;
     auxbr->SetAddress(&pAux);
     input::getEntry(auxbr, entry);
+    return result;
   }
 
-  void
-  RootInputFile::fillAuxiliary_SubRun(EntryNumber const entry)
+  detail::RangeSetInfo
+  RootInputFile::resolveInfo(BranchType const bt,
+                             unsigned const range_set_id) const
   {
-    auto auxbr = treePointers_[InSubRun]->auxBranch();
-    auto pAux = &subRunAux_;
-    auxbr->SetAddress(&pAux);
-    input::getEntry(auxbr, entry);
+    assert(sqliteDB_);
+    return detail::resolveRangeSetInfo(
+      *sqliteDB_, fileName_, bt, range_set_id, compactSubRunRanges_);
   }
 
-  void
-  RootInputFile::fillAuxiliary_Run(EntryNumber const entry)
+  template <typename Aux>
+  std::pair<Aux, std::unique_ptr<RangeSetHandler>>
+  RootInputFile::getAuxiliary(EntryNumbers const& entries) const
   {
-    auto auxbr = treePointers_[InRun]->auxBranch();
-    auto pAux = &runAux_;
-    auxbr->SetAddress(&pAux);
-    input::getEntry(auxbr, entry);
-  }
-
-  void
-  RootInputFile::fillAuxiliary_Results(EntryNumber const entry)
-  {
-    auto auxbr = treePointers_[InResults]->auxBranch();
-    auto pAux = &resultsAux_;
-    auxbr->SetAddress(&pAux);
-    input::getEntry(auxbr, entry);
-  }
-
-  std::pair<SubRunAuxiliary, std::unique_ptr<RangeSetHandler>>
-  RootInputFile::fillAuxiliary_SubRun(EntryNumbers const& entries)
-  {
-    SubRunAuxiliary auxResult{};
-    {
-      auto auxbr = treePointers_[InSubRun]->auxBranch();
-      auto pAux = &auxResult;
-      auxbr->SetAddress(&pAux);
-      input::getEntry(auxbr, entries[0]);
-    }
+    auto auxResult = getAuxiliary<Aux>(entries[0]);
     if (fileFormatVersion_.value_ < 9) {
-      return {auxResult,
+      return {std::move(auxResult),
               std::make_unique<OpenRangeSetHandler>(auxResult.run())};
     }
-    assert(sqliteDB_);
-    auto resolve_info = [this](auto const id) {
-      return detail::resolveRangeSetInfo(*sqliteDB_,
-                                         this->fileName_,
-                                         SubRunAuxiliary::branch_type,
-                                         id,
-                                         compactSubRunRanges_);
-    };
-    auto rangeSetInfo = resolve_info(auxResult.rangeSetID());
+
+    auto rangeSetInfo = resolveInfo(Aux::branch_type, auxResult.rangeSetID());
     for (auto i = entries.cbegin() + 1, e = entries.cend(); i != e; ++i) {
-      SubRunAuxiliary tmpAux{};
-      {
-        auto auxbr = treePointers_[InSubRun]->auxBranch();
-        auto pAux = &tmpAux;
-        auxbr->SetAddress(&pAux);
-        input::getEntry(auxbr, *i);
-      }
-      detail::mergeAuxiliary(auxResult, tmpAux);
-      rangeSetInfo.update(resolve_info(tmpAux.rangeSetID()),
+      auto tmpAux = getAuxiliary<Aux>(*i);
+      auxResult.mergeAuxiliary(tmpAux);
+      rangeSetInfo.update(resolveInfo(Aux::branch_type, tmpAux.rangeSetID()),
                           compactSubRunRanges_);
     }
     auxResult.setRangeSetID(-1u); // Range set of new auxiliary is invalid
     return {
-      auxResult,
-      std::make_unique<ClosedRangeSetHandler>(resolveRangeSet(rangeSetInfo))};
-  }
-
-  std::pair<RunAuxiliary, std::unique_ptr<RangeSetHandler>>
-  RootInputFile::fillAuxiliary_Run(EntryNumbers const& entries)
-  {
-    RunAuxiliary auxResult{};
-    {
-      auto auxbr = treePointers_[InRun]->auxBranch();
-      auto pAux = &auxResult;
-      auxbr->SetAddress(&pAux);
-      input::getEntry(auxbr, entries[0]);
-    }
-    if (fileFormatVersion_.value_ < 9) {
-      return {auxResult,
-              std::make_unique<OpenRangeSetHandler>(auxResult.run())};
-    }
-    assert(sqliteDB_);
-    auto resolve_info = [this](auto const id) {
-      return detail::resolveRangeSetInfo(*sqliteDB_,
-                                         this->fileName_,
-                                         RunAuxiliary::branch_type,
-                                         id,
-                                         compactSubRunRanges_);
-    };
-    auto rangeSetInfo = resolve_info(auxResult.rangeSetID());
-    for (auto i = entries.cbegin() + 1, e = entries.cend(); i != e; ++i) {
-      RunAuxiliary tmpAux{};
-      {
-        auto auxbr = treePointers_[InRun]->auxBranch();
-        auto pAux = &tmpAux;
-        auxbr->SetAddress(&pAux);
-        input::getEntry(auxbr, *i);
-      }
-      detail::mergeAuxiliary(auxResult, tmpAux);
-      rangeSetInfo.update(resolve_info(tmpAux.rangeSetID()),
-                          compactSubRunRanges_);
-    }
-    auxResult.setRangeSetID(-1u); // Range set of new auxiliary is invalid
-    return {
-      auxResult,
+      std::move(auxResult),
       std::make_unique<ClosedRangeSetHandler>(resolveRangeSet(rangeSetInfo))};
   }
 
@@ -671,18 +568,6 @@ namespace art {
   RootInputFile::fileName() const
   {
     return fileName_;
-  }
-
-  RootInputFile::RootInputTreePtrArray&
-  RootInputFile::treePointers()
-  {
-    return treePointers_;
-  }
-
-  FileFormatVersion
-  RootInputFile::fileFormatVersion() const
-  {
-    return fileFormatVersion_;
   }
 
   bool
@@ -1024,28 +909,23 @@ namespace art {
   std::unique_ptr<EventPrincipal>
   RootInputFile::readEventWithID(EventID const& eventID)
   {
-    if (fiIter_ == fiEnd_ and not setEntry_Event(eventID)) {
+    if (fiIter_ == fiEnd_ and not setEntry(eventID)) {
       return nullptr;
     }
 
-    if (eventID != fiIter_->eventID and not setEntry_Event(eventID)) {
+    if (eventID != fiIter_->eventID and not setEntry(eventID)) {
       return nullptr;
     }
 
     auto const [entryNumbers, lastInSubRun] = getEntryNumbers(InEvent);
-    assert(entryNumbers.size() == 1ull);
-    fillAuxiliary_Event(entryNumbers.front());
+    assert(size(entryNumbers) == 1ull);
 
-    // Older file versions have process history IDs stored in the History tree.
-    if (fileFormatVersion_.value_ < 15) {
-      auto history = std::make_unique<History>();
-      fillHistory(entryNumbers.front(), *history);
-      eventAux_.setProcessHistoryID(history->processHistoryID());
-    }
-    overrideRunNumber(const_cast<EventID&>(eventAux_.eventID()),
-                      eventAux_.isRealData());
+    auto const entry = entryNumbers[0];
+    auto orig_event_aux = getAuxiliary<EventAuxiliary>(entry);
+    auto event_aux = overrideAuxiliary(std::move(orig_event_aux), entry);
+
     auto ep = std::make_unique<EventPrincipal>(
-      eventAux_,
+      event_aux,
       processConfiguration_,
       &presentProducts_.get(InEvent),
       std::make_unique<RootDelayedReader>(fileFormatVersion_,
@@ -1057,7 +937,7 @@ namespace art {
                                           readFromSecondaryFile_,
                                           branchIDLists_.get(),
                                           InEvent,
-                                          eventAux_.eventID(),
+                                          event_aux.eventID(),
                                           compactSubRunRanges_),
       lastInSubRun);
     if (!delayedReadEventProducts_) {
@@ -1081,11 +961,11 @@ namespace art {
   std::unique_ptr<RunPrincipal>
   RootInputFile::readRunWithID(RunID const id, bool const thenAdvanceToNextRun)
   {
-    if (fiIter_ == fiEnd_ and not setEntry_Run(id)) {
+    if (fiIter_ == fiEnd_ and not setEntry(id)) {
       return nullptr;
     }
 
-    if (fiIter_->eventID.runID() != id and not setEntry_Run(id)) {
+    if (fiIter_->eventID.runID() != id and not setEntry(id)) {
       return nullptr;
     }
 
@@ -1094,24 +974,13 @@ namespace art {
     assert(fiIter_->eventID.runID().isValid());
 
     auto const entryNumbers = getEntryNumbers(InRun).first;
-    auto&& [auxiliary, rs] = fillAuxiliary_Run(entryNumbers);
+    auto&& [orig_auxiliary, rs] = getAuxiliary<RunAuxiliary>(entryNumbers);
     runRangeSetHandler_ = move(rs);
-    assert(auxiliary.id() == fiIter_->eventID.runID());
-    overrideRunNumber(auxiliary);
-    runAux_ = auxiliary;
+    assert(orig_auxiliary.id() == fiIter_->eventID.runID());
 
-    if (auxiliary.beginTime() == Timestamp::invalidTimestamp()) {
-      // RunAuxiliary did not contain a valid timestamp.  Take it from
-      // the next event, if there is one.
-      if (auto const entry = next_event(fiIter_, fiEnd_);
-          entry != FileIndex::Element::invalid) {
-        fillAuxiliary_Event(entry);
-      }
-      auxiliary.beginTime(eventAux_.time());
-      auxiliary.endTime(Timestamp::invalidTimestamp());
-    }
+    auto run_aux = overrideAuxiliary(std::move(orig_auxiliary));
     auto rp = std::make_unique<RunPrincipal>(
-      runAux_,
+      run_aux,
       processConfiguration_,
       &presentProducts_.get(InRun),
       std::make_unique<RootDelayedReader>(fileFormatVersion_,
@@ -1150,11 +1019,11 @@ namespace art {
   RootInputFile::readSubRunWithID(SubRunID const id,
                                   bool const thenAdvanceToNextSubRun)
   {
-    if (fiIter_ == fiEnd_ and not setEntry_SubRun(id)) {
+    if (fiIter_ == fiEnd_ and not setEntry(id)) {
       return nullptr;
     }
 
-    if (fiIter_->eventID.subRunID() != id and not setEntry_SubRun(id)) {
+    if (fiIter_->eventID.subRunID() != id and not setEntry(id)) {
       return nullptr;
     }
 
@@ -1162,24 +1031,13 @@ namespace art {
     assert(fiIter_->getEntryType() == FileIndex::kSubRun);
 
     auto const entryNumbers = getEntryNumbers(InSubRun).first;
-    auto&& [auxiliary, rs] = fillAuxiliary_SubRun(entryNumbers);
+    auto&& [orig_auxiliary, rs] = getAuxiliary<SubRunAuxiliary>(entryNumbers);
     subRunRangeSetHandler_ = move(rs);
-    assert(auxiliary.id() == fiIter_->eventID.subRunID());
-    overrideRunNumber(auxiliary.id_);
-    subRunAux_ = auxiliary;
+    assert(orig_auxiliary.id() == fiIter_->eventID.subRunID());
 
-    if (auxiliary.beginTime() == Timestamp::invalidTimestamp()) {
-      // SubRunAuxiliary did not contain a valid timestamp.  Take it
-      // from the next event, if there is one.
-      if (auto const entry = next_event(fiIter_, fiEnd_);
-          entry != FileIndex::Element::invalid) {
-        fillAuxiliary_Event(entry);
-      }
-      auxiliary.beginTime_ = eventAux_.time();
-      auxiliary.endTime_ = Timestamp::invalidTimestamp();
-    }
+    auto subrun_aux = overrideAuxiliary(std::move(orig_auxiliary));
     auto srp = std::make_unique<SubRunPrincipal>(
-      auxiliary,
+      subrun_aux,
       processConfiguration_,
       &presentProducts_.get(InSubRun),
       std::make_unique<RootDelayedReader>(
@@ -1203,30 +1061,33 @@ namespace art {
     return srp;
   }
 
-  void
-  RootInputFile::overrideRunNumber(RunAuxiliary& aux)
+  RunID
+  RootInputFile::overrideRunNumber(RunID const id) const
   {
     if (forcedRunOffset_ != 0) {
-      aux.runID(RunID(aux.run() + forcedRunOffset_));
+      return RunID(id.run() + forcedRunOffset_);
     }
-    if (aux.runID() < RunID::firstRun()) {
-      aux.runID(RunID::firstRun());
+    if (id < RunID::firstRun()) {
+      return RunID::firstRun();
     }
+    return id;
   }
 
-  void
-  RootInputFile::overrideRunNumber(SubRunID& id)
+  SubRunID
+  RootInputFile::overrideRunNumber(SubRunID const& id) const
   {
     if (forcedRunOffset_ != 0) {
-      id = SubRunID(id.run() + forcedRunOffset_, id.subRun());
+      return SubRunID(id.run() + forcedRunOffset_, id.subRun());
     }
+    return id;
   }
 
-  void
-  RootInputFile::overrideRunNumber(EventID& id, bool isRealData)
+  EventID
+  RootInputFile::overrideRunNumber(EventID const& id,
+                                   bool const isRealData) const
   {
     if (forcedRunOffset_ == 0) {
-      return;
+      return id;
     }
     if (isRealData) {
       throw Exception{errors::Configuration,
@@ -1234,7 +1095,40 @@ namespace art {
         << "The 'setRunNumber' parameter of RootInput cannot "
         << "be used with real data.\n";
     }
-    id = EventID(id.run() + forcedRunOffset_, id.subRun(), id.event());
+    return EventID(id.run() + forcedRunOffset_, id.subRun(), id.event());
+  }
+
+  EventAuxiliary
+  RootInputFile::overrideAuxiliary(EventAuxiliary event_aux,
+                                   EntryNumber const entry)
+  {
+    // Older file versions have process history IDs stored in the History tree.
+    if (fileFormatVersion_.value_ < 15) {
+      auto history = std::make_unique<History>();
+      fillHistory(entry, *history);
+      event_aux.setProcessHistoryID(history->processHistoryID());
+    }
+    auto const new_event_id =
+      overrideRunNumber(event_aux.eventID(), event_aux.isRealData());
+    return event_aux.duplicateWith(new_event_id);
+  }
+
+  template <typename Aux>
+  Aux
+  RootInputFile::overrideAuxiliary(Aux auxiliary) const
+  {
+    if (auxiliary.beginTime() == Timestamp::invalidTimestamp()) {
+      // The auxiliary did not contain a valid timestamp.  Take it
+      // from the next event, if there is one.
+      if (auto const entry = next_event(fiIter_, fiEnd_);
+          entry != FileIndex::Element::invalid) {
+        auto const next_event_aux = getAuxiliary<EventAuxiliary>(entry);
+        auxiliary.beginTime_ = next_event_aux.time();
+      }
+      auxiliary.endTime_ = Timestamp::invalidTimestamp();
+    }
+    auxiliary.id_ = overrideRunNumber(auxiliary.id());
+    return auxiliary;
   }
 
   void
@@ -1263,10 +1157,10 @@ namespace art {
       return;
     }
     if (eventTree().nEntries()) {
-      // FIXME: We don't initialize the duplicate checker if there are no
-      // events!
-      fillAuxiliary_Event(0);
-      duplicateChecker_->init(eventAux_.isRealData(), fileIndex_);
+      // FIXME: We don't initialize the duplicate checker if there are
+      // no events!
+      auto event_aux = getAuxiliary<EventAuxiliary>(0);
+      duplicateChecker_->init(event_aux.isRealData(), fileIndex_);
     }
   }
 
@@ -1350,12 +1244,9 @@ namespace art {
         ResultsAuxiliary{}, processConfiguration_, nullptr);
     }
 
-    EntryNumbers const entryNumbers{
-      0}; // FIXME: Not sure hard-coding 0 is the right thing to do.
-    assert(entryNumbers.size() == 1ull);
-    fillAuxiliary_Results(entryNumbers.front());
+    EntryNumbers const entryNumbers{0};
     return std::make_unique<ResultsPrincipal>(
-      resultsAux_,
+      getAuxiliary<ResultsAuxiliary>(entryNumbers.front()),
       processConfiguration_,
       &presentProducts_.get(InResults),
       std::make_unique<RootDelayedReader>(

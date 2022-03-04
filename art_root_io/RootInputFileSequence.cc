@@ -227,7 +227,7 @@ namespace art {
   {
     assert(rootFile_);
     // Attempt to find event in currently open input file.
-    if (rootFile_->setEntry_Event(eID, true)) {
+    if (rootFile_->setEntry(eID, true)) {
       // found in the current file
       return rootFile_->eventIDForFileIndexPosition();
     }
@@ -249,8 +249,7 @@ namespace art {
         catalog_.rewindTo(std::distance(itBegin, it));
         rootFile_ = initFile();
         // Now get the event from the correct file.
-        bool const found [[maybe_unused]] =
-          rootFile_->setEntry_Event(eID, exact);
+        bool const found [[maybe_unused]] = rootFile_->setEntry(eID, exact);
         assert(found);
         break;
       }
@@ -259,7 +258,7 @@ namespace art {
     // Look for event in files not yet opened.
     while (catalog_.getNextFile()) {
       rootFile_ = initFile();
-      if (rootFile_->setEntry_Event(eID, exact)) {
+      if (rootFile_->setEntry(eID, exact)) {
         return rootFile_->eventIDForFileIndexPosition();
       }
     }
@@ -268,7 +267,7 @@ namespace art {
   }
 
   EventID
-  RootInputFileSequence::seekToEvent(int offset, bool)
+  RootInputFileSequence::seekToEvent(int offset)
   {
     assert(rootFile_);
     skip(offset);
@@ -559,7 +558,7 @@ namespace art {
   RootInputFileSequence::readIt(EventID const& id, bool exact)
   {
     // Attempt to find event in currently open input file.
-    if (rootFile_->setEntry_Event(id, exact)) {
+    if (rootFile_->setEntry(id, exact)) {
       rootFileForLastReadEvent_ = rootFile_;
       return;
     }
@@ -576,8 +575,7 @@ namespace art {
         // We found it. Close the currently open file, and open the correct one.
         catalog_.rewindTo(std::distance(IB, I));
         rootFile_ = initFile();
-        bool const found [[maybe_unused]] =
-          rootFile_->setEntry_Event(id, exact);
+        bool const found [[maybe_unused]] = rootFile_->setEntry(id, exact);
         assert(found);
         rootFileForLastReadEvent_ = rootFile_;
         return;
@@ -587,7 +585,7 @@ namespace art {
     // Look for event in files not yet opened.
     while (catalog_.getNextFile()) {
       rootFile_ = initFile();
-      if (rootFile_->setEntry_Event(id, exact)) {
+      if (rootFile_->setEntry(id, exact)) {
         rootFileForLastReadEvent_ = rootFile_;
         return;
       }
@@ -631,7 +629,7 @@ namespace art {
   RootInputFileSequence::readIt(SubRunID const& id)
   {
     // Attempt to find subRun in currently open input file.
-    if (rootFile_->setEntry_SubRun(id)) {
+    if (rootFile_->setEntry(id)) {
       return;
     }
     if (!catalog_.isSearchable()) {
@@ -647,7 +645,7 @@ namespace art {
         // We found it. Close the currently open file, and open the correct one.
         catalog_.rewindTo(std::distance(itBegin, it));
         rootFile_ = initFile();
-        bool const found [[maybe_unused]] = rootFile_->setEntry_SubRun(id);
+        bool const found [[maybe_unused]] = rootFile_->setEntry(id);
         assert(found);
         return;
       }
@@ -655,7 +653,7 @@ namespace art {
     // Look for subRun in files not yet opened.
     while (catalog_.getNextFile()) {
       rootFile_ = initFile();
-      if (rootFile_->setEntry_SubRun(id)) {
+      if (rootFile_->setEntry(id)) {
         return;
       }
     }
@@ -673,7 +671,7 @@ namespace art {
   RootInputFileSequence::readIt(RunID const& id)
   {
     // Attempt to find run in current file.
-    if (rootFile_->setEntry_Run(id)) {
+    if (rootFile_->setEntry(id)) {
       // Got it, done.
       return;
     }
@@ -688,7 +686,7 @@ namespace art {
         // We found it, open the file.
         catalog_.rewindTo(std::distance(B, I));
         rootFile_ = initFile();
-        bool const found [[maybe_unused]] = rootFile_->setEntry_Run(id);
+        bool const found [[maybe_unused]] = rootFile_->setEntry(id);
         assert(found);
         return;
       }
@@ -696,7 +694,7 @@ namespace art {
     // Look for run in files not yet opened.
     while (catalog_.getNextFile()) {
       rootFile_ = initFile();
-      if (rootFile_->setEntry_Run(id)) {
+      if (rootFile_->setEntry(id)) {
         return;
       }
     }

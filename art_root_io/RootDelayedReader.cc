@@ -181,9 +181,8 @@ namespace art {
       // Not a run or subrun product, all done.
       return result;
     }
-    //
-    //  Retrieve and combine multiple Run/SubRun products as needed (this is
-    //  aggregation!).
+
+    // Retrieve and aggregate multiple Run/SubRun products as needed
     //
     // Products from files that did not support RangeSets are
     // assigned RangeSets that correspond to the entire run/subrun.

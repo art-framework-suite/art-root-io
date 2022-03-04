@@ -32,14 +32,12 @@ class TTree;
 class TBranch;
 
 namespace art {
-  namespace detail {
-    void mergeAuxiliary(RunAuxiliary& left, RunAuxiliary const& right);
-    void mergeAuxiliary(SubRunAuxiliary& left, SubRunAuxiliary const& right);
-  } // namespace detail
-
   class BranchChildren;
   class DuplicateChecker;
   class GroupSelectorRules;
+  namespace detail {
+    struct RangeSetInfo;
+  }
 
   class RootInputFile {
     class RootInputTree {
@@ -126,13 +124,12 @@ namespace art {
     std::unique_ptr<EventPrincipal> readEventWithID(EventID const& id);
 
     std::string const& fileName() const;
-    RootInputTreePtrArray& treePointers();
-    FileFormatVersion fileFormatVersion() const;
     bool fastClonable() const;
     std::unique_ptr<FileBlock> createFileBlock();
-    bool setEntry_Event(EventID const& id, bool exact = true);
-    bool setEntry_SubRun(SubRunID const& id, bool exact = true);
-    bool setEntry_Run(RunID const& id, bool exact = true);
+
+    template <typename ID>
+    bool setEntry(ID const& id, bool exact = true);
+
     void setToLastEntry();
     void nextEntry();
     void previousEntry();
@@ -161,17 +158,24 @@ namespace art {
     bool setIfFastClonable() const;
     void validateFile();
     void fillHistory(EntryNumber entry, History&);
-    void fillAuxiliary_Event(EntryNumber entry);
-    void fillAuxiliary_SubRun(EntryNumber entry);
-    void fillAuxiliary_Run(EntryNumber entry);
-    void fillAuxiliary_Results(EntryNumber entry);
-    std::pair<SubRunAuxiliary, std::unique_ptr<RangeSetHandler>>
-    fillAuxiliary_SubRun(EntryNumbers const& entries);
-    std::pair<RunAuxiliary, std::unique_ptr<RangeSetHandler>> fillAuxiliary_Run(
-      EntryNumbers const& entries);
-    void overrideRunNumber(RunAuxiliary&);
-    void overrideRunNumber(SubRunID& id);
-    void overrideRunNumber(EventID& id, bool isRealData);
+
+    template <typename Aux>
+    Aux getAuxiliary(EntryNumber entry) const;
+
+    template <typename Aux>
+    std::pair<Aux, std::unique_ptr<RangeSetHandler>> getAuxiliary(
+      EntryNumbers const& entries) const;
+
+    detail::RangeSetInfo resolveInfo(BranchType bt, unsigned rangeSetID) const;
+
+    RunID overrideRunNumber(RunID id) const;
+    SubRunID overrideRunNumber(SubRunID const& id) const;
+    EventID overrideRunNumber(EventID const& id, bool isRealData) const;
+
+    template <typename Aux>
+    Aux overrideAuxiliary(Aux auxiliary) const;
+    EventAuxiliary overrideAuxiliary(EventAuxiliary aux, EntryNumber entry);
+
     void dropOnInput(GroupSelectorRules const& rules,
                      BranchChildren const& branchChildren,
                      bool dropDescendants,
@@ -206,18 +210,13 @@ namespace art {
     FileIndex::const_iterator fiEnd_{fileIndex_.end()};
     FileIndex::const_iterator fiIter_{fiBegin_};
     bool fastClonable_{false};
-    EventAuxiliary eventAux_{};
-    SubRunAuxiliary subRunAux_{};
-    RunAuxiliary runAux_{};
-    ResultsAuxiliary resultsAux_{};
     ProductTables presentProducts_{ProductTables::invalid()};
     std::unique_ptr<BranchIDLists> branchIDLists_{};
     TTree* eventHistoryTree_{nullptr};
     // We need to add the secondary principals to the primary
-    // principal when they are delay read, so we need to keep
-    // around a pointer to the primary.  Note that these are
-    // always used in a situation where we are guaranteed that
-    // primary exists.
+    // principal when they are delay read, so we need to keep around a
+    // pointer to the primary.  Note that these are always used in a
+    // situation where we are guaranteed that primary exists.
     cet::exempt_ptr<EventPrincipal> primaryEP_{};
     cet::exempt_ptr<RunPrincipal> primaryRP_{};
     cet::exempt_ptr<SubRunPrincipal> primarySRP_{};
