@@ -243,7 +243,6 @@ namespace art {
     bool const delayedReadSubRunProducts,
     bool const delayedReadRunProducts,
     ProcessingLimits const& limits,
-    int const forcedRunOffset,
     bool const noEventSort,
     GroupSelectorRules const& groupSelectorRules,
     bool const dropDescendants,
@@ -265,7 +264,6 @@ namespace art {
     , delayedReadSubRunProducts_{delayedReadSubRunProducts}
     , delayedReadRunProducts_{delayedReadRunProducts}
     , processingLimits_{limits}
-    , forcedRunOffset_{forcedRunOffset}
     , noEventSort_{noEventSort}
     , readFromSecondaryFile_{openSecondaryFile}
     , duplicateChecker_{duplicateChecker}
@@ -688,9 +686,6 @@ namespace art {
         InputSource::RunsSubRunsAndEvents) {
       return false;
     }
-    if (forcedRunOffset_ != 0) {
-      return false;
-    }
     // Find entry for first event in file.
     auto it = fiBegin_;
     while ((it != fiEnd_) && (it->getEntryType() != FileIndex::kEvent)) {
@@ -703,23 +698,6 @@ namespace art {
       return false;
     }
     return true;
-  }
-
-  int
-  RootInputFile::setForcedRunOffset(RunNumber_t const& forcedRunNumber)
-  {
-    if (fiBegin_ == fiEnd_) {
-      return 0;
-    }
-    forcedRunOffset_ = 0;
-    if (!RunID(forcedRunNumber).isValid()) {
-      return 0;
-    }
-    forcedRunOffset_ = forcedRunNumber - fiBegin_->eventID.run();
-    if (forcedRunOffset_ != 0) {
-      fastClonable_ = false;
-    }
-    return forcedRunOffset_;
   }
 
   std::unique_ptr<FileBlock>
@@ -900,7 +878,7 @@ namespace art {
 
     auto ep = readEventWithID(fiIter_->eventID);
     assert(ep);
-    assert(ep->run() == fiIter_->eventID.run() + forcedRunOffset_);
+    assert(ep->run() == fiIter_->eventID.run());
     assert(ep->eventID().subRunID() == fiIter_->eventID.subRunID());
     nextEntry();
     return ep;
@@ -1061,43 +1039,6 @@ namespace art {
     return srp;
   }
 
-  RunID
-  RootInputFile::overrideRunNumber(RunID const id) const
-  {
-    if (forcedRunOffset_ != 0) {
-      return RunID(id.run() + forcedRunOffset_);
-    }
-    if (id < RunID::firstRun()) {
-      return RunID::firstRun();
-    }
-    return id;
-  }
-
-  SubRunID
-  RootInputFile::overrideRunNumber(SubRunID const& id) const
-  {
-    if (forcedRunOffset_ != 0) {
-      return SubRunID(id.run() + forcedRunOffset_, id.subRun());
-    }
-    return id;
-  }
-
-  EventID
-  RootInputFile::overrideRunNumber(EventID const& id,
-                                   bool const isRealData) const
-  {
-    if (forcedRunOffset_ == 0) {
-      return id;
-    }
-    if (isRealData) {
-      throw Exception{errors::Configuration,
-                      "RootInputFile::overrideRunNumber()"}
-        << "The 'setRunNumber' parameter of RootInput cannot "
-        << "be used with real data.\n";
-    }
-    return EventID(id.run() + forcedRunOffset_, id.subRun(), id.event());
-  }
-
   EventAuxiliary
   RootInputFile::overrideAuxiliary(EventAuxiliary event_aux,
                                    EntryNumber const entry)
@@ -1108,9 +1049,7 @@ namespace art {
       fillHistory(entry, *history);
       event_aux.setProcessHistoryID(history->processHistoryID());
     }
-    auto const new_event_id =
-      overrideRunNumber(event_aux.eventID(), event_aux.isRealData());
-    return event_aux.duplicateWith(new_event_id);
+    return event_aux;
   }
 
   template <typename Aux>

@@ -82,7 +82,6 @@ namespace art {
       OptionalAtom<RunNumber_t> hasFirstRun{Name("firstRun")};
       OptionalAtom<SubRunNumber_t> hasFirstSubRun{Name("firstSubRun")};
       OptionalAtom<EventNumber_t> hasFirstEvent{Name("firstEvent")};
-      OptionalAtom<RunNumber_t> setRunNumber{Name("setRunNumber")};
       Atom<bool> compactSubRunRanges{
         Name("compactEventRanges"),
         Comment(
@@ -181,7 +180,6 @@ namespace art {
     bool const delayedReadEventProducts_;
     bool const delayedReadSubRunProducts_;
     bool const delayedReadRunProducts_;
-    int forcedRunOffset_{};
     GroupSelectorRules groupSelectorRules_;
     std::shared_ptr<DuplicateChecker> duplicateChecker_{nullptr};
     bool const dropDescendants_;

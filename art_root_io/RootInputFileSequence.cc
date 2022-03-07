@@ -178,30 +178,6 @@ namespace art {
       // We could not open any input files, stop.
       return;
     }
-    RunNumber_t setRun;
-    if (config().setRunNumber(setRun)) {
-      try {
-        forcedRunOffset_ = rootFile_->setForcedRunOffset(setRun);
-      }
-      catch (Exception& e) {
-        if (e.categoryCode() == errors::InvalidNumber) {
-          throw Exception(errors::Configuration)
-            << "setRunNumber " << setRun
-            << " does not correspond to a valid run number in ["
-            << RunID::firstRun().run() << ", " << RunID::maxRun().run()
-            << "]\n";
-        } else {
-          throw; // Rethrow.
-        }
-      }
-      if (forcedRunOffset_ < 0) {
-        throw Exception(errors::Configuration)
-          << "The value of the 'setRunNumber' parameter must not be\n"
-          << "less than the first run number in the first input file.\n"
-          << "'setRunNumber' was " << setRun << ", while the first run was "
-          << setRun - forcedRunOffset_ << ".\n";
-      }
-    }
     if (!readParameterSets_) {
       mf::LogWarning("PROVENANCE")
         << "Source parameter readParameterSets was set to false: parameter set "
@@ -392,7 +368,6 @@ namespace art {
                                              delayedReadSubRunProducts_,
                                              delayedReadRunProducts_,
                                              processingLimits_,
-                                             forcedRunOffset_,
                                              noEventSort_,
                                              groupSelectorRules_,
                                              dropDescendants_,
@@ -449,7 +424,6 @@ namespace art {
                                            delayedReadSubRunProducts_,
                                            delayedReadRunProducts_,
                                            processingLimits_,
-                                           forcedRunOffset_,
                                            noEventSort_,
                                            groupSelectorRules_,
                                            dropDescendants_,

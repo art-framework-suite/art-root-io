@@ -96,7 +96,6 @@ namespace art {
                   bool delayedReadSubRunProducts,
                   bool delayedReadRunProducts,
                   ProcessingLimits const& limits,
-                  int forcedRunOffset,
                   bool noEventSort,
                   GroupSelectorRules const& groupSelectorRules,
                   bool dropDescendantsOfDroppedProducts,
@@ -136,7 +135,6 @@ namespace art {
     void advanceEntry(std::size_t n);
     unsigned eventsToSkip() const;
     int skipEvents(int offset);
-    int setForcedRunOffset(RunNumber_t const& forcedRunNumber);
     FileIndex::EntryType getEntryType() const;
     FileIndex::EntryType getNextEntryTypeWanted();
     std::shared_ptr<FileIndex> fileIndexSharedPtr() const;
@@ -168,10 +166,6 @@ namespace art {
 
     detail::RangeSetInfo resolveInfo(BranchType bt, unsigned rangeSetID) const;
 
-    RunID overrideRunNumber(RunID id) const;
-    SubRunID overrideRunNumber(SubRunID const& id) const;
-    EventID overrideRunNumber(EventID const& id, bool isRealData) const;
-
     template <typename Aux>
     Aux overrideAuxiliary(Aux auxiliary) const;
     EventAuxiliary overrideAuxiliary(EventAuxiliary aux, EntryNumber entry);
@@ -198,7 +192,6 @@ namespace art {
     bool delayedReadSubRunProducts_;
     bool delayedReadRunProducts_;
     ProcessingLimits const& processingLimits_;
-    int forcedRunOffset_;
     bool noEventSort_;
     secondary_reader_t readFromSecondaryFile_;
     std::shared_ptr<DuplicateChecker> duplicateChecker_;
