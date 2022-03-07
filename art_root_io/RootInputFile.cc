@@ -1062,11 +1062,9 @@ namespace art {
       if (auto const entry = next_event(fiIter_, fiEnd_);
           entry != FileIndex::Element::invalid) {
         auto const next_event_aux = getAuxiliary<EventAuxiliary>(entry);
-        auxiliary.beginTime_ = next_event_aux.time();
+        return auxiliary.duplicateWith(next_event_aux.time());
       }
-      auxiliary.endTime_ = Timestamp::invalidTimestamp();
     }
-    auxiliary.id_ = overrideRunNumber(auxiliary.id());
     return auxiliary;
   }
 
