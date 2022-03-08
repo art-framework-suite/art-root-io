@@ -18,27 +18,26 @@
 #include <limits>
 #include <string>
 
-using namespace cet;
-using namespace std;
-
 namespace art {
 
   TTree*
-  RootOutputTree::makeTTree(TFile* filePtr, string const& name, int splitLevel)
+  RootOutputTree::makeTTree(TFile* filePtr,
+                            std::string const& name,
+                            int const splitLevel)
   {
     TTree* tree = new TTree(name.c_str(), "", splitLevel);
     if (!tree) {
-      throw art::Exception(art::errors::FatalRootError)
+      throw Exception{errors::FatalRootError}
         << "Failed to create the tree: " << name << "\n";
     }
     if (tree->IsZombie()) {
-      throw art::Exception(art::errors::FatalRootError)
-        << "Tree: " << name << " is a zombie.\n";
+      throw Exception{errors::FatalRootError} << "Tree: " << name
+                                              << " is a zombie.\n";
     }
     tree->SetDirectory(filePtr);
     // Turn off autosave because it leaves too many deleted tree
     // keys in the output file.
-    tree->SetAutoSave(numeric_limits<Long64_t>::max());
+    tree->SetAutoSave(std::numeric_limits<Long64_t>::max());
     return tree;
   }
 
@@ -73,14 +72,14 @@ namespace art {
   void
   RootOutputTree::writeTTree(TTree* tree) noexcept(false)
   {
-    // Update the tree-level entry count because we have been
-    // using branch fill instead of tree fill.
+    // Update the tree-level entry count because we have been using
+    // branch fill instead of tree fill.
     if (tree->GetNbranches() != 0) {
       tree->SetEntries(-1);
     }
-    // Use auto save here instead of write because it deletes
-    // the old tree key from the file, does not flush the
-    // baskets, and writes out the streamer infos, unlike write.
+    // Use auto save here instead of write because it deletes the old
+    // tree key from the file, does not flush the baskets, and writes
+    // out the streamer infos, unlike write.
     tree->AutoSave();
   }
 
@@ -102,7 +101,19 @@ namespace art {
 
     bool cloned{false};
     if (intree->GetEntries() != 0) {
-      TTreeCloner cloner(const_cast<TTree*>(intree.get()),
+      auto event_tree = const_cast<TTree*>(intree.get());
+
+      // Remove EventAuxiliary branches from fast cloning so we can
+      // update the stored ProcessHistoryID.
+      auto branches = event_tree->GetListOfBranches();
+      auto aux_branch = event_tree->GetBranch("EventAuxiliary");
+      assert(aux_branch);
+      auto const aux_index = branches->IndexOf(aux_branch);
+      assert(aux_index >= 0);
+      branches->RemoveAt(aux_index);
+      branches->Compress();
+
+      TTreeCloner cloner(event_tree,
                          tree_.load(),
                          "",
                          TTreeCloner::kIgnoreMissingTopLevel |
@@ -121,6 +132,18 @@ namespace art {
           << "INFO: " << cloner.GetWarning() << '\n'
           << "INFO: Processing will continue, tree will be slow cloned.";
       }
+
+      // Add EventAuxiliary branch back
+      auto last = branches->GetLast();
+      if (last >= 0) {
+        branches->AddAtAndExpand(branches->At(last), last + 1);
+        for (Int_t ind = last - 1; ind >= aux_index; --ind) {
+          branches->AddAt(branches->At(ind), ind + 1);
+        }
+        branches->AddAt(aux_branch, aux_index);
+      } else {
+        branches->Add(aux_branch);
+      }
     }
     for (auto branch : readBranches_) {
       if (branch->GetEntries() != tree_.load()->GetEntries()) {
@@ -132,17 +155,18 @@ namespace art {
     return cloned;
   }
 
-  static void
-  fillTreeBranches(TTree*,
-                   vector<TBranch*> const& branches,
-                   bool saveMemory,
-                   int64_t threshold)
-  {
-    for (auto const b : branches) {
-      auto bytesWritten = b->Fill();
-      if (saveMemory && (bytesWritten > threshold)) {
-        b->FlushBaskets();
-        b->DropBaskets("all");
+  namespace {
+    void
+    fillBranches(std::vector<TBranch*> const& branches,
+                 bool const saveMemory,
+                 int64_t const threshold)
+    {
+      for (auto const b : branches) {
+        auto bytesWritten = b->Fill();
+        if (saveMemory and bytesWritten > threshold) {
+          b->FlushBaskets();
+          b->DropBaskets("all");
+        }
       }
     }
   }
@@ -150,25 +174,14 @@ namespace art {
   void
   RootOutputTree::fillTree()
   {
-    fillTreeBranches(metaTree_.load(),
-                     metaBranches_,
-                     false,
-                     saveMemoryObjectThreshold_.load());
-    bool saveMemory = (saveMemoryObjectThreshold_.load() > -1);
-    fillTreeBranches(tree_.load(),
-                     producedBranches_,
-                     saveMemory,
-                     saveMemoryObjectThreshold_.load());
+    fillBranches(metaBranches_, false, saveMemoryObjectThreshold_);
+    bool const saveMemory{saveMemoryObjectThreshold_ > -1};
+    fillBranches(producedBranches_, saveMemory, saveMemoryObjectThreshold_);
     if (fastCloningEnabled_.load()) {
-      fillTreeBranches(tree_.load(),
-                       unclonedReadBranches_,
-                       saveMemory,
-                       saveMemoryObjectThreshold_.load());
+      fillBranches(
+        unclonedReadBranches_, saveMemory, saveMemoryObjectThreshold_);
     } else {
-      fillTreeBranches(tree_.load(),
-                       readBranches_,
-                       saveMemory,
-                       saveMemoryObjectThreshold_.load());
+      fillBranches(readBranches_, saveMemory, saveMemoryObjectThreshold_);
     }
     ++nEntries_;
   }
@@ -194,13 +207,12 @@ namespace art {
     if (TBranch* br = tree_.load()->GetBranch(bd.branchName().c_str())) {
       // Already have this branch, possibly update the branch address.
       if (pProd == nullptr) {
-        // The OutputItem is freshly constructed and has
-        // not been passed to SetAddress yet.
-        // If selectProducts has just been called, we
-        // get here just after the branch object has been
-        // deleted with a ResetBranchAddress() to prepare
-        // for the OutputItem being replaced, and the
-        // OutputItem has just been recreated.
+        // The OutputItem is freshly constructed and has not been
+        // passed to SetAddress yet.  If selectProducts has just been
+        // called, we get here just after the branch object has been
+        // deleted with a ResetBranchAddress() to prepare for the
+        // OutputItem being replaced, and the OutputItem has just been
+        // recreated.
         EDProduct* prod = reinterpret_cast<EDProduct*>(cls->New());
         pProd = prod;
         br->SetAddress(&pProd);
@@ -211,38 +223,41 @@ namespace art {
     }
     auto bsize = bd.basketSize();
     if (bsize == BranchDescription::invalidBasketSize) {
-      bsize = basketSize_.load();
+      bsize = basketSize_;
     }
     auto splitlvl = bd.splitLevel();
     if (splitlvl == BranchDescription::invalidSplitLevel) {
-      splitlvl = splitLevel_.load();
+      splitlvl = splitLevel_;
     }
+
     if (pProd != nullptr) {
       throw art::Exception(art::errors::FatalRootError)
         << "OutputItem product pointer is not nullptr!\n";
     }
-    EDProduct* prod = reinterpret_cast<EDProduct*>(cls->New());
+    auto* prod = reinterpret_cast<EDProduct*>(cls->New());
     pProd = prod;
-    TBranch* branch = tree_.load()->Branch(bd.branchName().c_str(),
-                                           bd.wrappedName().c_str(),
-                                           &pProd,
-                                           bsize,
-                                           splitlvl);
-    // Note that root will have just allocated a dummy product
-    // as the I/O buffer for the branch we have created.  We will
-    // replace this I/O buffer in RootOutputFile::fillBranches()
-    // with the actual product or our own dummy using
+    auto* branch = tree_.load()->Branch(bd.branchName().c_str(),
+                                        bd.wrappedName().c_str(),
+                                        &pProd,
+                                        bsize,
+                                        splitlvl);
+    // Note that root will have just allocated a dummy product as the
+    // I/O buffer for the branch we have created.  We will replace
+    // this I/O buffer in RootOutputFile::fillBranches() with the
+    // actual product or our own dummy using
     // TBranchElement::SetAddress(), which will cause root to
     // automatically delete the dummy product it allocated here.
     pProd = nullptr;
     delete prod;
+
     if (bd.compression() != BranchDescription::invalidCompression) {
       branch->SetCompressionSettings(bd.compression());
     }
+
     if (nEntries_.load() > 0) {
-      // Backfill the branch with dummy entries to match the number
-      // of entries already written to the data tree.
-      std::unique_ptr<EDProduct> dummy(static_cast<EDProduct*>(cls->New()));
+      // Backfill the branch with dummy entries to match the number of
+      // entries already written to the data tree.
+      std::unique_ptr<EDProduct> dummy{static_cast<EDProduct*>(cls->New())};
       pProd = dummy.get();
       int bytesWritten{};
       for (auto i = nEntries_.load(); i > 0; --i) {
@@ -251,10 +266,11 @@ namespace art {
           // FIXME: Throw a fatal error here!
         }
         bytesWritten += cnt;
-        if ((saveMemoryObjectThreshold_.load() > -1) &&
-            (bytesWritten > saveMemoryObjectThreshold_.load())) {
+        if ((saveMemoryObjectThreshold_ > -1) &&
+            (bytesWritten > saveMemoryObjectThreshold_)) {
           branch->FlushBaskets();
           branch->DropBaskets("all");
+          bytesWritten = 0;
         }
       }
     }

@@ -56,7 +56,6 @@ cet_make_library(HEADERS_TARGET
     DropMetaData.cc
     DummyProductCache.cc
     DuplicateChecker.cc
-    FastCloningInfoProvider.cc
     GetFileFormatEra.cc
     GetFileFormatVersion.cc
     RootBranchInfo.cc
@@ -99,6 +98,7 @@ cet_make_library(HEADERS_TARGET
     hep_concurrency::macros
     Boost::date_time
     ROOT::Hist
+    range-v3::range-v3
   )
 
 cet_make_library(LIBRARY_NAME art_root_io_tfile_support
@@ -179,6 +179,8 @@ cet_build_plugin(SamplingInput art::InputSource ALLOW_UNDERSCORES
     canvas::canvas
     messagefacility::MF_MessageLogger
     fhiclcpp::types
+  PRIVATE
+    range-v3::range-v3
 )
 
 cet_make_exec(NAME product_sizes_dumper
@@ -204,6 +206,7 @@ cet_make_exec(NAME config_dumper LIBRARIES PRIVATE
   Boost::program_options
   ROOT::Tree
   ROOT::RIO
+  range-v3::range-v3
 )
 
 cet_make_exec(NAME sam_metadata_dumper LIBRARIES PRIVATE

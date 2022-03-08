@@ -1265,7 +1265,6 @@ namespace {
 #endif
 }
 
-extern "C" {
 int
 tkeyvfs_init()
 {
@@ -1321,5 +1320,4 @@ tkeyvfs_open_v2(char const* filename, // Database filename (UTF-8)
   // longer require gRootFile and the sentry can do the job of
   // cleaning up when it goes out of scope.
   return sqlite3_open_v2(filename, ppDb, flags, "tkeyvfs");
-}
 }

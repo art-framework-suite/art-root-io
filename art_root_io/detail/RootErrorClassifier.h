@@ -6,7 +6,7 @@ namespace art::detail {
 
   class RootErrorClassifier {
   public:
-    RootErrorClassifier(int const level, RootErrorPayload const& payload);
+    RootErrorClassifier(int level, RootErrorPayload const& payload);
 
     bool
     should_be_suppressed() const noexcept

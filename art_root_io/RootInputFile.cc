@@ -2,6 +2,7 @@
 // vim: set sw=2 expandtab :
 
 #include "art/Framework/Core/GroupSelector.h"
+#include "art/Framework/Core/ProcessingLimits.h"
 #include "art/Framework/Core/UpdateOutputCallbacks.h"
 #include "art/Framework/Principal/ClosedRangeSetHandler.h"
 #include "art/Framework/Principal/EventPrincipal.h"
@@ -14,7 +15,6 @@
 #include "art/Framework/Services/System/FileCatalogMetadata.h"
 #include "art/Persistency/Provenance/ProcessHistoryRegistry.h"
 #include "art_root_io/DuplicateChecker.h"
-#include "art_root_io/FastCloningInfoProvider.h"
 #include "art_root_io/GetFileFormatEra.h"
 #include "art_root_io/Inputfwd.h"
 #include "art_root_io/RootDB/TKeyVFSOpenPolicy.h"
@@ -28,7 +28,7 @@
 #include "canvas/Persistency/Provenance/BranchChildren.h"
 #include "canvas/Persistency/Provenance/BranchDescription.h"
 #include "canvas/Persistency/Provenance/BranchType.h"
-#include "canvas/Persistency/Provenance/History.h"
+#include "canvas/Persistency/Provenance/Compatibility/History.h"
 #include "canvas/Persistency/Provenance/ParameterSetBlob.h"
 #include "canvas/Persistency/Provenance/ParameterSetMap.h"
 #include "canvas/Persistency/Provenance/ParentageRegistry.h"
@@ -42,12 +42,14 @@
 #include "fhiclcpp/ParameterSet.h"
 #include "fhiclcpp/ParameterSetRegistry.h"
 #include "messagefacility/MessageLogger/MessageLogger.h"
+#include "range/v3/view.hpp"
 
 #include "TBranch.h"
 #include "TFile.h"
 #include "TLeaf.h"
 #include "TTree.h"
 
+#include <cassert>
 #include <string>
 #include <utility>
 
@@ -55,23 +57,20 @@ extern "C" {
 #include "sqlite3.h"
 }
 
-using namespace cet;
-using namespace std;
-
 namespace {
 
   sqlite3*
-  db_or_nullptr(std::unique_ptr<sqlite::Connection> const& db)
+  db_or_nullptr(std::unique_ptr<cet::sqlite::Connection> const& db)
   {
     return db.get() == nullptr ? nullptr : static_cast<sqlite3*>(*db);
   }
 
   bool
-  have_table(sqlite3* db, string const& table, string const& filename)
+  have_table(sqlite3* db, std::string const& table, std::string const& filename)
   {
     bool result = false;
     sqlite3_stmt* stmt = nullptr;
-    string const ddl{
+    std::string const ddl{
       "select 1 from sqlite_master where type='table' and name='" + table +
       "';"};
     auto rc = sqlite3_prepare_v2(db, ddl.c_str(), -1, &stmt, nullptr);
@@ -101,24 +100,6 @@ namespace {
 
 namespace art {
 
-  using std::swap;
-
-  namespace detail {
-
-    void
-    mergeAuxiliary(RunAuxiliary& left, RunAuxiliary const& right)
-    {
-      left.mergeAuxiliary(right);
-    }
-
-    void
-    mergeAuxiliary(SubRunAuxiliary& left, SubRunAuxiliary const& right)
-    {
-      left.mergeAuxiliary(right);
-    }
-
-  } // namespace detail
-
   RootInputFile::RootInputTree::~RootInputTree() = default;
 
   RootInputFile::RootInputTree::RootInputTree(cet::exempt_ptr<TFile> filePtr,
@@ -134,7 +115,7 @@ namespace art {
     if (tree_) {
       auxBranch_ =
         tree_->GetBranch(BranchTypeToAuxiliaryBranchName(branchType).c_str());
-      entries_ = tree_->GetEntries();
+      nEntries_ = tree_->GetEntries();
     }
     if (metaTree_) {
       productProvenanceBranch_ =
@@ -154,9 +135,9 @@ namespace art {
   }
 
   RootInputFile::RootInputTree::EntryNumber
-  RootInputFile::RootInputTree::entries() const
+  RootInputFile::RootInputTree::nEntries() const
   {
-    return entries_;
+    return nEntries_;
   }
 
   TTree*
@@ -199,12 +180,11 @@ namespace art {
     TBranch* branch = tree_->GetBranch(bd.branchName().c_str());
     assert(bd.present() == (branch != nullptr));
     assert(bd.dropped() == (branch == nullptr));
-    input::BranchInfo info{bd, branch};
-    branches_.emplace(bd.productID(), std::move(info));
+    branches_.emplace(bd.productID(), input::BranchInfo{bd, branch});
   }
 
   void
-  RootInputFile::RootInputTree::dropBranch(string const& branchName)
+  RootInputFile::RootInputTree::dropBranch(std::string const& branchName)
   {
     TBranch* branch = tree_->GetBranch(branchName.c_str());
     if (branch == nullptr) {
@@ -235,58 +215,55 @@ namespace art {
     branch = nullptr;
   }
 
-  input::EntryNumber
-  next_event(FileIndex::const_iterator it, FileIndex::const_iterator const end)
-  {
-    do {
-      ++it;
-    } while (it != end && it->getEntryType() != FileIndex::kEvent);
-    return it != end ? it->entry : FileIndex::Element::invalid;
+  namespace {
+    input::EntryNumber
+    next_event(FileIndex::const_iterator it,
+               FileIndex::const_iterator const end)
+    {
+      do {
+        ++it;
+      } while (it != end && it->getEntryType() != FileIndex::kEvent);
+      return it != end ? it->entry : FileIndex::Element::invalid;
+    }
   }
 
   RootInputFile::~RootInputFile() = default;
 
-  RootInputFile::RootInputFile(string const& fileName,
-                               ProcessConfiguration const& processConfiguration,
-                               unique_ptr<TFile>&& filePtr,
-                               EventID const& origEventID,
-                               unsigned int const eventsToSkip,
-                               bool const compactSubRunRanges,
-                               FastCloningInfoProvider const& fcip,
-                               unsigned int const treeCacheSize,
-                               int64_t const treeMaxVirtualSize,
-                               int64_t const saveMemoryObjectThreshold,
-                               bool const delayedReadEventProducts,
-                               bool const delayedReadSubRunProducts,
-                               bool const delayedReadRunProducts,
-                               InputSource::ProcessingMode const processingMode,
-                               int const forcedRunOffset,
-                               bool const noEventSort,
-                               GroupSelectorRules const& groupSelectorRules,
-                               bool const dropDescendants,
-                               bool const readIncomingParameterSets,
-                               UpdateOutputCallbacks& outputCallbacks,
-                               secondary_reader_t openSecondaryFile,
-                               shared_ptr<DuplicateChecker> duplicateChecker)
+  RootInputFile::RootInputFile(
+    std::string const& fileName,
+    ProcessConfiguration const& processConfiguration,
+    std::unique_ptr<TFile>&& filePtr,
+    EventID const& origEventID,
+    unsigned int const eventsToSkip,
+    bool const compactSubRunRanges,
+    unsigned int const treeCacheSize,
+    int64_t const treeMaxVirtualSize,
+    int64_t const saveMemoryObjectThreshold,
+    bool const delayedReadEventProducts,
+    bool const delayedReadSubRunProducts,
+    bool const delayedReadRunProducts,
+    ProcessingLimits const& limits,
+    bool const noEventSort,
+    GroupSelectorRules const& groupSelectorRules,
+    bool const dropDescendants,
+    bool const readIncomingParameterSets,
+    UpdateOutputCallbacks& outputCallbacks,
+    secondary_reader_t openSecondaryFile,
+    std::shared_ptr<DuplicateChecker> duplicateChecker)
     : fileName_{fileName}
     , processConfiguration_{processConfiguration}
     , filePtr_{move(filePtr)}
     , origEventID_{origEventID}
     , eventsToSkip_{eventsToSkip}
     , compactSubRunRanges_{compactSubRunRanges}
-    , treePointers_{{make_unique<RootInputTree>(filePtr_.get(), InEvent, false),
-                     make_unique<RootInputTree>(filePtr_.get(),
-                                                InSubRun,
-                                                false),
-                     make_unique<RootInputTree>(filePtr_.get(), InRun, false),
-                     make_unique<RootInputTree>(filePtr_.get(),
-                                                InResults,
-                                                true)}}
+    , treePointers_{{makeInputTree(InEvent, false),
+                     makeInputTree(InSubRun, false),
+                     makeInputTree(InRun, false),
+                     makeInputTree(InResults, true)}}
     , delayedReadEventProducts_{delayedReadEventProducts}
     , delayedReadSubRunProducts_{delayedReadSubRunProducts}
     , delayedReadRunProducts_{delayedReadRunProducts}
-    , processingMode_{processingMode}
-    , forcedRunOffset_{forcedRunOffset}
+    , processingLimits_{limits}
     , noEventSort_{noEventSort}
     , readFromSecondaryFile_{openSecondaryFile}
     , duplicateChecker_{duplicateChecker}
@@ -318,7 +295,7 @@ namespace art {
     auto metaDataTree =
       filePtr_->Get<TTree>(rootNames::metaDataTreeName().c_str());
     if (!metaDataTree) {
-      throw art::Exception{errors::FileReadError}
+      throw Exception{errors::FileReadError}
         << couldNotFindTree(rootNames::metaDataTreeName());
     }
     metaDataTree->SetCacheSize(static_cast<Long64_t>(treeCacheSize));
@@ -331,7 +308,7 @@ namespace art {
     // To support files that contain BranchIDLists
     BranchIDLists branchIDLists;
     if (detail::readMetadata(metaDataTree, branchIDLists)) {
-      branchIDLists_ = make_unique<BranchIDLists>(move(branchIDLists));
+      branchIDLists_ = std::make_unique<BranchIDLists>(move(branchIDLists));
       configureProductIDStreamer(branchIDLists_.get());
     }
     // Read the ParameterSets if there are any on a branch.
@@ -340,8 +317,8 @@ namespace art {
       if (readIncomingParameterSets &&
           detail::readMetadata(metaDataTree, psetMap)) {
         // Merge into the hashed registries.
-        for (auto const& psEntry : psetMap) {
-          auto const pset = fhicl::ParameterSet::make(psEntry.second.pset_);
+        for (auto const& blob : psetMap | ranges::views::values) {
+          auto const pset = fhicl::ParameterSet::make(blob.pset_);
           // Note ParameterSet::id() has the side effect of making
           // sure the parameter set *has* an ID.
           pset.id();
@@ -360,9 +337,9 @@ namespace art {
     // CMS. Files written by art prior to v0.5.0 will *also* not be
     // readable because they do not have this datum and because the run,
     // subrun and event-number handling has changed significantly.
-    string const& expected_era = art::getFileFormatEra();
+    std::string const& expected_era = getFileFormatEra();
     if (fileFormatVersion_.era_ != expected_era) {
-      throw art::Exception{art::errors::FileReadError}
+      throw Exception{errors::FileReadError}
         << "Can only read files written during the \"" << expected_era
         << "\" era: "
         << "Era of "
@@ -375,13 +352,13 @@ namespace art {
     // Also need to check RootFileDB if we have one.
     if (fileFormatVersion_.value_ >= 5) {
       sqliteDB_.reset(
-        ServiceHandle<DatabaseConnection> {}->get<TKeyVFSOpenPolicy>(
+        ServiceHandle<DatabaseConnection>()->get<TKeyVFSOpenPolicy>(
           "RootFileDB", filePtr_.get()));
       if (readIncomingParameterSets &&
           have_table(*sqliteDB_, "ParameterSets", fileName_)) {
         fhicl::ParameterSetRegistry::importFrom(*sqliteDB_);
       }
-      if (ServiceRegistry::isAvailable<art::FileCatalogMetadata>() &&
+      if (ServiceRegistry::isAvailable<FileCatalogMetadata>() &&
           have_table(*sqliteDB_, "FileCatalog_metadata", fileName_)) {
         sqlite3_stmt* stmt{nullptr};
         sqlite3_prepare_v2(*sqliteDB_,
@@ -389,23 +366,22 @@ namespace art {
                            -1,
                            &stmt,
                            nullptr);
-        vector<pair<string, string>> md;
+        std::vector<std::pair<std::string, std::string>> md;
         while (sqlite3_step(stmt) == SQLITE_ROW) {
-          string const name{
+          std::string const name{
             reinterpret_cast<char const*>(sqlite3_column_text(stmt, 0))};
-          string const value{
+          std::string const value{
             reinterpret_cast<char const*>(sqlite3_column_text(stmt, 1))};
           md.emplace_back(name, value);
         }
         int const finalize_status = sqlite3_finalize(stmt);
         if (finalize_status != SQLITE_OK) {
-          throw art::Exception{art::errors::SQLExecutionError}
+          throw Exception{errors::SQLExecutionError}
             << "Unexpected status (" << finalize_status
             << ") from DB status cleanup:\n"
             << sqlite3_errmsg(*sqliteDB_) << '\n';
         }
-        art::ServiceHandle<art::FileCatalogMetadata> {}
-        ->setMetadataFromInput(md);
+        ServiceHandle<FileCatalogMetadata>()->setMetadataFromInput(md);
       }
     }
     validateFile();
@@ -445,8 +421,8 @@ namespace art {
     // how this can happen.  We then add the branch to the tree using
     // the updated validity of the product.
     auto set_validity_then_add_branch = [this](BranchType const bt) {
-      for (auto& prod : presentProducts_.get(bt).descriptions) {
-        auto& pd = prod.second;
+      for (auto& pd :
+           presentProducts_.get(bt).descriptions | ranges::views::values) {
         if (treePointers_[bt]->tree()->GetBranch(pd.branchName().c_str()) ==
             nullptr) {
           pd.setValidity(BranchDescription::Transients::Dropped);
@@ -464,7 +440,7 @@ namespace art {
     outputCallbacks.invoke(presentProducts_);
 
     // Determine if this file is fast clonable.
-    fastClonable_ = setIfFastClonable(fcip);
+    fastClonable_ = setIfFastClonable();
     reportOpened();
 
     // Check if dictionaries exist for the auxiliary objects
@@ -479,35 +455,24 @@ namespace art {
     configureProductIDStreamer();
   }
 
-  bool
-  RootInputFile::setEntry_Event(EventID const& id, bool exact /*= true*/)
+  std::unique_ptr<RootInputFile::RootInputTree>
+  RootInputFile::makeInputTree(BranchType const bt, bool const missingOK) const
   {
-    fiIter_ = fileIndex_.findPosition(id, exact);
-    if (fiIter_ == fiEnd_) {
-      return false;
-    }
-    return true;
+    assert(filePtr_);
+    return std::make_unique<RootInputTree>(filePtr_.get(), bt, missingOK);
   }
 
+  template <typename ID>
   bool
-  RootInputFile::setEntry_SubRun(SubRunID const& id, bool exact /*= true*/)
+  RootInputFile::setEntry(ID const& id, bool const exact /*= true*/)
   {
     fiIter_ = fileIndex_.findPosition(id, exact);
-    if (fiIter_ == fiEnd_) {
-      return false;
-    }
-    return true;
+    return fiIter_ != fiEnd_;
   }
 
-  bool
-  RootInputFile::setEntry_Run(RunID const& id, bool exact /*= true*/)
-  {
-    fiIter_ = fileIndex_.findPosition(id, exact);
-    if (fiIter_ == fiEnd_) {
-      return false;
-    }
-    return true;
-  }
+  template bool RootInputFile::setEntry<RunID>(RunID const& id, bool);
+  template bool RootInputFile::setEntry<SubRunID>(SubRunID const& id, bool);
+  template bool RootInputFile::setEntry<EventID>(EventID const& id, bool);
 
   RootInputFile::RootInputTree const&
   RootInputFile::eventTree() const
@@ -557,148 +522,60 @@ namespace art {
     return *treePointers_[InResults];
   }
 
-  void
-  RootInputFile::fillAuxiliary_Event(EntryNumber const entry)
+  template <typename Aux>
+  Aux
+  RootInputFile::getAuxiliary(EntryNumber const entry) const
   {
-    auto auxbr = treePointers_[InEvent]->auxBranch();
-    auto pAux = &eventAux_;
+    Aux result{};
+    auto auxbr = treePointers_[Aux::branch_type]->auxBranch();
+    auto pAux = &result;
     auxbr->SetAddress(&pAux);
     input::getEntry(auxbr, entry);
+    return result;
   }
 
-  void
-  RootInputFile::fillAuxiliary_SubRun(EntryNumber const entry)
+  detail::RangeSetInfo
+  RootInputFile::resolveInfo(BranchType const bt,
+                             unsigned const range_set_id) const
   {
-    auto auxbr = treePointers_[InSubRun]->auxBranch();
-    auto pAux = &subRunAux_;
-    auxbr->SetAddress(&pAux);
-    input::getEntry(auxbr, entry);
-  }
-
-  void
-  RootInputFile::fillAuxiliary_Run(EntryNumber const entry)
-  {
-    auto auxbr = treePointers_[InRun]->auxBranch();
-    auto pAux = &runAux_;
-    auxbr->SetAddress(&pAux);
-    input::getEntry(auxbr, entry);
-  }
-
-  void
-  RootInputFile::fillAuxiliary_Results(EntryNumber const entry)
-  {
-    auto auxbr = treePointers_[InResults]->auxBranch();
-    auto pAux = &resultsAux_;
-    auxbr->SetAddress(&pAux);
-    input::getEntry(auxbr, entry);
-  }
-
-  pair<SubRunAuxiliary, unique_ptr<RangeSetHandler>>
-  RootInputFile::fillAuxiliary_SubRun(EntryNumbers const& entries)
-  {
-    SubRunAuxiliary auxResult{};
-    {
-      auto auxbr = treePointers_[InSubRun]->auxBranch();
-      auto pAux = &auxResult;
-      auxbr->SetAddress(&pAux);
-      input::getEntry(auxbr, entries[0]);
-    }
-    if (fileFormatVersion_.value_ < 9) {
-      return {auxResult, make_unique<OpenRangeSetHandler>(auxResult.run())};
-    }
     assert(sqliteDB_);
-    auto resolve_info = [this](auto const id) {
-      return detail::resolveRangeSetInfo(*sqliteDB_,
-                                         this->fileName_,
-                                         SubRunAuxiliary::branch_type,
-                                         id,
-                                         compactSubRunRanges_);
-    };
-    auto rangeSetInfo = resolve_info(auxResult.rangeSetID());
+    return detail::resolveRangeSetInfo(
+      *sqliteDB_, fileName_, bt, range_set_id, compactSubRunRanges_);
+  }
+
+  template <typename Aux>
+  std::pair<Aux, std::unique_ptr<RangeSetHandler>>
+  RootInputFile::getAuxiliary(EntryNumbers const& entries) const
+  {
+    auto auxResult = getAuxiliary<Aux>(entries[0]);
+    if (fileFormatVersion_.value_ < 9) {
+      return {std::move(auxResult),
+              std::make_unique<OpenRangeSetHandler>(auxResult.run())};
+    }
+
+    auto rangeSetInfo = resolveInfo(Aux::branch_type, auxResult.rangeSetID());
     for (auto i = entries.cbegin() + 1, e = entries.cend(); i != e; ++i) {
-      SubRunAuxiliary tmpAux{};
-      {
-        auto auxbr = treePointers_[InSubRun]->auxBranch();
-        auto pAux = &tmpAux;
-        auxbr->SetAddress(&pAux);
-        input::getEntry(auxbr, *i);
-      }
-      detail::mergeAuxiliary(auxResult, tmpAux);
-      rangeSetInfo.update(resolve_info(tmpAux.rangeSetID()),
+      auto tmpAux = getAuxiliary<Aux>(*i);
+      auxResult.mergeAuxiliary(tmpAux);
+      rangeSetInfo.update(resolveInfo(Aux::branch_type, tmpAux.rangeSetID()),
                           compactSubRunRanges_);
     }
     auxResult.setRangeSetID(-1u); // Range set of new auxiliary is invalid
-    return {auxResult,
-            make_unique<ClosedRangeSetHandler>(resolveRangeSet(rangeSetInfo))};
+    return {
+      std::move(auxResult),
+      std::make_unique<ClosedRangeSetHandler>(resolveRangeSet(rangeSetInfo))};
   }
 
-  pair<RunAuxiliary, unique_ptr<RangeSetHandler>>
-  RootInputFile::fillAuxiliary_Run(EntryNumbers const& entries)
-  {
-    RunAuxiliary auxResult{};
-    {
-      auto auxbr = treePointers_[InRun]->auxBranch();
-      auto pAux = &auxResult;
-      auxbr->SetAddress(&pAux);
-      input::getEntry(auxbr, entries[0]);
-    }
-    if (fileFormatVersion_.value_ < 9) {
-      return {auxResult, make_unique<OpenRangeSetHandler>(auxResult.run())};
-    }
-    assert(sqliteDB_);
-    auto resolve_info = [this](auto const id) {
-      return detail::resolveRangeSetInfo(*sqliteDB_,
-                                         this->fileName_,
-                                         RunAuxiliary::branch_type,
-                                         id,
-                                         compactSubRunRanges_);
-    };
-    auto rangeSetInfo = resolve_info(auxResult.rangeSetID());
-    for (auto i = entries.cbegin() + 1, e = entries.cend(); i != e; ++i) {
-      RunAuxiliary tmpAux{};
-      {
-        auto auxbr = treePointers_[InRun]->auxBranch();
-        auto pAux = &tmpAux;
-        auxbr->SetAddress(&pAux);
-        input::getEntry(auxbr, *i);
-      }
-      detail::mergeAuxiliary(auxResult, tmpAux);
-      rangeSetInfo.update(resolve_info(tmpAux.rangeSetID()),
-                          compactSubRunRanges_);
-    }
-    auxResult.setRangeSetID(-1u); // Range set of new auxiliary is invalid
-    return {auxResult,
-            make_unique<ClosedRangeSetHandler>(resolveRangeSet(rangeSetInfo))};
-  }
-
-  string const&
+  std::string const&
   RootInputFile::fileName() const
   {
     return fileName_;
-  }
-
-  RootInputFile::RootInputTreePtrArray&
-  RootInputFile::treePointers()
-  {
-    return treePointers_;
-  }
-
-  FileFormatVersion
-  RootInputFile::fileFormatVersion() const
-  {
-    return fileFormatVersion_;
   }
 
   bool
   RootInputFile::fastClonable() const
   {
     return fastClonable_;
-  }
-
-  void
-  RootInputFile::rewind()
-  {
-    fiIter_ = fiBegin_;
   }
 
   void
@@ -733,7 +610,7 @@ namespace art {
     return eventsToSkip_;
   }
 
-  shared_ptr<FileIndex>
+  std::shared_ptr<FileIndex>
   RootInputFile::fileIndexSharedPtr() const
   {
     return fileIndexSharedPtr_;
@@ -748,7 +625,7 @@ namespace art {
     auto parentageTree =
       filePtr_->Get<TTree>(rootNames::parentageTreeName().c_str());
     if (!parentageTree) {
-      throw art::Exception{errors::FileReadError}
+      throw Exception{errors::FileReadError}
         << couldNotFindTree(rootNames::parentageTreeName());
     }
     parentageTree->SetCacheSize(static_cast<Long64_t>(treeCacheSize));
@@ -768,7 +645,7 @@ namespace art {
          ++i) {
       input::getEntry(parentageTree, i);
       if (idBuffer != parentageBuffer.id()) {
-        throw art::Exception{errors::DataCorruption}
+        throw Exception{errors::DataCorruption}
           << "Corruption of Parentage tree detected.\n";
       }
       ParentageRegistry::emplace(parentageBuffer.id(), parentageBuffer);
@@ -790,11 +667,8 @@ namespace art {
   }
 
   bool
-  RootInputFile::setIfFastClonable(FastCloningInfoProvider const& fcip) const
+  RootInputFile::setIfFastClonable() const
   {
-    if (!fcip.fastCloningPermitted()) {
-      return false;
-    }
     if (readFromSecondaryFile_) {
       return false;
     }
@@ -804,18 +678,16 @@ namespace art {
     if (eventsToSkip_ != 0) {
       return false;
     }
-    if ((fcip.remainingEvents() >= 0) &&
-        (eventTree().entries() > fcip.remainingEvents())) {
+    if ((processingLimits_.remainingEvents() >= 0) &&
+        (eventTree().nEntries() > processingLimits_.remainingEvents())) {
       return false;
     }
-    if ((fcip.remainingSubRuns() >= 0) &&
-        (subRunTree().entries() > fcip.remainingSubRuns())) {
+    if ((processingLimits_.remainingSubRuns() >= 0) &&
+        (subRunTree().nEntries() > processingLimits_.remainingSubRuns())) {
       return false;
     }
-    if (processingMode_ != InputSource::RunsSubRunsAndEvents) {
-      return false;
-    }
-    if (forcedRunOffset_ != 0) {
+    if (processingLimits_.processingMode() !=
+        InputSource::RunsSubRunsAndEvents) {
       return false;
     }
     // Find entry for first event in file.
@@ -832,24 +704,7 @@ namespace art {
     return true;
   }
 
-  int
-  RootInputFile::setForcedRunOffset(RunNumber_t const& forcedRunNumber)
-  {
-    if (fiBegin_ == fiEnd_) {
-      return 0;
-    }
-    forcedRunOffset_ = 0;
-    if (!RunID(forcedRunNumber).isValid()) {
-      return 0;
-    }
-    forcedRunOffset_ = forcedRunNumber - fiBegin_->eventID.run();
-    if (forcedRunOffset_ != 0) {
-      fastClonable_ = false;
-    }
-    return forcedRunOffset_;
-  }
-
-  unique_ptr<FileBlock>
+  std::unique_ptr<FileBlock>
   RootInputFile::createFileBlock()
   {
     return std::make_unique<RootFileBlock>(
@@ -888,7 +743,7 @@ namespace art {
       }
       return FileIndex::kRun;
     }
-    if (processingMode_ == InputSource::Runs) {
+    if (processingLimits_.processingMode() == InputSource::Runs) {
       fiIter_ = fileIndex_.findPosition(
         currentRun.isValid() ? currentRun.next() : currentRun, false);
       return getNextEntryTypeWanted();
@@ -903,7 +758,7 @@ namespace art {
       }
       return FileIndex::kSubRun;
     }
-    if (processingMode_ == InputSource::RunsAndSubRuns) {
+    if (processingLimits_.processingMode() == InputSource::RunsAndSubRuns) {
       fiIter_ = fileIndex_.findSubRunOrRunPosition(currentSubRun.next());
       return getNextEntryTypeWanted();
     }
@@ -946,12 +801,12 @@ namespace art {
       fileFormatVersion_.value_ = 0;
     }
     if (!eventTree().isValid()) {
-      throw art::Exception{errors::DataCorruption}
+      throw Exception{errors::DataCorruption}
         << "'Events' tree is corrupted or not present\n"
         << "in the input file.\n";
     }
     if (fileIndex_.empty()) {
-      throw art::Exception{art::errors::FileReadError}
+      throw Exception{errors::FileReadError}
         << "FileIndex information is missing for the input file.\n";
     }
   }
@@ -972,11 +827,12 @@ namespace art {
     // We could consider doing delayed reading, but because we have to
     // store this History object in a different tree than the event
     // data tree, this is too hard to do in this first version.
+    assert(eventHistoryTree_);
     auto pHistory = &history;
     auto eventHistoryBranch =
       eventHistoryTree_->GetBranch(rootNames::eventHistoryBranchName().c_str());
     if (!eventHistoryBranch) {
-      throw art::Exception{errors::DataCorruption}
+      throw Exception{errors::DataCorruption}
         << "Failed to find history branch in event history tree.\n";
     }
     eventHistoryBranch->SetAddress(&pHistory);
@@ -1017,7 +873,7 @@ namespace art {
   // We do *not* create the EDProduct instance (the equivalent of
   // reading the branch containing this EDProduct). That will be done
   // by the Delayed Reader, when it is asked to do so.
-  unique_ptr<EventPrincipal>
+  std::unique_ptr<EventPrincipal>
   RootInputFile::readEvent()
   {
     assert(fiIter_ != fiEnd_);
@@ -1026,61 +882,59 @@ namespace art {
 
     auto ep = readEventWithID(fiIter_->eventID);
     assert(ep);
-    assert(ep->run() == fiIter_->eventID.run() + forcedRunOffset_);
+    assert(ep->run() == fiIter_->eventID.run());
     assert(ep->eventID().subRunID() == fiIter_->eventID.subRunID());
     nextEntry();
     return ep;
   }
 
-  unique_ptr<EventPrincipal>
+  std::unique_ptr<EventPrincipal>
   RootInputFile::readEventWithID(EventID const& eventID)
   {
-    if (fiIter_ == fiEnd_ and not setEntry_Event(eventID)) {
+    if (fiIter_ == fiEnd_ and not setEntry(eventID)) {
       return nullptr;
     }
 
-    if (eventID != fiIter_->eventID and not setEntry_Event(eventID)) {
+    if (eventID != fiIter_->eventID and not setEntry(eventID)) {
       return nullptr;
     }
 
-    auto const entryNumbers = getEntryNumbers(InEvent);
-    assert(entryNumbers.first.size() == 1ull);
-    fillAuxiliary_Event(entryNumbers.first.front());
+    auto const [entryNumbers, lastInSubRun] = getEntryNumbers(InEvent);
+    assert(size(entryNumbers) == 1ull);
 
-    unique_ptr<History> history = make_unique<History>();
-    fillHistory(entryNumbers.first.front(), *history);
-    overrideRunNumber(const_cast<EventID&>(eventAux_.eventID()),
-                      eventAux_.isRealData());
-    auto ep = make_unique<EventPrincipal>(
-      eventAux_,
+    auto const entry = entryNumbers[0];
+    auto orig_event_aux = getAuxiliary<EventAuxiliary>(entry);
+    auto event_aux = overrideAuxiliary(std::move(orig_event_aux), entry);
+
+    auto ep = std::make_unique<EventPrincipal>(
+      event_aux,
       processConfiguration_,
       &presentProducts_.get(InEvent),
-      move(history),
-      make_unique<RootDelayedReader>(fileFormatVersion_,
-                                     nullptr,
-                                     entryNumbers.first,
-                                     &eventTree().branches(),
-                                     eventTree().productProvenanceBranch(),
-                                     saveMemoryObjectThreshold_,
-                                     readFromSecondaryFile_,
-                                     branchIDLists_.get(),
-                                     InEvent,
-                                     eventAux_.eventID(),
-                                     compactSubRunRanges_),
-      entryNumbers.second);
+      std::make_unique<RootDelayedReader>(fileFormatVersion_,
+                                          nullptr,
+                                          entryNumbers,
+                                          &eventTree().branches(),
+                                          eventTree().productProvenanceBranch(),
+                                          saveMemoryObjectThreshold_,
+                                          readFromSecondaryFile_,
+                                          branchIDLists_.get(),
+                                          InEvent,
+                                          event_aux.eventID(),
+                                          compactSubRunRanges_),
+      lastInSubRun);
     if (!delayedReadEventProducts_) {
       ep->readImmediate();
     }
     return ep;
   }
 
-  unique_ptr<RangeSetHandler>
+  std::unique_ptr<RangeSetHandler>
   RootInputFile::runRangeSetHandler()
   {
     return move(runRangeSetHandler_);
   }
 
-  unique_ptr<RunPrincipal>
+  std::unique_ptr<RunPrincipal>
   RootInputFile::readRun()
   {
     return readRunWithID(fiIter_->eventID.runID(), true);
@@ -1089,11 +943,11 @@ namespace art {
   std::unique_ptr<RunPrincipal>
   RootInputFile::readRunWithID(RunID const id, bool const thenAdvanceToNextRun)
   {
-    if (fiIter_ == fiEnd_ and not setEntry_Run(id)) {
+    if (fiIter_ == fiEnd_ and not setEntry(id)) {
       return nullptr;
     }
 
-    if (fiIter_->eventID.runID() != id and not setEntry_Run(id)) {
+    if (fiIter_->eventID.runID() != id and not setEntry(id)) {
       return nullptr;
     }
 
@@ -1102,38 +956,26 @@ namespace art {
     assert(fiIter_->eventID.runID().isValid());
 
     auto const entryNumbers = getEntryNumbers(InRun).first;
-    auto aux_and_rs = fillAuxiliary_Run(entryNumbers);
-    auto& auxiliary = aux_and_rs.first;
-    runRangeSetHandler_ = move(aux_and_rs.second);
-    assert(auxiliary.id() == fiIter_->eventID.runID());
-    overrideRunNumber(auxiliary);
-    runAux_ = auxiliary;
+    auto&& [orig_auxiliary, rs] = getAuxiliary<RunAuxiliary>(entryNumbers);
+    runRangeSetHandler_ = move(rs);
+    assert(orig_auxiliary.id() == fiIter_->eventID.runID());
 
-    if (auxiliary.beginTime() == Timestamp::invalidTimestamp()) {
-      // RunAuxiliary did not contain a valid timestamp.  Take it from
-      // the next event, if there is one.
-      if (auto const entry = next_event(fiIter_, fiEnd_);
-          entry != FileIndex::Element::invalid) {
-        fillAuxiliary_Event(entry);
-      }
-      auxiliary.beginTime(eventAux_.time());
-      auxiliary.endTime(Timestamp::invalidTimestamp());
-    }
+    auto run_aux = overrideAuxiliary(std::move(orig_auxiliary));
     auto rp = std::make_unique<RunPrincipal>(
-      runAux_,
+      run_aux,
       processConfiguration_,
       &presentProducts_.get(InRun),
-      make_unique<RootDelayedReader>(fileFormatVersion_,
-                                     db_or_nullptr(sqliteDB_),
-                                     entryNumbers,
-                                     &runTree().branches(),
-                                     runTree().productProvenanceBranch(),
-                                     saveMemoryObjectThreshold_,
-                                     readFromSecondaryFile_,
-                                     nullptr,
-                                     InRun,
-                                     fiIter_->eventID,
-                                     compactSubRunRanges_));
+      std::make_unique<RootDelayedReader>(fileFormatVersion_,
+                                          db_or_nullptr(sqliteDB_),
+                                          entryNumbers,
+                                          &runTree().branches(),
+                                          runTree().productProvenanceBranch(),
+                                          saveMemoryObjectThreshold_,
+                                          readFromSecondaryFile_,
+                                          nullptr,
+                                          InRun,
+                                          fiIter_->eventID,
+                                          compactSubRunRanges_));
     if (!delayedReadRunProducts_) {
       rp->readImmediate();
     }
@@ -1143,27 +985,27 @@ namespace art {
     return rp;
   }
 
-  unique_ptr<RangeSetHandler>
+  std::unique_ptr<RangeSetHandler>
   RootInputFile::subRunRangeSetHandler()
   {
     return move(subRunRangeSetHandler_);
   }
 
-  unique_ptr<SubRunPrincipal>
+  std::unique_ptr<SubRunPrincipal>
   RootInputFile::readSubRun()
   {
     return readSubRunWithID(fiIter_->eventID.subRunID(), true);
   }
 
-  unique_ptr<SubRunPrincipal>
+  std::unique_ptr<SubRunPrincipal>
   RootInputFile::readSubRunWithID(SubRunID const id,
                                   bool const thenAdvanceToNextSubRun)
   {
-    if (fiIter_ == fiEnd_ and not setEntry_SubRun(id)) {
+    if (fiIter_ == fiEnd_ and not setEntry(id)) {
       return nullptr;
     }
 
-    if (fiIter_->eventID.subRunID() != id and not setEntry_SubRun(id)) {
+    if (fiIter_->eventID.subRunID() != id and not setEntry(id)) {
       return nullptr;
     }
 
@@ -1171,38 +1013,27 @@ namespace art {
     assert(fiIter_->getEntryType() == FileIndex::kSubRun);
 
     auto const entryNumbers = getEntryNumbers(InSubRun).first;
-    auto aux_and_rs = fillAuxiliary_SubRun(entryNumbers);
-    auto& auxiliary = aux_and_rs.first;
-    subRunRangeSetHandler_ = move(aux_and_rs.second);
-    assert(auxiliary.id() == fiIter_->eventID.subRunID());
-    overrideRunNumber(auxiliary.id_);
-    subRunAux_ = auxiliary;
+    auto&& [orig_auxiliary, rs] = getAuxiliary<SubRunAuxiliary>(entryNumbers);
+    subRunRangeSetHandler_ = move(rs);
+    assert(orig_auxiliary.id() == fiIter_->eventID.subRunID());
 
-    if (auxiliary.beginTime() == Timestamp::invalidTimestamp()) {
-      // SubRunAuxiliary did not contain a valid timestamp.  Take it
-      // from the next event, if there is one.
-      if (auto const entry = next_event(fiIter_, fiEnd_);
-          entry != FileIndex::Element::invalid) {
-        fillAuxiliary_Event(entry);
-      }
-      auxiliary.beginTime_ = eventAux_.time();
-      auxiliary.endTime_ = Timestamp::invalidTimestamp();
-    }
+    auto subrun_aux = overrideAuxiliary(std::move(orig_auxiliary));
     auto srp = std::make_unique<SubRunPrincipal>(
-      auxiliary,
+      subrun_aux,
       processConfiguration_,
       &presentProducts_.get(InSubRun),
-      make_unique<RootDelayedReader>(fileFormatVersion_,
-                                     db_or_nullptr(sqliteDB_),
-                                     entryNumbers,
-                                     &subRunTree().branches(),
-                                     subRunTree().productProvenanceBranch(),
-                                     saveMemoryObjectThreshold_,
-                                     readFromSecondaryFile_,
-                                     nullptr,
-                                     InSubRun,
-                                     fiIter_->eventID,
-                                     compactSubRunRanges_));
+      std::make_unique<RootDelayedReader>(
+        fileFormatVersion_,
+        db_or_nullptr(sqliteDB_),
+        entryNumbers,
+        &subRunTree().branches(),
+        subRunTree().productProvenanceBranch(),
+        saveMemoryObjectThreshold_,
+        readFromSecondaryFile_,
+        nullptr,
+        InSubRun,
+        fiIter_->eventID,
+        compactSubRunRanges_));
     if (!delayedReadSubRunProducts_) {
       srp->readImmediate();
     }
@@ -1212,48 +1043,49 @@ namespace art {
     return srp;
   }
 
-  void
-  RootInputFile::overrideRunNumber(RunAuxiliary& aux)
+  EventAuxiliary
+  RootInputFile::overrideAuxiliary(EventAuxiliary event_aux,
+                                   EntryNumber const entry)
   {
-    if (forcedRunOffset_ != 0) {
-      aux.runID(RunID(aux.run() + forcedRunOffset_));
+    // Older file versions have process history IDs stored in the History tree.
+    if (fileFormatVersion_.value_ < 15) {
+      auto history = std::make_unique<History>();
+      fillHistory(entry, *history);
+      event_aux.setProcessHistoryID(history->processHistoryID());
     }
-    if (aux.runID() < RunID::firstRun()) {
-      aux.runID(RunID::firstRun());
-    }
+    return event_aux;
   }
 
-  void
-  RootInputFile::overrideRunNumber(SubRunID& id)
+  template <typename Aux>
+  Aux
+  RootInputFile::overrideAuxiliary(Aux auxiliary) const
   {
-    if (forcedRunOffset_ != 0) {
-      id = SubRunID(id.run() + forcedRunOffset_, id.subRun());
+    if (auxiliary.beginTime() == Timestamp::invalidTimestamp()) {
+      // The auxiliary did not contain a valid timestamp.  Take it
+      // from the next event, if there is one.
+      if (auto const entry = next_event(fiIter_, fiEnd_);
+          entry != FileIndex::Element::invalid) {
+        auto const next_event_aux = getAuxiliary<EventAuxiliary>(entry);
+        return auxiliary.duplicateWith(next_event_aux.time());
+      }
     }
-  }
-
-  void
-  RootInputFile::overrideRunNumber(EventID& id, bool isRealData)
-  {
-    if (forcedRunOffset_ == 0) {
-      return;
-    }
-    if (isRealData) {
-      throw art::Exception{errors::Configuration,
-                           "RootInputFile::overrideRunNumber()"}
-        << "The 'setRunNumber' parameter of RootInput cannot "
-        << "be used with real data.\n";
-    }
-    id = EventID(id.run() + forcedRunOffset_, id.subRun(), id.event());
+    return auxiliary;
   }
 
   void
   RootInputFile::readEventHistoryTree(unsigned int treeCacheSize)
   {
+    if (fileFormatVersion_.value_ >= 15) {
+      // The process history ID is stored directly in the
+      // EventAuxiliary object for file formats 15 and above.
+      return;
+    }
+
     // Read in the event history tree, if we have one...
     eventHistoryTree_ =
       filePtr_->Get<TTree>(rootNames::eventHistoryTreeName().c_str());
     if (!eventHistoryTree_) {
-      throw art::Exception{errors::DataCorruption}
+      throw Exception{errors::DataCorruption}
         << "Failed to find the event history tree.\n";
     }
     eventHistoryTree_->SetCacheSize(static_cast<Long64_t>(treeCacheSize));
@@ -1265,20 +1097,20 @@ namespace art {
     if (duplicateChecker_.get() == nullptr) {
       return;
     }
-    if (eventTree().entries()) {
-      // FIXME: We don't initialize the duplicate checker if there are no
-      // events!
-      fillAuxiliary_Event(0);
-      duplicateChecker_->init(eventAux_.isRealData(), fileIndex_);
+    if (eventTree().nEntries()) {
+      // FIXME: We don't initialize the duplicate checker if there are
+      // no events!
+      auto event_aux = getAuxiliary<EventAuxiliary>(0);
+      duplicateChecker_->init(event_aux.isRealData(), fileIndex_);
     }
   }
 
-  pair<RootInputFile::EntryNumbers, bool>
+  std::pair<RootInputFile::EntryNumbers, bool>
   RootInputFile::getEntryNumbers(BranchType const bt)
   {
     EntryNumbers enumbers;
     if (fiIter_ == fiEnd_) {
-      return pair<EntryNumbers, bool>{enumbers, true};
+      return {enumbers, true};
     }
     auto const eid = fiIter_->eventID;
     auto iter = fiIter_;
@@ -1292,7 +1124,7 @@ namespace art {
     }
     bool const lastInSubRun{(iter == fiEnd_) ||
                             (iter->eventID.subRun() != eid.subRun())};
-    return pair{enumbers, lastInSubRun};
+    return {enumbers, lastInSubRun};
   }
 
   void
@@ -1309,9 +1141,8 @@ namespace art {
         GroupSelector const groupSelector{rules, prodList};
         // Do drop on input. On the first pass, just fill in a set of
         // branches to be dropped.
-        set<ProductID> branchesToDrop;
-        for (auto const& prod : prodList) {
-          auto const& pd = prod.second;
+        std::set<ProductID> branchesToDrop;
+        for (auto const& pd : prodList | ranges::views::values) {
           if (!groupSelector.selected(pd)) {
             if (dropDescendants) {
               children.appendToDescendants(pd.productID(), branchesToDrop);
@@ -1346,36 +1177,31 @@ namespace art {
     for_each_branch_type(dropOnInputForBranchType);
   }
 
-  unique_ptr<art::ResultsPrincipal>
+  std::unique_ptr<ResultsPrincipal>
   RootInputFile::readResults()
   {
-    unique_ptr<art::ResultsPrincipal> resp;
     if (!resultsTree().isValid()) {
-      resp = make_unique<ResultsPrincipal>(
+      return std::make_unique<ResultsPrincipal>(
         ResultsAuxiliary{}, processConfiguration_, nullptr);
-      return resp;
     }
 
-    EntryNumbers const& entryNumbers{
-      0}; // FIXME: Not sure hard-coding 0 is the right thing to do.
-    assert(entryNumbers.size() == 1ull);
-    fillAuxiliary_Results(entryNumbers.front());
-    resp = std::make_unique<ResultsPrincipal>(
-      resultsAux_,
+    EntryNumbers const entryNumbers{0};
+    return std::make_unique<ResultsPrincipal>(
+      getAuxiliary<ResultsAuxiliary>(entryNumbers.front()),
       processConfiguration_,
       &presentProducts_.get(InResults),
-      make_unique<RootDelayedReader>(fileFormatVersion_,
-                                     nullptr,
-                                     entryNumbers,
-                                     &resultsTree().branches(),
-                                     resultsTree().productProvenanceBranch(),
-                                     saveMemoryObjectThreshold_,
-                                     readFromSecondaryFile_,
-                                     nullptr,
-                                     InResults,
-                                     EventID{},
-                                     compactSubRunRanges_));
-    return resp;
+      std::make_unique<RootDelayedReader>(
+        fileFormatVersion_,
+        nullptr,
+        entryNumbers,
+        &resultsTree().branches(),
+        resultsTree().productProvenanceBranch(),
+        saveMemoryObjectThreshold_,
+        readFromSecondaryFile_,
+        nullptr,
+        InResults,
+        EventID{},
+        compactSubRunRanges_));
   }
 
 } // namespace art

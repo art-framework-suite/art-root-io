@@ -34,9 +34,9 @@ namespace art {
         int64_t treeMaxVirtualSize,
         int64_t saveMemoryObjectThreshold,
         BranchDescription const& sampledEventInfoDesc,
-        bool const compactRangeSetsForReading,
+        bool compactRangeSetsForReading,
         ModuleDescription const& md,
-        bool const readParameterSets,
+        bool readParameterSets,
         UpdateOutputCallbacks& outputCallbacks);
 
       bool canReadEvent();

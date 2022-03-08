@@ -4,5 +4,5 @@
 int
 main()
 {
-  assert(art::getFileFormatVersion() == 14);
+  assert(art::getFileFormatVersion() == 15);
 }

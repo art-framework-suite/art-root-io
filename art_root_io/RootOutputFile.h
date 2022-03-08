@@ -45,27 +45,25 @@ namespace art {
   };
 
   class RootOutputFile {
-  public: // TYPES
+  public:
     enum class ClosureRequestMode { MaxEvents = 0, MaxSize = 1, Unset = 2 };
     using RootOutputTreePtrArray =
       std::array<std::unique_ptr<RootOutputTree>, NumBranchTypes>;
 
-  public: // MEMBER FUNCTIONS -- Static API
-    static bool shouldFastClone(bool const fastCloningSet,
-                                bool const fastCloning,
-                                bool const wantAllEvents,
+    static bool shouldFastClone(bool fastCloningSet,
+                                bool fastCloning,
+                                bool wantAllEvents,
                                 ClosingCriteria const& cc);
 
-  public: // MEMBER FUNCTIONS -- Special Member Functions
     ~RootOutputFile();
     explicit RootOutputFile(OutputModule*,
                             std::string const& fileName,
                             ClosingCriteria const& fileSwitchCriteria,
-                            int const compressionLevel,
-                            int64_t const saveMemoryObjectThreshold,
-                            int64_t const treeMaxVirtualSize,
-                            int const splitLevel,
-                            int const basketSize,
+                            int compressionLevel,
+                            int64_t saveMemoryObjectThreshold,
+                            int64_t treeMaxVirtualSize,
+                            int splitLevel,
+                            int basketSize,
                             DropMetaData dropMetaData,
                             bool dropMetaDataForDroppedData,
                             bool fastCloningRequested);
@@ -74,14 +72,12 @@ namespace art {
     RootOutputFile& operator=(RootOutputFile const&) = delete;
     RootOutputFile& operator=(RootOutputFile&&) = delete;
 
-  public: // MEMBER FUNCTIONS
     void writeTTrees();
     void writeOne(EventPrincipal const&);
     void writeSubRun(SubRunPrincipal const&);
     void writeRun(RunPrincipal const&);
     void writeFileFormatVersion();
     void writeFileIndex();
-    void writeEventHistory();
     void writeProcessConfigurationRegistry();
     void writeProcessHistoryRegistry();
     void writeParameterSetRegistry();
@@ -98,14 +94,14 @@ namespace art {
     void incrementInputFileNumber();
     void respondToCloseInputFile(FileBlock const&);
     bool requestsToCloseFile();
-    void setFileStatus(OutputFileStatus const ofs);
+    void setFileStatus(OutputFileStatus ofs);
     void selectProducts();
     std::string const& currentFileName() const;
     bool maxEventsPerFileReached(
-      FileIndex::EntryNumber_t const maxEventsPerFile) const;
-    bool maxSizeReached(unsigned const maxFileSize) const;
+      FileIndex::EntryNumber_t maxEventsPerFile) const;
+    bool maxSizeReached(unsigned maxFileSize) const;
 
-  private: // MEMBER FUNCTIONS
+  private:
     template <BranchType>
     void fillBranches(Principal const&, std::vector<ProductProvenance>*);
     template <BranchType BT>
@@ -113,7 +109,6 @@ namespace art {
                                 RangeSet const& productRS,
                                 std::string const& wrappedName);
 
-  private: // MEMBER DATA
     mutable std::recursive_mutex mutex_{};
     OutputModule const* om_;
     std::string file_;
@@ -134,7 +129,6 @@ namespace art {
     TTree* metaDataTree_;
     TTree* fileIndexTree_;
     TTree* parentageTree_;
-    TTree* eventHistoryTree_;
     EventAuxiliary const* pEventAux_;
     SubRunAuxiliary const* pSubRunAux_;
     RunAuxiliary const* pRunAux_;
@@ -147,7 +141,6 @@ namespace art {
     ProductProvenances* pSubRunProductProvenanceVector_;
     ProductProvenances* pRunProductProvenanceVector_;
     ProductProvenances* pResultsProductProvenanceVector_;
-    History const* pHistory_;
     RootOutputTreePtrArray treePointers_;
     bool dataTypeReported_;
     std::array<ProductDescriptionsByID, NumBranchTypes> descriptionsToPersist_;
@@ -165,4 +158,5 @@ namespace art {
 // Local Variables:
 // mode: c++
 // End:
+
 #endif /* art_root_io_RootOutputFile_h */

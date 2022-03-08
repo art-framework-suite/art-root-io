@@ -3,7 +3,6 @@
 #include "TH1.h"
 #include "TH2.h"
 
-#include "art/Framework/Core/ModuleMacros.h"
 #include "art/Framework/Core/SharedAnalyzer.h"
 #include "art/Framework/Services/Registry/ServiceHandle.h"
 #include "art/Utilities/SharedResource.h"

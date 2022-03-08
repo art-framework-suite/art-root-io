@@ -1,9 +1,11 @@
 #include "art_root_io/detail/RangeSetInfo.h"
 #include "canvas/Persistency/Provenance/RangeSet.h"
 
+#include <algorithm>
+
 art::detail::RangeSetInfo::RangeSetInfo(RunNumber_t const r,
                                         std::vector<EventRange>&& ers)
-  : run{r}, ranges{std::move(ers)}
+  : run{r}, ranges{move(ers)}
 {}
 
 bool
@@ -16,7 +18,7 @@ void
 art::detail::RangeSetInfo::update(RangeSetInfo&& rsi, bool compact)
 {
   if (run != rsi.run) {
-    throw art::Exception(art::errors::LogicError)
+    throw Exception(errors::LogicError)
       << "Cannot merge two ranges-of-validity with different run numbers: "
       << run << " vs. " << rsi.run << '\n'
       << "Please contact artists@fnal.gov.";

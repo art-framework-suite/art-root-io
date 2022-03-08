@@ -26,7 +26,6 @@
 #include "canvas/Persistency/Provenance/EventAuxiliary.h"
 #include "canvas/Persistency/Provenance/EventID.h"
 #include "canvas/Persistency/Provenance/FileFormatVersion.h"
-#include "canvas/Persistency/Provenance/History.h"
 #include "canvas/Persistency/Provenance/Parentage.h"
 #include "canvas/Persistency/Provenance/ParentageRegistry.h"
 #include "canvas/Persistency/Provenance/ProductStatus.h"
@@ -46,7 +45,9 @@
 #include "cetlib/sqlite/insert.h"
 #include "fhiclcpp/ParameterSetRegistry.h"
 #include "messagefacility/MessageLogger/MessageLogger.h"
+#include "range/v3/view.hpp"
 
+#include "TBranch.h"
 #include "TFile.h"
 #include "TTree.h"
 
@@ -391,13 +392,6 @@ namespace art {
       filePtr_.get(), rootNames::fileIndexTreeName(), 0);
     parentageTree_ = RootOutputTree::makeTTree(
       filePtr_.get(), rootNames::parentageTreeName(), 0);
-    // Create the tree that will carry (event) History objects.
-    eventHistoryTree_ = RootOutputTree::makeTTree(
-      filePtr_.get(), rootNames::eventHistoryTreeName(), splitLevel);
-    if (!eventHistoryTree_) {
-      throw Exception(errors::FatalRootError)
-        << "Failed to create the tree for History objects\n";
-    }
     pEventAux_ = nullptr;
     pSubRunAux_ = nullptr;
     pRunAux_ = nullptr;
@@ -406,16 +400,6 @@ namespace art {
     pSubRunProductProvenanceVector_ = &subRunProductProvenanceVector_;
     pRunProductProvenanceVector_ = &runProductProvenanceVector_;
     pResultsProductProvenanceVector_ = &resultsProductProvenanceVector_;
-    pHistory_ = new History;
-    if (!eventHistoryTree_->Branch(rootNames::eventHistoryBranchName().c_str(),
-                                   &pHistory_,
-                                   basketSize,
-                                   0)) {
-      throw Exception(errors::FatalRootError)
-        << "Failed to create a branch for History in the output file\n";
-    }
-    delete pHistory_;
-    pHistory_ = nullptr;
     treePointers_[0] =
       make_unique<RootOutputTree>(filePtr_.get(),
                                   InEvent,
@@ -513,8 +497,7 @@ namespace art {
     std::lock_guard sentry{mutex_};
     auto selectProductsToWrite = [this](BranchType const bt) {
       auto& items = selectedOutputItemList_[bt];
-      for (auto const& pr : om_->keptProducts()[bt]) {
-        auto const& pd = pr.second;
+      for (auto const& pd : om_->keptProducts()[bt] | ranges::views::values) {
         // Persist Results products only if they have been produced by
         // the current process.
         if (bt == InResults && !pd.produced()) {
@@ -530,9 +513,9 @@ namespace art {
         }
         items.try_emplace(pd.productID(), pd);
       }
-      for (auto const& val : items) {
-        treePointers_[bt]->addOutputBranch(val.second.branchDescription_,
-                                           val.second.product_);
+      for (auto const& item : items | ranges::views::values) {
+        treePointers_[bt]->addOutputBranch(item.branchDescription_,
+                                           item.product_);
       }
     };
     for_each_branch_type(selectProductsToWrite);
@@ -607,24 +590,13 @@ namespace art {
   RootOutputFile::writeOne(EventPrincipal const& e)
   {
     std::lock_guard sentry{mutex_};
-    // Auxiliary branch.
-    // Note: pEventAux_ must be set before calling fillBranches
-    // since it gets written out in that routine.
+    // Note: The pEventAux_ must be set before calling fillBranches
+    //       since it gets written out in that routine.
     pEventAux_ = &e.eventAux();
-    // Because getting the data may cause an exception to be
-    // thrown we want to do that first before writing anything
-    // to the file about this event.
+    // Because getting the data may cause an exception to be thrown we
+    // want to do that first before writing anything to the file about
+    // this event.
     fillBranches<InEvent>(e, pEventProductProvenanceVector_);
-    // History branch.
-    History historyForOutput{e.history()};
-    historyForOutput.addEventSelectionEntry(om_->selectorConfig());
-    pHistory_ = &historyForOutput;
-    int sz = eventHistoryTree_->Fill();
-    if (sz <= 0) {
-      throw Exception(errors::FatalRootError)
-        << "Failed to fill the History tree for event: " << e.eventID()
-        << "\nTTree::Fill() returned " << sz << " bytes written." << endl;
-    }
     // Add the dataType to the job report if it hasn't already been done
     if (!dataTypeReported_) {
       string dataType{"MC"};
@@ -633,7 +605,6 @@ namespace art {
       }
       dataTypeReported_ = true;
     }
-    pHistory_ = &e.history();
     // Add event to index
     fileIndex_.addEntry(pEventAux_->eventID(), fp_.eventEntryNumber());
     fp_.update_event();
@@ -726,13 +697,6 @@ namespace art {
   }
 
   void
-  RootOutputFile::writeEventHistory()
-  {
-    std::lock_guard sentry{mutex_};
-    RootOutputTree::writeTTree(eventHistoryTree_);
-  }
-
-  void
   RootOutputFile::writeProcessConfigurationRegistry()
   {
     // We don't do this yet; currently we're storing a slightly
@@ -769,8 +733,8 @@ namespace art {
     using namespace cet::sqlite;
     Ntuple<string, string> fileCatalogMetadata{
       *rootFileDB_, "FileCatalog_metadata", {{"Name", "Value"}}, true};
-    for (auto const& kv : md) {
-      fileCatalogMetadata.insert(kv.first, kv.second);
+    for (auto const& [key, value] : md) {
+      fileCatalogMetadata.insert(key, value);
     }
 
     // Add our own specific information: File format and friends.
@@ -843,8 +807,8 @@ namespace art {
                                std::to_string(getFileFormatVersion()));
 
     // Incoming stream-specific metadata overrides.
-    for (auto const& kv : ssmd) {
-      fileCatalogMetadata.insert(kv.first, kv.second);
+    for (auto const& [key, value] : ssmd) {
+      fileCatalogMetadata.insert(key, value);
     }
   }
 
@@ -863,8 +827,8 @@ namespace art {
     // removing any transient or pruned products.
     ProductRegistry reg;
     auto productDescriptionsToWrite = [this, &reg](BranchType const bt) {
-      for (auto const& pr : descriptionsToPersist_[bt]) {
-        auto const& desc = pr.second;
+      for (auto const& desc :
+           descriptionsToPersist_[bt] | ranges::views::values) {
         reg.productList_.emplace(BranchKey{desc}, desc);
       }
     };

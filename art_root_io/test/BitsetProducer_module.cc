@@ -2,7 +2,6 @@
 // Produces an std::bitset<4> instance.
 // ======================================================================
 
-#include "art/Framework/Core/ModuleMacros.h"
 #include "art/Framework/Core/SharedProducer.h"
 #include "art/Framework/Principal/Event.h"
 

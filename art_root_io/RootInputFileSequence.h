@@ -6,7 +6,6 @@
 #include "art/Framework/Core/InputSource.h"
 #include "art/Framework/Core/fwd.h"
 #include "art_root_io/DuplicateChecker.h"
-#include "art_root_io/FastCloningInfoProvider.h"
 #include "art_root_io/Inputfwd.h"
 #include "art_root_io/RootInputFile.h"
 #include "canvas/Persistency/Provenance/EventID.h"
@@ -83,7 +82,6 @@ namespace art {
       OptionalAtom<RunNumber_t> hasFirstRun{Name("firstRun")};
       OptionalAtom<SubRunNumber_t> hasFirstSubRun{Name("firstSubRun")};
       OptionalAtom<EventNumber_t> hasFirstEvent{Name("firstEvent")};
-      OptionalAtom<RunNumber_t> setRunNumber{Name("setRunNumber")};
       Atom<bool> compactSubRunRanges{
         Name("compactEventRanges"),
         Comment(
@@ -100,8 +98,7 @@ namespace art {
 
     RootInputFileSequence(fhicl::TableFragment<Config> const&,
                           InputFileCatalog&,
-                          FastCloningInfoProvider const&,
-                          InputSource::ProcessingMode,
+                          ProcessingLimits const&,
                           UpdateOutputCallbacks&,
                           ProcessConfiguration const&);
     void endJob();
@@ -119,11 +116,8 @@ namespace art {
 
     void skip(int offset);
 
-    void rewind_();
-
     EventID seekToEvent(EventID const&, bool exact = false);
-
-    EventID seekToEvent(off_t offset, bool exact = false);
+    EventID seekToEvent(int offset);
 
     input::ItemType getNextItemType();
 
@@ -160,84 +154,21 @@ namespace art {
       return secondaryFileNames_;
     }
 
-    EventID
-    origEventID() const
-    {
-      return origEventID_;
-    }
-
-    EventNumber_t
-    eventsToSkip() const
-    {
-      return eventsToSkip_;
-    }
-
-    FastCloningInfoProvider const&
-    fastCloningInfo() const
-    {
-      return fastCloningInfo_;
-    }
-
-    unsigned int
-    treeCacheSize() const
-    {
-      return treeCacheSize_;
-    }
-
-    int64_t
-    treeMaxVirtualSize() const
-    {
-      return treeMaxVirtualSize_;
-    }
-
-    int64_t
-    saveMemoryObjectThreshold() const
-    {
-      return saveMemoryObjectThreshold_;
-    };
-
-    bool
-    delayedReadEventProducts() const
-    {
-      return delayedReadEventProducts_;
-    }
-
-    bool
-    delayedReadSubRunProducts() const
-    {
-      return delayedReadSubRunProducts_;
-    }
-
-    bool
-    delayedReadRunProducts() const
-    {
-      return delayedReadRunProducts_;
-    }
-
-    InputSource::ProcessingMode const&
-    processingMode()
-    {
-      return processingMode_;
-    }
-
     void finish();
 
   private:
-    void initFile(bool skipBadFiles);
-    bool nextFile();
-    bool previousFile();
-    void rewindFile();
-    ProcessConfiguration const& processConfiguration() const;
+    std::shared_ptr<RootInputFile> initFile(bool skipBadFiles = false);
+    std::shared_ptr<RootInputFile> nextFile();
+    std::shared_ptr<RootInputFile> previousFile();
 
     RootInputFile& secondaryFile(int idx);
     bool atEnd(int idx);
 
     InputFileCatalog& catalog_;
-    bool firstFile_{true};
-    bool seekingFile_{false};
     RootInputFileSharedPtr rootFile_{nullptr};
     std::vector<std::unique_ptr<RootInputFile>> secondaryFilesForPrimary_;
     std::vector<std::shared_ptr<FileIndex>> fileIndexes_;
+    bool firstFile_{true};
     EventID origEventID_{};
     EventNumber_t eventsToSkip_;
     bool const compactSubRunRanges_;
@@ -249,15 +180,12 @@ namespace art {
     bool const delayedReadEventProducts_;
     bool const delayedReadSubRunProducts_;
     bool const delayedReadRunProducts_;
-    int forcedRunOffset_{};
-    RunNumber_t setRun_{};
     GroupSelectorRules groupSelectorRules_;
     std::shared_ptr<DuplicateChecker> duplicateChecker_{nullptr};
     bool const dropDescendants_;
     bool const readParameterSets_;
     RootInputFileSharedPtr rootFileForLastReadEvent_;
-    FastCloningInfoProvider fastCloningInfo_;
-    InputSource::ProcessingMode processingMode_;
+    ProcessingLimits const& processingLimits_;
     ProcessConfiguration const& processConfiguration_;
     std::vector<std::vector<std::string>> secondaryFileNames_{};
     UpdateOutputCallbacks& outputCallbacks_;

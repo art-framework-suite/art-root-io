@@ -48,6 +48,7 @@
 #include "canvas/Persistency/Provenance/TypeLabel.h"
 #include "canvas/Utilities/TypeID.h"
 #include "messagefacility/MessageLogger/MessageLogger.h"
+#include "range/v3/view.hpp"
 
 #include "fhiclcpp/types/Atom.h"
 #include "fhiclcpp/types/DelegatedParameter.h"
@@ -60,9 +61,10 @@
 #include <type_traits>
 #include <vector>
 
-using namespace fhicl;
-using namespace std::string_literals;
 using namespace art;
+using namespace fhicl;
+using namespace ranges;
+using namespace std::string_literals;
 
 using art::detail::Products_t;
 
@@ -71,24 +73,21 @@ namespace {
   std::unique_ptr<EDProduct>
   make_sampled_product(Products_t& read_products, BranchKey const& original_key)
   {
-    InputTag const tag{original_key.moduleLabel_,
-                       original_key.productInstanceName_,
-                       original_key.processName_};
-
     auto& datasets_with_product = read_products.at(original_key);
 
     auto const first_entry = begin(datasets_with_product);
     auto const& products = first_entry->second;
     assert(!products.empty());
 
+    InputTag const tag{original_key.moduleLabel_,
+                       original_key.productInstanceName_,
+                       original_key.processName_};
+
     auto sampled_product =
       cbegin(products)->second->createEmptySampledProduct(tag);
-    for (auto&& pr : datasets_with_product) {
-      auto const& dataset = pr.first;
-      auto&& products_per_id = std::move(pr.second);
-      for (auto&& pr2 : products_per_id) {
-        sampled_product->insertIfSampledProduct(
-          dataset, pr2.first, move(pr2.second));
+    for (auto&& [dataset, products_per_id] : datasets_with_product) {
+      for (auto&& [id, products] : products_per_id) {
+        sampled_product->insertIfSampledProduct(dataset, id, move(products));
       }
     }
     return sampled_product;
@@ -99,17 +98,16 @@ namespace {
     std::map<BranchKey, BranchDescription> const& descriptions,
     ProcessConfiguration const& pc)
   {
-    std::set<std::string> processNames;
-    cet::transform_all(descriptions,
-                       inserter(processNames, end(processNames)),
-                       [](auto const& pr) { return pr.second.processName(); });
+    auto processNames =
+      descriptions | views::values |
+      views::transform([](auto const& pd) { return pd.processName(); }) |
+      to<std::set>();
 
-    ProcessConfigurations result;
-    cet::transform_all(
-      processNames, back_inserter(result), [&pc](auto const& name) {
-        return ProcessConfiguration{
-          name, pc.parameterSetID(), pc.releaseVersion()};
-      });
+    auto result = processNames | views::transform([&pc](auto const& name) {
+                    return ProcessConfiguration{
+                      name, pc.parameterSetID(), pc.releaseVersion()};
+                  }) |
+                  to<ProcessConfigurations>();
     // Current process goes last
     result.push_back(pc);
     return result;
@@ -355,8 +353,8 @@ art::SamplingInput::SamplingInput(Parameters const& config,
     sampled_process_configurations(oldKeyToSampledProductDescription_, pc_);
   sampledProcessHistoryID_ = sampled_process_history_id(sampledProcessConfigs_);
 
-  for (auto const& pr : oldKeyToSampledProductDescription_) {
-    presentSampledProducts.push_back(pr.second);
+  for (auto const& pd : oldKeyToSampledProductDescription_ | views::values) {
+    presentSampledProducts.push_back(pd);
   }
 
   // Specify present products for SubRuns and Runs.  Only the
@@ -424,12 +422,9 @@ art::SamplingInput::putSampledProductsInto_(T& principal,
                                             Products_t read_products,
                                             RangeSet&& rs) const
 {
-  for (auto const& pr : oldKeyToSampledProductDescription_) {
-    auto const& old_key = pr.first;
+  for (auto const& [old_key, sampled_pd] : oldKeyToSampledProductDescription_) {
     if (old_key.branchType_ != principal.branchType())
       continue;
-
-    auto const& sampled_pd = pr.second;
 
     principal.put(sampled_pd,
                   std::make_unique<ProductProvenance const>(

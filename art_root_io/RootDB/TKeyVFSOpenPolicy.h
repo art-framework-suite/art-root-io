@@ -10,8 +10,7 @@ namespace art {
 
   class TKeyVFSOpenPolicy {
   public:
-    explicit TKeyVFSOpenPolicy(TFile* const tfile,
-                               int const flags = SQLITE_OPEN_READONLY);
+    explicit TKeyVFSOpenPolicy(TFile* tfile, int flags = SQLITE_OPEN_READONLY);
 
     sqlite3* open(std::string const& key);
 

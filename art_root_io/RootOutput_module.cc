@@ -1,6 +1,5 @@
 // vim: set sw=2 expandtab :
 
-#include "art/Framework/Core/ModuleMacros.h"
 #include "art/Framework/Core/OutputModule.h"
 #include "art/Framework/Core/RPManager.h"
 #include "art/Framework/Core/ResultsProducer.h"
@@ -151,7 +150,6 @@ namespace art {
     void startEndFile() override;
     void writeFileFormatVersion() override;
     void writeFileIndex() override;
-    void writeEventHistory() override;
     void writeProcessConfigurationRegistry() override;
     void writeProcessHistoryRegistry() override;
     void writeParameterSetRegistry() override;
@@ -203,7 +201,7 @@ namespace art {
   RootOutput::~RootOutput() = default;
 
   RootOutput::RootOutput(Parameters const& config)
-    : OutputModule{config().omConfig, config.get_PSet()}
+    : OutputModule{config().omConfig}
     , catalog_{config().catalog()}
     , dropAllSubRuns_{config().dropAllSubRuns()}
     , moduleLabel_{config.get_PSet().get<string>("module_label")}
@@ -285,20 +283,12 @@ namespace art {
       return;
     }
     auto const* rfb = dynamic_cast<RootFileBlock const*>(&fb);
-    bool fastCloneThisOne = fastCloningEnabled_ && rfb &&
-                            (rfb->tree() != nullptr) &&
-                            ((remainingEvents() < 0) ||
-                             (remainingEvents() >= rfb->tree()->GetEntries()));
-    if (fastCloningEnabled_ && !fastCloneThisOne) {
-      mf::LogWarning("FastCloning")
-        << "Fast cloning deactivated for this input file due to "
-        << "empty event tree and/or event limits.";
-    }
-    if (fastCloneThisOne && !rfb->fastClonable()) {
+    bool const fastCloneThisOne =
+      fastCloningEnabled_ && rfb && rfb->fastClonable();
+    if (!fastCloneThisOne) {
       mf::LogWarning("FastCloning")
         << "Fast cloning deactivated for this input file due to "
         << "information in FileBlock.";
-      fastCloneThisOne = false;
     }
     rootOutputFile_->beginInputFile(rfb, fastCloneThisOne);
     fstats_.recordInputFile(fb.fileName());
@@ -330,6 +320,7 @@ namespace art {
     }
     if (hasNewlyDroppedBranch()[InEvent]) {
       ep.addToProcessHistory();
+      ep.refreshProcessHistoryID();
     }
     rootOutputFile_->writeOne(ep);
     fstats_.recordEvent(ep.eventID());
@@ -381,7 +372,7 @@ namespace art {
     auto resp = make_unique<ResultsPrincipal>(
       ResultsAuxiliary{}, moduleDescription().processConfiguration(), nullptr);
     resp->createGroupsForProducedProducts(producedResultsProducts_);
-    resp->enableLookupOfProducedProducts(producedResultsProducts_);
+    resp->enableLookupOfProducedProducts();
     if (!producedResultsProducts_.descriptions(InResults).empty() ||
         hasNewlyDroppedBranch()[InResults]) {
       resp->addToProcessHistory();
@@ -403,13 +394,6 @@ namespace art {
   {
     std::lock_guard sentry{mutex_};
     rootOutputFile_->writeFileIndex();
-  }
-
-  void
-  RootOutput::writeEventHistory()
-  {
-    std::lock_guard sentry{mutex_};
-    rootOutputFile_->writeEventHistory();
   }
 
   void

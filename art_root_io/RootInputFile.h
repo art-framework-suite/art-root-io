@@ -11,7 +11,7 @@
 #include "art/Framework/Principal/SubRunPrincipal.h"
 #include "art_root_io/Inputfwd.h"
 #include "art_root_io/RootDelayedReader.h"
-#include "canvas/Persistency/Provenance/Compatibility/BranchIDList.h"
+#include "canvas/Persistency/Provenance/Compatibility/fwd.h"
 #include "canvas/Persistency/Provenance/EventAuxiliary.h"
 #include "canvas/Persistency/Provenance/FileFormatVersion.h"
 #include "canvas/Persistency/Provenance/FileIndex.h"
@@ -32,14 +32,12 @@ class TTree;
 class TBranch;
 
 namespace art {
-  namespace detail {
-    void mergeAuxiliary(RunAuxiliary& left, RunAuxiliary const& right);
-    void mergeAuxiliary(SubRunAuxiliary& left, SubRunAuxiliary const& right);
-  } // namespace detail
-
   class BranchChildren;
   class DuplicateChecker;
   class GroupSelectorRules;
+  namespace detail {
+    struct RangeSetInfo;
+  }
 
   class RootInputFile {
     class RootInputTree {
@@ -56,7 +54,7 @@ namespace art {
       RootInputTree&& operator=(RootInputTree&&) = delete;
 
       bool isValid() const;
-      EntryNumber entries() const;
+      EntryNumber nEntries() const;
       TTree* tree() const;
       TTree* metaTree() const;
       TBranch* auxBranch() const;
@@ -70,7 +68,7 @@ namespace art {
       TTree* metaTree_{nullptr};
       TBranch* auxBranch_{nullptr};
       TBranch* productProvenanceBranch_{nullptr};
-      EntryNumber entries_{0};
+      EntryNumber nEntries_{0};
       BranchMap branches_{};
     };
 
@@ -91,15 +89,13 @@ namespace art {
                   EventID const& origEventID,
                   unsigned int eventsToSkip,
                   bool compactSubRunRanges,
-                  FastCloningInfoProvider const& fcip,
                   unsigned int treeCacheSize,
                   int64_t treeMaxVirtualSize,
                   int64_t saveMemoryObjectThreashold,
                   bool delayedReadEventProducts,
                   bool delayedReadSubRunProducts,
                   bool delayedReadRunProducts,
-                  InputSource::ProcessingMode processingMode,
-                  int forcedRunOffset,
+                  ProcessingLimits const& limits,
                   bool noEventSort,
                   GroupSelectorRules const& groupSelectorRules,
                   bool dropDescendantsOfDroppedProducts,
@@ -127,21 +123,18 @@ namespace art {
     std::unique_ptr<EventPrincipal> readEventWithID(EventID const& id);
 
     std::string const& fileName() const;
-    RootInputTreePtrArray& treePointers();
-    FileFormatVersion fileFormatVersion() const;
     bool fastClonable() const;
     std::unique_ptr<FileBlock> createFileBlock();
-    bool setEntry_Event(EventID const& id, bool exact = true);
-    bool setEntry_SubRun(SubRunID const& id, bool exact = true);
-    bool setEntry_Run(RunID const& id, bool exact = true);
-    void rewind();
+
+    template <typename ID>
+    bool setEntry(ID const& id, bool exact = true);
+
     void setToLastEntry();
     void nextEntry();
     void previousEntry();
     void advanceEntry(std::size_t n);
     unsigned eventsToSkip() const;
     int skipEvents(int offset);
-    int setForcedRunOffset(RunNumber_t const& forcedRunNumber);
     FileIndex::EntryType getEntryType() const;
     FileIndex::EntryType getNextEntryTypeWanted();
     std::shared_ptr<FileIndex> fileIndexSharedPtr() const;
@@ -154,24 +147,29 @@ namespace art {
     RootInputTree const& subRunTree() const;
     RootInputTree const& runTree() const;
     RootInputTree const& resultsTree() const;
+    std::unique_ptr<RootInputTree> makeInputTree(BranchType bt,
+                                                 bool missingOK) const;
     RootInputTree& eventTree();
     RootInputTree& subRunTree();
     RootInputTree& runTree();
     RootInputTree& resultsTree();
-    bool setIfFastClonable(FastCloningInfoProvider const& fcip) const;
+    bool setIfFastClonable() const;
     void validateFile();
-    void fillHistory(EntryNumber const entry, History&);
-    void fillAuxiliary_Event(EntryNumber const entry);
-    void fillAuxiliary_SubRun(EntryNumber const entry);
-    void fillAuxiliary_Run(EntryNumber const entry);
-    void fillAuxiliary_Results(EntryNumber const entry);
-    std::pair<SubRunAuxiliary, std::unique_ptr<RangeSetHandler>>
-    fillAuxiliary_SubRun(EntryNumbers const& entries);
-    std::pair<RunAuxiliary, std::unique_ptr<RangeSetHandler>> fillAuxiliary_Run(
-      EntryNumbers const& entries);
-    void overrideRunNumber(RunAuxiliary&);
-    void overrideRunNumber(SubRunID& id);
-    void overrideRunNumber(EventID& id, bool isRealData);
+    void fillHistory(EntryNumber entry, History&);
+
+    template <typename Aux>
+    Aux getAuxiliary(EntryNumber entry) const;
+
+    template <typename Aux>
+    std::pair<Aux, std::unique_ptr<RangeSetHandler>> getAuxiliary(
+      EntryNumbers const& entries) const;
+
+    detail::RangeSetInfo resolveInfo(BranchType bt, unsigned rangeSetID) const;
+
+    template <typename Aux>
+    Aux overrideAuxiliary(Aux auxiliary) const;
+    EventAuxiliary overrideAuxiliary(EventAuxiliary aux, EntryNumber entry);
+
     void dropOnInput(GroupSelectorRules const& rules,
                      BranchChildren const& branchChildren,
                      bool dropDescendants,
@@ -193,8 +191,7 @@ namespace art {
     bool delayedReadEventProducts_;
     bool delayedReadSubRunProducts_;
     bool delayedReadRunProducts_;
-    InputSource::ProcessingMode processingMode_;
-    int forcedRunOffset_;
+    ProcessingLimits const& processingLimits_;
     bool noEventSort_;
     secondary_reader_t readFromSecondaryFile_;
     std::shared_ptr<DuplicateChecker> duplicateChecker_;
@@ -206,18 +203,13 @@ namespace art {
     FileIndex::const_iterator fiEnd_{fileIndex_.end()};
     FileIndex::const_iterator fiIter_{fiBegin_};
     bool fastClonable_{false};
-    EventAuxiliary eventAux_{};
-    SubRunAuxiliary subRunAux_{};
-    RunAuxiliary runAux_{};
-    ResultsAuxiliary resultsAux_{};
     ProductTables presentProducts_{ProductTables::invalid()};
     std::unique_ptr<BranchIDLists> branchIDLists_{};
     TTree* eventHistoryTree_{nullptr};
     // We need to add the secondary principals to the primary
-    // principal when they are delay read, so we need to keep
-    // around a pointer to the primary.  Note that these are
-    // always used in a situation where we are guaranteed that
-    // primary exists.
+    // principal when they are delay read, so we need to keep around a
+    // pointer to the primary.  Note that these are always used in a
+    // situation where we are guaranteed that primary exists.
     cet::exempt_ptr<EventPrincipal> primaryEP_{};
     cet::exempt_ptr<RunPrincipal> primaryRP_{};
     cet::exempt_ptr<SubRunPrincipal> primarySRP_{};
@@ -225,6 +217,12 @@ namespace art {
     std::unique_ptr<RangeSetHandler> runRangeSetHandler_{nullptr};
     int64_t saveMemoryObjectThreshold_;
   };
+
+  extern template bool RootInputFile::setEntry<RunID>(RunID const& id, bool);
+  extern template bool RootInputFile::setEntry<SubRunID>(SubRunID const& id,
+                                                         bool);
+  extern template bool RootInputFile::setEntry<EventID>(EventID const& id,
+                                                        bool);
 } // namespace art
 
 // Local Variables:

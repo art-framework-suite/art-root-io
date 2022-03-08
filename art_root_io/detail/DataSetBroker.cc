@@ -7,6 +7,7 @@
 #include "fhiclcpp/types/Atom.h"
 #include "fhiclcpp/types/Sequence.h"
 #include "fhiclcpp/types/Table.h"
+#include "fhiclcpp/types/detail/validationException.h"
 #include "messagefacility/MessageLogger/MessageLogger.h"
 
 #include <iomanip>
@@ -55,10 +56,8 @@ namespace {
       // because invalid events always compare less than valid events.
       return EventID::invalidEvent();
     }
-    RunNumber_t r;
-    SubRunNumber_t sr;
-    EventNumber_t e;
-    std::tie(r, sr, e) = art::detail::event_start_for_sampled_input(firstEvent);
+    auto const [r, sr, e] =
+      art::detail::event_start_for_sampled_input(firstEvent);
     return EventID{r, sr, e};
   }
 }
@@ -199,9 +198,7 @@ detail::DataSetBroker::openInputFiles(
   GroupSelectorRules const groupSelectorRules{
     inputCommands, "inputCommands", "InputSource"};
   std::map<BranchKey, BranchDescription> oldKeyToSampledDescription;
-  for (auto const& pr : configs_) {
-    auto const& name = pr.first;
-    auto const& config = pr.second;
+  for (auto const& [name, config] : configs_) {
     try {
       files_.emplace(
         name,
@@ -252,15 +249,12 @@ std::unique_ptr<SampledRunInfo>
 detail::DataSetBroker::readAllRunProducts(Products_t& read_products)
 {
   auto sampledRunInfo = std::make_unique<SampledRunInfo>();
-  for (auto& pr1 : files_) {
-    auto const& dataset = pr1.first;
-    auto& file = pr1.second;
+  for (auto& [dataset, file] : files_) {
     auto const entries = file.treeEntries(InRun);
 
     auto products = file.productsFor(entries, InRun);
-    for (auto& pr2 : products) {
-      auto const& old_key = pr2.first;
-      read_products[old_key][dataset] = std::move(pr2.second);
+    for (auto&& [old_key, product] : products) {
+      read_products[old_key][dataset] = std::move(product);
     }
 
     sampledRunInfo->emplace(dataset, file.sampledInfoFor<RunID>(entries));
@@ -272,15 +266,12 @@ std::unique_ptr<SampledSubRunInfo>
 detail::DataSetBroker::readAllSubRunProducts(Products_t& read_products)
 {
   auto sampledSubRunInfo = std::make_unique<SampledSubRunInfo>();
-  for (auto& pr1 : files_) {
-    auto const& dataset = pr1.first;
-    auto& file = pr1.second;
+  for (auto& [dataset, file] : files_) {
     auto const entries = file.treeEntries(InSubRun);
 
     auto products = file.productsFor(entries, InSubRun);
-    for (auto& pr2 : products) {
-      auto const& old_key = pr2.first;
-      read_products[old_key][dataset] = std::move(pr2.second);
+    for (auto&& [old_key, product] : products) {
+      read_products[old_key][dataset] = std::move(product);
     }
 
     sampledSubRunInfo->emplace(dataset, file.sampledInfoFor<SubRunID>(entries));
@@ -345,9 +336,7 @@ detail::DataSetBroker::countSummary() const
       << next_event_field << '\n';
   log << rule('-');
 
-  for (auto const& pr : counts_) {
-    auto const& dataset = pr.first;
-    auto const k = pr.second;
+  for (auto const& [dataset, k] : counts_) {
     auto const f = static_cast<double>(k) / totalCounts_;
     auto const id = files_.at(dataset).nextEvent();
     log << '\n'
