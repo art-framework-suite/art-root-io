@@ -470,6 +470,10 @@ namespace art {
     return fiIter_ != fiEnd_;
   }
 
+  template bool RootInputFile::setEntry<RunID>(RunID const& id, bool);
+  template bool RootInputFile::setEntry<SubRunID>(SubRunID const& id, bool);
+  template bool RootInputFile::setEntry<EventID>(EventID const& id, bool);
+
   RootInputFile::RootInputTree const&
   RootInputFile::eventTree() const
   {

@@ -217,6 +217,12 @@ namespace art {
     std::unique_ptr<RangeSetHandler> runRangeSetHandler_{nullptr};
     int64_t saveMemoryObjectThreshold_;
   };
+
+  extern template bool RootInputFile::setEntry<RunID>(RunID const& id, bool);
+  extern template bool RootInputFile::setEntry<SubRunID>(SubRunID const& id,
+                                                         bool);
+  extern template bool RootInputFile::setEntry<EventID>(EventID const& id,
+                                                        bool);
 } // namespace art
 
 // Local Variables:
