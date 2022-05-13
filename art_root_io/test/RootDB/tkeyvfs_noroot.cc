@@ -1019,7 +1019,7 @@ unixFileControl(sqlite3_file* id, int op, void* pArg)
     fprintf(stderr, "filename: %s\n", ((unixFile*)id)->zPath);
   }
 #endif /* TKEYVFS_TRACE */
-  switch (op) {
+  switch (static_cast<unsigned int>(op)) {
   case SQLITE_FCNTL_LOCKSTATE: {
     /**/
 #if TKEYVFS_TRACE
