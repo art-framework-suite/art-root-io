@@ -1328,8 +1328,7 @@ unixAccess(sqlite3_vfs* NotUsed,  /* The VFS containing this xAccess method */
            int* pResOut /* Write result boolean here */
 )
 {
-  int amode = 0;
-  UNUSED_PARAMETER(NotUsed);
+  int amode [[maybe_unused]] = 0;
 #if TKEYVFS_TRACE
   fprintf(stderr, "Begin unixAccess ...\n");
   if (zPath != nullptr) {
