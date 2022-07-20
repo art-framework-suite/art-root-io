@@ -14,6 +14,7 @@
 #include "art/Framework/Principal/ResultsPrincipal.h"
 #include "art/Framework/Principal/RunPrincipal.h"
 #include "art/Framework/Principal/SubRunPrincipal.h"
+#include "art/Utilities/Globals.h"
 #include "art/Utilities/parent_path.h"
 #include "art/Utilities/unique_filename.h"
 #include "art_root_io/DropMetaData.h"
@@ -298,6 +299,12 @@ namespace art {
       mf::LogWarning("FastCloning")
         << "Fast cloning deactivated for this input file due to "
         << "information in FileBlock.";
+      fastCloneThisOne = false;
+    }
+    if (auto const n = Globals::instance()->nschedules(); n > 1) {
+      mf::LogWarning("FastCloning")
+        << "Fast cloning deactivated as more than one schedule (" << n
+        << ") is being used.";
       fastCloneThisOne = false;
     }
     rootOutputFile_->beginInputFile(rfb, fastCloneThisOne);

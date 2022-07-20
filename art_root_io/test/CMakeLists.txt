@@ -96,6 +96,16 @@ cet_test(FastCloningInitMessage_03_t HANDBUILT
   TEST_PROPERTIES PASS_REGULAR_EXPRESSION "\nInitial fast cloning configuration \\(user-set\\): false\n"
 )
 
+cet_test(FastCloningMT_w HANDBUILT
+  TEST_EXEC art
+  TEST_ARGS -c /dev/null -o out.root -n 10)
+
+cet_test(FastCloningMT_t HANDBUILT
+  TEST_EXEC art
+  TEST_ARGS -c /dev/null -s ../FastCloningMT_w.d/out.root -o out.root -j2
+  TEST_PROPERTIES DEPENDS FastCloningMT_w
+  PASS_REGULAR_EXPRESSION "Fast cloning deactivated as more than one schedule \\(2\\) is being used")
+
 basic_plugin(IntArrayAnalyzer "module" NO_INSTALL ALLOW_UNDERSCORES
   LIBRARIES PRIVATE art::Framework_Core)
 basic_plugin(IntArrayProducer "module" NO_INSTALL ALLOW_UNDERSCORES

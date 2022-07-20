@@ -1051,6 +1051,15 @@ namespace art {
     fillHistory(entryNumbers.first.front(), *history);
     overrideRunNumber(const_cast<EventID&>(eventAux_.eventID()),
                       eventAux_.isRealData());
+    if (fiIter_->eventID != eventAux_.eventID()) {
+      throw Exception{errors::LogicError}
+        << "There is a mismatch in the file's index and the event "
+           "auxiliary.\n\n"
+        << "  File index ID ........ " << fiIter_->eventID << "\n\n    vs."
+        << "\n\n  Event auxiliary ID ... " << eventAux_.eventID()
+        << "\n\nThis file and any of its decendents are likely corrupt.\n"
+        << "Contact artists@fnal.gov for more information.\n";
+    }
     auto ep = make_unique<EventPrincipal>(
       eventAux_,
       processConfiguration_,
