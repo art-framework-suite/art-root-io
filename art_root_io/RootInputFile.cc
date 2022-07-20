@@ -905,6 +905,15 @@ namespace art {
     auto const entry = entryNumbers[0];
     auto orig_event_aux = getAuxiliary<EventAuxiliary>(entry);
     auto event_aux = overrideAuxiliary(std::move(orig_event_aux), entry);
+    if (fiIter_->eventID != event_aux.eventID()) {
+      throw Exception{errors::LogicError}
+        << "There is a mismatch in the file's index and the event "
+           "auxiliary.\n\n"
+        << "  File index ID ........ " << fiIter_->eventID << "\n\n    vs."
+        << "\n\n  Event auxiliary ID ... " << event_aux.eventID()
+        << "\n\nThis file and any of its decendents are likely corrupt.\n"
+        << "Contact artists@fnal.gov for more information.\n";
+    }
 
     auto ep = std::make_unique<EventPrincipal>(
       event_aux,
