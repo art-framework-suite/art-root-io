@@ -35,14 +35,11 @@ namespace art {
   class RootFileBlock;
 
   struct OutputItem {
-  public:
     ~OutputItem();
     explicit OutputItem(BranchDescription const& bd);
 
-    std::string const& branchName() const;
-
-    BranchDescription const branchDescription_;
-    mutable void const* product_;
+    BranchDescription const branchDescription;
+    mutable void const* product;
   };
 
   class RootOutputFile {

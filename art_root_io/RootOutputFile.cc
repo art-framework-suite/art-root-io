@@ -303,14 +303,8 @@ namespace art {
   OutputItem::~OutputItem() = default;
 
   OutputItem::OutputItem(BranchDescription const& bd)
-    : branchDescription_{bd}, product_{nullptr}
+    : branchDescription{bd}, product{nullptr}
   {}
-
-  string const&
-  OutputItem::branchName() const
-  {
-    return branchDescription_.branchName();
-  }
 
   RootOutputFile::~RootOutputFile() = default;
 
@@ -454,8 +448,8 @@ namespace art {
         items.try_emplace(pd.productID(), pd);
       }
       for (auto const& item : items | ranges::views::values) {
-        treePointers_[bt]->addOutputBranch(item.branchDescription_,
-                                           item.product_);
+        treePointers_[bt]->addOutputBranch(item.branchDescription,
+                                           item.product);
       }
     };
     for_each_branch_type(selectProductsToWrite);
@@ -867,7 +861,7 @@ namespace art {
 
     set<ProductProvenance> keptprv;
     for (auto const& [pid, val] : selectedOutputItemList_[BT]) {
-      auto const& bd = val.branchDescription_;
+      auto const& bd = val.branchDescription;
       descriptionsToPersist_[BT].try_emplace(pid, bd);
       bool const produced = bd.produced();
       bool const resolveProd{produced || !fastCloning ||
@@ -968,7 +962,7 @@ namespace art {
         auto const* product = getProduct<BT>(oh, rs, bd.wrappedName());
         setProductRangeSetID<BT>(
           rs, *rootFileDB_, const_cast<EDProduct*>(product), checksumToIndex);
-        val.product_ = product;
+        val.product = product;
       }
     }
     vpp->assign(keptprv.begin(), keptprv.end());
