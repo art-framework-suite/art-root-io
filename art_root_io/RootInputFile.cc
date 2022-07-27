@@ -15,6 +15,7 @@
 #include "art/Framework/Services/System/FileCatalogMetadata.h"
 #include "art/Persistency/Provenance/ProcessHistoryRegistry.h"
 #include "art_root_io/DuplicateChecker.h"
+#include "art_root_io/FastCloningEnabled.h"
 #include "art_root_io/GetFileFormatEra.h"
 #include "art_root_io/Inputfwd.h"
 #include "art_root_io/RootDB/TKeyVFSOpenPolicy.h"
@@ -441,7 +442,6 @@ namespace art {
 
     // Determine if this file is fast clonable.
     fastClonable_ = setIfFastClonable();
-    reportOpened();
 
     // Check if dictionaries exist for the auxiliary objects
     root::DictionaryChecker checker{};
@@ -572,12 +572,6 @@ namespace art {
     return fileName_;
   }
 
-  bool
-  RootInputFile::fastClonable() const
-  {
-    return fastClonable_;
-  }
-
   void
   RootInputFile::setToLastEntry()
   {
@@ -666,29 +660,33 @@ namespace art {
     return fiIter_->eventID;
   }
 
-  bool
+  FastCloningEnabled
+
   RootInputFile::setIfFastClonable() const
   {
+    FastCloningEnabled enabled;
     if (readFromSecondaryFile_) {
-      return false;
+      enabled.disable("Reading from secondary file.");
     }
     if (!fileIndex_.allEventsInEntryOrder()) {
-      return false;
+      enabled.disable("Events are not in entry order.");
     }
     if (eventsToSkip_ != 0) {
-      return false;
+      enabled.disable("The events-to-skip option has been specified.");
     }
     if ((processingLimits_.remainingEvents() >= 0) &&
         (eventTree().nEntries() > processingLimits_.remainingEvents())) {
-      return false;
+      enabled.disable("There are fewer events to process than are present in "
+                      "the event tree.");
     }
     if ((processingLimits_.remainingSubRuns() >= 0) &&
         (subRunTree().nEntries() > processingLimits_.remainingSubRuns())) {
-      return false;
+      enabled.disable("There are fewer subruns to process than are present in "
+                      "the subrun tree.");
     }
     if (processingLimits_.processingMode() !=
         InputSource::RunsSubRunsAndEvents) {
-      return false;
+      enabled.disable("Processing mode does not process all events.");
     }
     // Find entry for first event in file.
     auto it = fiBegin_;
@@ -696,12 +694,13 @@ namespace art {
       ++it;
     }
     if (it == fiEnd_) {
-      return false;
+      enabled.disable("No event found in file index of input file.");
     }
     if (it->eventID < origEventID_) {
-      return false;
+      enabled.disable(
+        "Starting event does not include first event in input file.");
     }
-    return true;
+    return enabled;
   }
 
   std::unique_ptr<FileBlock>
@@ -712,7 +711,7 @@ namespace art {
       fileName_,
       readResults(),
       cet::make_exempt_ptr(eventTree().tree()),
-      fastClonable());
+      fastClonable_);
   }
 
   FileIndex::EntryType
@@ -810,10 +809,6 @@ namespace art {
         << "FileIndex information is missing for the input file.\n";
     }
   }
-
-  void
-  RootInputFile::reportOpened()
-  {}
 
   void
   RootInputFile::close()

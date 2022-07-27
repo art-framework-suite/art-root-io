@@ -17,6 +17,7 @@
 #include "art/Utilities/parent_path.h"
 #include "art/Utilities/unique_filename.h"
 #include "art_root_io/DropMetaData.h"
+#include "art_root_io/FastCloningEnabled.h"
 #include "art_root_io/RootFileBlock.h"
 #include "art_root_io/RootOutputFile.h"
 #include "art_root_io/detail/rootOutputConfigurationTools.h"
@@ -42,18 +43,53 @@ using namespace hep::concurrency;
 
 namespace {
   string const dev_null{"/dev/null"};
+
+  bool
+  maxCriterionSpecified(art::ClosingCriteria const& cc)
+  {
+    auto fp = mem_fn(&art::ClosingCriteria::fileProperties);
+    return (fp(cc).nEvents() !=
+            art::ClosingCriteria::Defaults::unsigned_max()) ||
+           (fp(cc).nSubRuns() !=
+            art::ClosingCriteria::Defaults::unsigned_max()) ||
+           (fp(cc).nRuns() != art::ClosingCriteria::Defaults::unsigned_max()) ||
+           (fp(cc).size() != art::ClosingCriteria::Defaults::size_max()) ||
+           (fp(cc).age().count() !=
+            art::ClosingCriteria::Defaults::seconds_max());
+  }
+
+  auto
+  shouldFastClone(bool const fastCloningSet,
+                  bool const fastCloning,
+                  bool const wantAllEvents,
+                  art::ClosingCriteria const& cc)
+  {
+    art::FastCloningEnabled enabled;
+    if (fastCloningSet and not fastCloning) {
+      enabled.disable(
+        "RootOutput configuration explicitly disables fast cloning.");
+      return enabled;
+    }
+
+    if (not wantAllEvents) {
+      enabled.disable(
+        "Event-selection has been specified in the RootOutput configuration.");
+    }
+    if (fastCloning && maxCriterionSpecified(cc) &&
+        cc.granularity() < art::Granularity::InputFile) {
+      enabled.disable("File-switching has been requested at event, subrun, or "
+                      "run boundaries.");
+    }
+    return enabled;
+  }
 }
 
 namespace art {
 
   class RootOutput final : public OutputModule {
-
-    // Constants.
   public:
     static constexpr char const* default_tmpDir{"<parent-path-of-filename>"};
 
-    // Config.
-  public:
     struct Config {
       using Name = fhicl::Name;
       using Comment = fhicl::Comment;
@@ -109,8 +145,6 @@ namespace art {
 
     using Parameters = fhicl::WrappedTable<Config, Config::KeysToIgnore>;
 
-    // Special Member Functions.
-  public:
     ~RootOutput();
     explicit RootOutput(Parameters const&);
     RootOutput(RootOutput const&) = delete;
@@ -118,8 +152,6 @@ namespace art {
     RootOutput& operator=(RootOutput const&) = delete;
     RootOutput& operator=(RootOutput&&) = delete;
 
-    // Member Functions.
-  public:
     void postSelectProducts() override;
     void beginJob() override;
     void endJob() override;
@@ -129,8 +161,8 @@ namespace art {
     void endSubRun(SubRunPrincipal const&) override;
     void event(EventPrincipal const&) override;
 
-    // Member Functions -- Replace OutputModule Functions.
   private:
+    // Replace OutputModule Functions.
     string fileNameAtOpen() const;
     string fileNameAtClose(string const& currentFileName);
     string const& lastClosedFileName() const override;
@@ -164,12 +196,10 @@ namespace art {
     void doRegisterProducts(ProductDescriptions& productsToProduce,
                             ModuleDescription const& md) override;
 
-    // Member Functions -- Implementation Details.
-  private:
+    // Implementation Details.
     void doOpenFile();
 
     // Data Members.
-  private:
     mutable std::recursive_mutex mutex_;
     string const catalog_;
     bool dropAllEvents_{false};
@@ -189,7 +219,7 @@ namespace art {
     int const basketSize_;
     DropMetaData dropMetaData_;
     bool dropMetaDataForDroppedData_;
-    bool fastCloningEnabled_{true};
+    FastCloningEnabled fastCloningEnabled_{};
     // Set false only for cases where we are guaranteed never to need historical
     // ParameterSet information in the downstream file, such as when mixing.
     bool writeParameterSets_;
@@ -237,9 +267,17 @@ namespace art {
     //      to ensure that the Event tree from the InputFile is not
     //      accidentally cloned to the output file before the output
     //      module has seen the events that are going to be processed.
-    bool const fastCloningSet{config().fastCloning(fastCloningEnabled_)};
-    fastCloningEnabled_ = RootOutputFile::shouldFastClone(
-      fastCloningSet, fastCloningEnabled_, wantAllEvents(), fileProperties_);
+    bool fastCloningEnabled{true};
+    bool const fastCloningSet{config().fastCloning(fastCloningEnabled)};
+    fastCloningEnabled_ = shouldFastClone(
+      fastCloningSet, fastCloningEnabled, wantAllEvents(), fileProperties_);
+
+    if (auto const n = Globals::instance()->nschedules(); n > 1) {
+      std::ostringstream oss;
+      oss << "More than one schedule (" << n << ") is being used.";
+      fastCloningEnabled_.disable(oss.str());
+    }
+
     if (!writeParameterSets_) {
       mf::LogWarning("PROVENANCE")
         << "Output module " << moduleLabel_
@@ -284,20 +322,13 @@ namespace art {
       return;
     }
     auto const* rfb = dynamic_cast<RootFileBlock const*>(&fb);
-    bool fastCloneThisOne =
-      fastCloningEnabled_ && rfb && rfb->fastClonable();
-    if (!fastCloneThisOne) {
-      mf::LogWarning("FastCloning")
-        << "Fast cloning deactivated for this input file due to "
-        << "information in FileBlock.";
+    auto fastCloneThisOne = fastCloningEnabled_;
+    if (!rfb) {
+      fastCloneThisOne.disable("Input source does not read art/ROOT files.");
+    } else {
+      fastCloneThisOne.merge(rfb->fastClonable());
     }
-    if (auto const n = Globals::instance()->nschedules(); n > 1) {
-      mf::LogWarning("FastCloning")
-        << "Fast cloning deactivated as more than one schedule (" << n
-        << ") is being used.";
-      fastCloneThisOne = false;
-    }
-    rootOutputFile_->beginInputFile(rfb, fastCloneThisOne);
+    rootOutputFile_->beginInputFile(rfb, std::move(fastCloneThisOne));
     fstats_.recordInputFile(fb.fileName());
   }
 
@@ -549,8 +580,7 @@ namespace art {
                                                   splitLevel_,
                                                   basketSize_,
                                                   dropMetaData_,
-                                                  dropMetaDataForDroppedData_,
-                                                  fastCloningEnabled_);
+                                                  dropMetaDataForDroppedData_);
     fstats_.recordFileOpen();
     detail::logFileAction("Opened output file with pattern ", filePattern_);
   }

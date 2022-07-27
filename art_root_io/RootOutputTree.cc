@@ -60,9 +60,6 @@ namespace art {
       }
       if ((inputBranch->GetSplitLevel() != outputBranch->GetSplitLevel()) ||
           (inputBranch->GetBasketSize() != outputBranch->GetBasketSize())) {
-        mf::LogInfo("FastCloning")
-          << "Fast Cloning disabled because split level or basket size "
-             "do not match";
         return false;
       }
     }
@@ -95,11 +92,8 @@ namespace art {
   {
     unclonedReadBranches_.clear();
     unclonedReadBranchNames_.clear();
-    if (!fastCloningEnabled_.load()) {
-      return false;
-    }
 
-    bool cloned{false};
+    fastCloningEnabled_ = false;
     if (intree->GetEntries() != 0) {
       auto event_tree = const_cast<TTree*>(intree.get());
 
@@ -123,9 +117,8 @@ namespace art {
         tree_.load()->SetEntries(tree_.load()->GetEntries() +
                                  intree->GetEntries());
         cloner.Exec();
-        cloned = true;
+        fastCloningEnabled_ = true;
       } else {
-        fastCloningEnabled_ = false;
         mf::LogInfo("fastCloneTree")
           << "INFO: Unable to fast clone tree " << intree->GetName() << '\n'
           << "INFO: ROOT reason is:\n"
@@ -152,7 +145,7 @@ namespace art {
       }
     }
     cet::sort_all(unclonedReadBranchNames_);
-    return cloned;
+    return fastCloningEnabled_;
   }
 
   namespace {

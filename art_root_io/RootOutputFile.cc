@@ -296,20 +296,6 @@ namespace {
     }
   }
 
-  bool
-  maxCriterionSpecified(art::ClosingCriteria const& cc)
-  {
-    auto fp = mem_fn(&art::ClosingCriteria::fileProperties);
-    return (fp(cc).nEvents() !=
-            art::ClosingCriteria::Defaults::unsigned_max()) ||
-           (fp(cc).nSubRuns() !=
-            art::ClosingCriteria::Defaults::unsigned_max()) ||
-           (fp(cc).nRuns() != art::ClosingCriteria::Defaults::unsigned_max()) ||
-           (fp(cc).size() != art::ClosingCriteria::Defaults::size_max()) ||
-           (fp(cc).age().count() !=
-            art::ClosingCriteria::Defaults::seconds_max());
-  }
-
 } // unnamed namespace
 
 namespace art {
@@ -326,34 +312,6 @@ namespace art {
     return branchDescription_.branchName();
   }
 
-  // Part of static interface.
-  bool
-  RootOutputFile::shouldFastClone(bool const fastCloningSet,
-                                  bool const fastCloning,
-                                  bool const wantAllEvents,
-                                  ClosingCriteria const& cc)
-  {
-    bool result = fastCloning;
-    mf::LogInfo("FastCloning")
-      << "Initial fast cloning configuration "
-      << (fastCloningSet ? "(user-set): " : "(from default): ") << boolalpha
-      << fastCloning;
-    if (fastCloning && !wantAllEvents) {
-      result = false;
-      mf::LogWarning("FastCloning")
-        << "Fast cloning deactivated due to presence of\n"
-        << "event selection configuration.";
-    }
-    if (fastCloning && maxCriterionSpecified(cc) &&
-        cc.granularity() < Granularity::InputFile) {
-      result = false;
-      mf::LogWarning("FastCloning")
-        << "Fast cloning deactivated due to request to allow\n"
-        << "output file switching at an Event, SubRun, or Run boundary.";
-    }
-    return result;
-  }
-
   RootOutputFile::~RootOutputFile() = default;
 
   RootOutputFile::RootOutputFile(OutputModule* om,
@@ -365,26 +323,19 @@ namespace art {
                                  int const splitLevel,
                                  int const basketSize,
                                  DropMetaData dropMetaData,
-                                 bool const dropMetaDataForDroppedData,
-                                 bool const fastCloningRequested)
-    : compressionLevel_{compressionLevel}
+                                 bool const dropMetaDataForDroppedData)
+    : om_{om}
+    , file_{fileName}
+    , fileSwitchCriteria_{fileSwitchCriteria}
+    , compressionLevel_{compressionLevel}
     , saveMemoryObjectThreshold_{saveMemoryObjectThreshold}
     , treeMaxVirtualSize_{treeMaxVirtualSize}
     , splitLevel_{splitLevel}
     , basketSize_{basketSize}
     , dropMetaData_{dropMetaData}
-    , descriptionsToPersist_{{}}
-    , selectedOutputItemList_{{}}
+    , dropMetaDataForDroppedData_{dropMetaDataForDroppedData}
+    , filePtr_{TFile::Open(file_.c_str(), "recreate", "", compressionLevel)}
   {
-    om_ = om;
-    file_ = fileName;
-    fileSwitchCriteria_ = fileSwitchCriteria;
-    status_ = OutputFileStatus::Closed;
-    dropMetaDataForDroppedData_ = dropMetaDataForDroppedData;
-    fastCloningEnabledAtConstruction_ = fastCloningRequested;
-    wasFastCloned_ = false;
-    filePtr_.reset(
-      TFile::Open(file_.c_str(), "recreate", "", compressionLevel));
     // Don't split metadata tree or event description tree
     metaDataTree_ = RootOutputTree::makeTTree(
       filePtr_.get(), rootNames::metaDataTreeName(), 0);
@@ -392,14 +343,6 @@ namespace art {
       filePtr_.get(), rootNames::fileIndexTreeName(), 0);
     parentageTree_ = RootOutputTree::makeTTree(
       filePtr_.get(), rootNames::parentageTreeName(), 0);
-    pEventAux_ = nullptr;
-    pSubRunAux_ = nullptr;
-    pRunAux_ = nullptr;
-    pResultsAux_ = nullptr;
-    pEventProductProvenanceVector_ = &eventProductProvenanceVector_;
-    pSubRunProductProvenanceVector_ = &subRunProductProvenanceVector_;
-    pRunProductProvenanceVector_ = &runProductProvenanceVector_;
-    pResultsProductProvenanceVector_ = &resultsProductProvenanceVector_;
     treePointers_[0] =
       make_unique<RootOutputTree>(filePtr_.get(),
                                   InEvent,
@@ -435,14 +378,11 @@ namespace art {
                                   splitLevel,
                                   treeMaxVirtualSize,
                                   saveMemoryObjectThreshold);
-    dataTypeReported_ = false;
     rootFileDB_.reset(
       ServiceHandle<DatabaseConnection> {}->get<TKeyVFSOpenPolicy>(
         "RootFileDB",
         filePtr_.get(),
         SQLITE_OPEN_CREATE | SQLITE_OPEN_READWRITE));
-    subRunRSID_ = -1U;
-    runRSID_ = -1U;
     beginTime_ = chrono::steady_clock::now();
     // Check that dictionaries for the auxiliaries exist
     root::DictionaryChecker checker;
@@ -523,42 +463,43 @@ namespace art {
 
   void
   RootOutputFile::beginInputFile(RootFileBlock const* rfb,
-                                 bool const fastCloneFromOutputModule)
+                                 FastCloningEnabled fastCloningEnabled)
   {
     std::lock_guard sentry{mutex_};
-    // FIXME: the logic here is nasty.
-    bool shouldFastClone{fastCloningEnabledAtConstruction_ &&
-                         fastCloneFromOutputModule && rfb};
-    // Create output branches, and then redo calculation to determine if
-    // fast cloning should be done.
+
+    // Create output branches, and then redo calculation to determine
+    // if fast cloning should be done.
     selectProducts();
-    if (shouldFastClone &&
-        !treePointers_[InEvent]->checkSplitLevelAndBasketSize(rfb->tree())) {
-      mf::LogWarning("FastCloning")
-        << "Fast cloning deactivated for this input file due to "
-        << "splitting level and/or basket size.";
-      shouldFastClone = false;
-    } else if (rfb && rfb->tree() &&
-               rfb->tree()->GetCurrentFile()->GetVersion() < 60001) {
-      mf::LogWarning("FastCloning")
-        << "Fast cloning deactivated for this input file due to "
-        << "ROOT version used to write it (< 6.00/01)\n"
-           "having a different splitting policy.";
-      shouldFastClone = false;
+
+    cet::exempt_ptr<TTree const> inputTree{nullptr};
+    if (rfb) {
+      if (rfb->fileFormatVersion().value_ < 10) {
+        fastCloningEnabled.disable("The input file has a different ProductID "
+                                   "schema than the in-memory schema.");
+      }
+      inputTree = rfb->tree();
+      if (inputTree) {
+        if (!treePointers_[InEvent]->checkSplitLevelAndBasketSize(inputTree)) {
+          fastCloningEnabled.disable(
+            "The splitting level and/or basket size does not match between "
+            "input and output file.");
+        }
+        if (inputTree->GetCurrentFile()->GetVersion() < 60001) {
+          fastCloningEnabled.disable(
+            "The ROOT version used to write the input file (< 6.00/01)\nhas a "
+            "different splitting policy.");
+        }
+      }
     }
-    if (shouldFastClone && rfb->fileFormatVersion().value_ < 10) {
-      mf::LogWarning("FastCloning")
-        << "Fast cloning deactivated for this input file due to "
-        << "reading in file that has a different ProductID schema.";
-      shouldFastClone = false;
+
+    if (not fastCloningEnabled) {
+      mf::LogWarning("FastCloning") << fastCloningEnabled.disabledBecause();
+      return;
     }
-    if (shouldFastClone && !fastCloningEnabledAtConstruction_) {
-      mf::LogWarning("FastCloning")
-        << "Fast cloning reactivated for this input file.";
-    }
-    treePointers_[InEvent]->beginInputFile(shouldFastClone);
-    auto tree = (rfb && rfb->tree()) ? rfb->tree() : nullptr;
-    wasFastCloned_ = treePointers_[InEvent]->fastCloneTree(tree);
+
+    mf::LogInfo("FastCloning")
+      << "Fast cloning event data products from input file.";
+    wasFastCloned_ = treePointers_[InEvent]->fastCloneTree(inputTree);
   }
 
   void

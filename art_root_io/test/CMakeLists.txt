@@ -75,7 +75,7 @@ cet_test(FastCloningInitMessage_01_t HANDBUILT
   TEST_EXEC art
   TEST_ARGS --rethrow-all -c FastCloningInitMessage_01.fcl
   DATAFILES fcl/FastCloningInitMessage_01.fcl
-  TEST_PROPERTIES PASS_REGULAR_EXPRESSION "\nInitial fast cloning configuration \\(from default\\): true\n"
+  TEST_PROPERTIES PASS_REGULAR_EXPRESSION "Fast cloning has been deactivated.*Input source does not read art/ROOT files\."
 )
 
 cet_test(FastCloningInitMessage_02_t HANDBUILT
@@ -84,7 +84,7 @@ cet_test(FastCloningInitMessage_02_t HANDBUILT
   DATAFILES
     fcl/FastCloningInitMessage_01.fcl
     fcl/FastCloningInitMessage_02.fcl
-  TEST_PROPERTIES PASS_REGULAR_EXPRESSION "\nInitial fast cloning configuration \\(user-set\\): true\n"
+  TEST_PROPERTIES PASS_REGULAR_EXPRESSION "Fast cloning has been deactivated.*Input source does not read art/ROOT files\."
 )
 
 cet_test(FastCloningInitMessage_03_t HANDBUILT
@@ -93,7 +93,7 @@ cet_test(FastCloningInitMessage_03_t HANDBUILT
   DATAFILES
     fcl/FastCloningInitMessage_01.fcl
     fcl/FastCloningInitMessage_03.fcl
-  TEST_PROPERTIES PASS_REGULAR_EXPRESSION "\nInitial fast cloning configuration \\(user-set\\): false\n"
+  TEST_PROPERTIES PASS_REGULAR_EXPRESSION "Fast cloning has been deactivated.*RootOutput configuration explicitly disables fast cloning\."
 )
 
 cet_test(FastCloningMT_w HANDBUILT
@@ -104,7 +104,7 @@ cet_test(FastCloningMT_t HANDBUILT
   TEST_EXEC art
   TEST_ARGS -c /dev/null -s ../FastCloningMT_w.d/out.root -o out.root -j2
   TEST_PROPERTIES DEPENDS FastCloningMT_w
-  PASS_REGULAR_EXPRESSION "Fast cloning deactivated as more than one schedule \\(2\\) is being used")
+  PASS_REGULAR_EXPRESSION "Fast cloning has been deactivated.*More than one schedule \\(2\\) is being used")
 
 basic_plugin(IntArrayAnalyzer "module" NO_INSTALL ALLOW_UNDERSCORES
   LIBRARIES PRIVATE art::Framework_Core)

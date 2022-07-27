@@ -9,6 +9,7 @@
 #include "art/Framework/Principal/ResultsPrincipal.h"
 #include "art/Framework/Principal/RunPrincipal.h"
 #include "art/Framework/Principal/SubRunPrincipal.h"
+#include "art_root_io/FastCloningEnabled.h"
 #include "art_root_io/Inputfwd.h"
 #include "art_root_io/RootDelayedReader.h"
 #include "canvas/Persistency/Provenance/Compatibility/fwd.h"
@@ -104,7 +105,6 @@ namespace art {
                   secondary_reader_t openSecondaryFile = {},
                   std::shared_ptr<DuplicateChecker> duplicateChecker = nullptr);
 
-    void reportOpened();
     void close();
 
     // Assumes sequential access
@@ -123,7 +123,6 @@ namespace art {
     std::unique_ptr<EventPrincipal> readEventWithID(EventID const& id);
 
     std::string const& fileName() const;
-    bool fastClonable() const;
     std::unique_ptr<FileBlock> createFileBlock();
 
     template <typename ID>
@@ -153,7 +152,7 @@ namespace art {
     RootInputTree& subRunTree();
     RootInputTree& runTree();
     RootInputTree& resultsTree();
-    bool setIfFastClonable() const;
+    FastCloningEnabled setIfFastClonable() const;
     void validateFile();
     void fillHistory(EntryNumber entry, History&);
 
@@ -202,7 +201,7 @@ namespace art {
     FileIndex::const_iterator fiBegin_{fileIndex_.begin()};
     FileIndex::const_iterator fiEnd_{fileIndex_.end()};
     FileIndex::const_iterator fiIter_{fiBegin_};
-    bool fastClonable_{false};
+    FastCloningEnabled fastClonable_{};
     ProductTables presentProducts_{ProductTables::invalid()};
     std::unique_ptr<BranchIDLists> branchIDLists_{};
     TTree* eventHistoryTree_{nullptr};

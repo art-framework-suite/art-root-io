@@ -51,10 +51,9 @@ namespace {
         strcmp(location, "TClass::TClass") == 0 &&
         std::string(message).find("no dictionary") != std::string::npos) {
       return;
-    } else {
-      // Default behavior
-      DefaultErrorHandler(level, die, location, message);
     }
+
+    DefaultErrorHandler(level, die, location, message);
   }
 
   // Code taken from the SQLite webpage:

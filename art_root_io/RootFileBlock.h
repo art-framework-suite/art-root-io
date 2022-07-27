@@ -6,6 +6,7 @@
 // =======================================================================
 
 #include "art/Framework/Core/FileBlock.h"
+#include "art_root_io/FastCloningEnabled.h"
 #include "cetlib/exempt_ptr.h"
 
 #include <memory>
@@ -17,16 +18,14 @@ namespace art {
 
   class RootFileBlock : public FileBlock {
   public:
-    RootFileBlock() = default;
-
     RootFileBlock(FileFormatVersion const& version,
                   std::string const& fileName,
                   std::unique_ptr<ResultsPrincipal>&& resp,
                   cet::exempt_ptr<TTree const> ev,
-                  bool const fastCopy)
+                  FastCloningEnabled fastCopy)
       : FileBlock{version, fileName, std::move(resp)}
       , tree_{ev}
-      , fastCopyable_{fastCopy}
+      , fastCopyable_{std::move(fastCopy)}
     {}
 
     cet::exempt_ptr<TTree const>
@@ -34,15 +33,15 @@ namespace art {
     {
       return tree_;
     }
-    bool
-    fastClonable() const
+    FastCloningEnabled const&
+    fastClonable() const noexcept
     {
       return fastCopyable_;
     }
 
   private:
-    cet::exempt_ptr<TTree const> tree_{nullptr}; // ROOT owns the tree
-    bool fastCopyable_{false};
+    cet::exempt_ptr<TTree const> tree_; // ROOT owns the tree
+    FastCloningEnabled fastCopyable_;
   };
 } // namespace art
 

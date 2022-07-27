@@ -99,11 +99,6 @@ namespace art {
         metaTree_.load()->SetEntries(-1);
       }
     }
-    void
-    beginInputFile(bool fastCloning)
-    {
-      fastCloningEnabled_ = fastCloning;
-    }
     bool
     uncloned(std::string const& branchName) const
     {
