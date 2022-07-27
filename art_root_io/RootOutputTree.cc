@@ -18,6 +18,22 @@
 #include <limits>
 #include <string>
 
+namespace {
+  void
+  fillBranches(std::vector<TBranch*> const& branches,
+               bool const saveMemory,
+               int64_t const threshold)
+  {
+    for (auto b : branches) {
+      auto bytesWritten = b->Fill();
+      if (saveMemory and bytesWritten > threshold) {
+        b->FlushBaskets();
+        b->DropBaskets("all");
+      }
+    }
+  }
+}
+
 namespace art {
 
   TTree*
@@ -93,7 +109,6 @@ namespace art {
     unclonedReadBranches_.clear();
     unclonedReadBranchNames_.clear();
 
-    fastCloningEnabled_ = false;
     if (intree->GetEntries() != 0) {
       auto event_tree = const_cast<TTree*>(intree.get());
 
@@ -117,7 +132,7 @@ namespace art {
         tree_.load()->SetEntries(tree_.load()->GetEntries() +
                                  intree->GetEntries());
         cloner.Exec();
-        fastCloningEnabled_ = true;
+        wasFastCloned_ = true;
       } else {
         mf::LogInfo("fastCloneTree")
           << "INFO: Unable to fast clone tree " << intree->GetName() << '\n'
@@ -145,23 +160,7 @@ namespace art {
       }
     }
     cet::sort_all(unclonedReadBranchNames_);
-    return fastCloningEnabled_;
-  }
-
-  namespace {
-    void
-    fillBranches(std::vector<TBranch*> const& branches,
-                 bool const saveMemory,
-                 int64_t const threshold)
-    {
-      for (auto const b : branches) {
-        auto bytesWritten = b->Fill();
-        if (saveMemory and bytesWritten > threshold) {
-          b->FlushBaskets();
-          b->DropBaskets("all");
-        }
-      }
-    }
+    return wasFastCloned_;
   }
 
   void
@@ -170,7 +169,7 @@ namespace art {
     fillBranches(metaBranches_, false, saveMemoryObjectThreshold_);
     bool const saveMemory{saveMemoryObjectThreshold_ > -1};
     fillBranches(producedBranches_, saveMemory, saveMemoryObjectThreshold_);
-    if (fastCloningEnabled_.load()) {
+    if (wasFastCloned_.load()) {
       fillBranches(
         unclonedReadBranches_, saveMemory, saveMemoryObjectThreshold_);
     } else {

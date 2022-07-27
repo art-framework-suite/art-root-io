@@ -116,10 +116,7 @@ namespace art {
     std::vector<TBranch*> readBranches_{};
     std::vector<TBranch*> unclonedReadBranches_{};
     std::vector<std::string> unclonedReadBranchNames_{};
-    // The default for 'fastCloningEnabled_' is false so that SubRuns
-    // and Runs are not fast-cloned.  We explicitly set this variable
-    // to true for the event tree.
-    std::atomic<bool> fastCloningEnabled_{false};
+    std::atomic<bool> wasFastCloned_{false};
     int const basketSize_;
     int const splitLevel_;
     int64_t const saveMemoryObjectThreshold_;
