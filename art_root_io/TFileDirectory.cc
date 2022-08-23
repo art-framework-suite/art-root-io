@@ -84,7 +84,7 @@ namespace art {
   }
 
   TFileDirectory
-  TFileDirectory::mkdir(string const& dir, string const& descr)
+  TFileDirectory::mkdir(string const& dir, string const& descr) const
   {
     std::lock_guard lock{mutex_};
     detail::RootDirectorySentry rds;

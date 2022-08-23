@@ -9,6 +9,7 @@
 #include "art/Framework/Services/System/FileCatalogMetadata.h"
 #include "art_root_io/DropMetaData.h"
 #include "art_root_io/DummyProductCache.h"
+#include "art_root_io/FastCloningEnabled.h"
 #include "art_root_io/RootOutputTree.h"
 #include "canvas/Persistency/Provenance/BranchDescription.h"
 #include "canvas/Persistency/Provenance/BranchType.h"
@@ -34,14 +35,11 @@ namespace art {
   class RootFileBlock;
 
   struct OutputItem {
-  public:
     ~OutputItem();
     explicit OutputItem(BranchDescription const& bd);
 
-    std::string const& branchName() const;
-
-    BranchDescription const branchDescription_;
-    mutable void const* product_;
+    BranchDescription const branchDescription;
+    mutable void const* product;
   };
 
   class RootOutputFile {
@@ -49,11 +47,6 @@ namespace art {
     enum class ClosureRequestMode { MaxEvents = 0, MaxSize = 1, Unset = 2 };
     using RootOutputTreePtrArray =
       std::array<std::unique_ptr<RootOutputTree>, NumBranchTypes>;
-
-    static bool shouldFastClone(bool fastCloningSet,
-                                bool fastCloning,
-                                bool wantAllEvents,
-                                ClosingCriteria const& cc);
 
     ~RootOutputFile();
     explicit RootOutputFile(OutputModule*,
@@ -65,8 +58,7 @@ namespace art {
                             int splitLevel,
                             int basketSize,
                             DropMetaData dropMetaData,
-                            bool dropMetaDataForDroppedData,
-                            bool fastCloningRequested);
+                            bool dropMetaDataForDroppedData);
     RootOutputFile(RootOutputFile const&) = delete;
     RootOutputFile(RootOutputFile&&) = delete;
     RootOutputFile& operator=(RootOutputFile const&) = delete;
@@ -90,7 +82,8 @@ namespace art {
     void writeResults(ResultsPrincipal& resp);
     void setRunAuxiliaryRangeSetID(RangeSet const&);
     void setSubRunAuxiliaryRangeSetID(RangeSet const&);
-    void beginInputFile(RootFileBlock const*, bool fastClone);
+    void beginInputFile(RootFileBlock const*,
+                        FastCloningEnabled fastCloningEnabled);
     void incrementInputFileNumber();
     void respondToCloseInputFile(FileBlock const&);
     bool requestsToCloseFile();
@@ -113,7 +106,7 @@ namespace art {
     OutputModule const* om_;
     std::string file_;
     ClosingCriteria fileSwitchCriteria_;
-    OutputFileStatus status_;
+    OutputFileStatus status_{OutputFileStatus::Closed};
     int const compressionLevel_;
     int64_t const saveMemoryObjectThreshold_;
     int64_t const treeMaxVirtualSize_;
@@ -121,35 +114,39 @@ namespace art {
     int const basketSize_;
     DropMetaData dropMetaData_;
     bool dropMetaDataForDroppedData_;
-    bool fastCloningEnabledAtConstruction_;
-    bool wasFastCloned_;
+    bool wasFastCloned_{false};
     std::unique_ptr<TFile> filePtr_;
     FileIndex fileIndex_;
     FileProperties fp_;
     TTree* metaDataTree_;
     TTree* fileIndexTree_;
     TTree* parentageTree_;
-    EventAuxiliary const* pEventAux_;
-    SubRunAuxiliary const* pSubRunAux_;
-    RunAuxiliary const* pRunAux_;
-    ResultsAuxiliary const* pResultsAux_;
-    ProductProvenances eventProductProvenanceVector_;
-    ProductProvenances subRunProductProvenanceVector_;
-    ProductProvenances runProductProvenanceVector_;
-    ProductProvenances resultsProductProvenanceVector_;
-    ProductProvenances* pEventProductProvenanceVector_;
-    ProductProvenances* pSubRunProductProvenanceVector_;
-    ProductProvenances* pRunProductProvenanceVector_;
-    ProductProvenances* pResultsProductProvenanceVector_;
+    EventAuxiliary const* pEventAux_{nullptr};
+    SubRunAuxiliary const* pSubRunAux_{nullptr};
+    RunAuxiliary const* pRunAux_{nullptr};
+    ResultsAuxiliary const* pResultsAux_{nullptr};
+    ProductProvenances eventProductProvenanceVector_{};
+    ProductProvenances subRunProductProvenanceVector_{};
+    ProductProvenances runProductProvenanceVector_{};
+    ProductProvenances resultsProductProvenanceVector_{};
+    ProductProvenances* pEventProductProvenanceVector_{
+      &eventProductProvenanceVector_};
+    ProductProvenances* pSubRunProductProvenanceVector_{
+      &subRunProductProvenanceVector_};
+    ProductProvenances* pRunProductProvenanceVector_{
+      &runProductProvenanceVector_};
+    ProductProvenances* pResultsProductProvenanceVector_{
+      &resultsProductProvenanceVector_};
     RootOutputTreePtrArray treePointers_;
-    bool dataTypeReported_;
-    std::array<ProductDescriptionsByID, NumBranchTypes> descriptionsToPersist_;
+    bool dataTypeReported_{false};
+    std::array<ProductDescriptionsByID, NumBranchTypes> descriptionsToPersist_{
+      {}};
     std::unique_ptr<cet::sqlite::Connection> rootFileDB_;
     std::array<std::map<ProductID, OutputItem>, NumBranchTypes>
-      selectedOutputItemList_;
+      selectedOutputItemList_{{}};
     DummyProductCache dummyProductCache_;
-    unsigned subRunRSID_;
-    unsigned runRSID_;
+    unsigned subRunRSID_{-1u};
+    unsigned runRSID_{-1u};
     std::chrono::steady_clock::time_point beginTime_;
   };
 

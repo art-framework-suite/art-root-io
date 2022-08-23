@@ -39,7 +39,7 @@ namespace art {
 
     // Create a new TFileDirectory, sharing the same TFile as this one, but with
     // an additional dir, and with path being the absolute path of this one.
-    TFileDirectory mkdir(std::string const& dir, std::string const& descr = "");
+    TFileDirectory mkdir(std::string const& dir, std::string const& descr = "") const;
 
   protected:
     using Callback_t = std::function<void()>;
@@ -63,11 +63,12 @@ namespace art {
     std::string descr_;
     // Callbacks must exist for each directory. Used only by TFileService.
     bool requireCallback_{false};
+
+  private:
     // Make the current directory be the one implied by the state of this
     // TFileDirectory.
     void cd() const;
 
-  private:
     std::string path_;
     std::map<std::string, std::vector<Callback_t>> callbacks_;
   };
