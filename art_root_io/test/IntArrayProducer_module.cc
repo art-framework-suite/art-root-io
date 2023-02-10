@@ -34,7 +34,7 @@ private:
     for (int k = 0; k != sz; ++k) {
       p->arr[k] = value + k;
     }
-    e.put(move(p));
+    e.put(std::move(p));
   }
 
 }; // IntArrayProducer

@@ -278,7 +278,7 @@ namespace art {
         // newRS is valid.
         const_cast<Group*>(grp)->setProductProvenance(
           make_unique<ProductProvenance const>(*new_prov));
-        prov = move(new_prov);
+        prov = std::move(new_prov);
       } else if (art::disjoint_ranges(mergedRangeSet, newRS)) {
         // Old and new range sets can be combined, do it.
         // FIXME: Can a neverCreated or dropped product have a valid range set?

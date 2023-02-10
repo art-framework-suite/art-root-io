@@ -253,7 +253,7 @@ namespace {
 
     auto rs = oh.isValid() ? oh.rangeOfValidity() : art::RangeSet::invalid();
     // Because a user can specify (e.g.):
-    //   r.put(move(myProd), art::runFragment(myRangeSet));
+    //   r.put(std::move(myProd), art::runFragment(myRangeSet));
     // products that are produced in this process can have valid, yet
     // arbitrary RangeSets.  We therefore never invalidate a RangeSet
     // that corresponds to a product produced in this process.

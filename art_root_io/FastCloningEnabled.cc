@@ -9,7 +9,7 @@ namespace art {
   void
   FastCloningEnabled::disable(std::string reason)
   {
-    msgs_.push_back(move(reason));
+    msgs_.push_back(std::move(reason));
   }
 
   void
