@@ -315,8 +315,6 @@ e20:debug	e20	e20:debug	e20:debug
 e20:prof	e20	e20:prof	e20:prof
 e26:debug	e26	e26:debug	e26:debug
 e26:prof	e26	e26:prof	e26:prof
-e27:debug	e27	e27:debug	e27:debug
-e27:prof	e27	e27:prof	e27:prof
 end_qualifier_list
 ####################################
 
