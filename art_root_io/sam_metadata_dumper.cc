@@ -84,7 +84,7 @@ print_one_fc_metadata_entry_hr(FileCatalogMetadataEntry const& ent,
   int nspaces = maxIDspace - 1;
   {
     auto id = static_cast<int>(ent.SMDid);
-    for (int i{}; (nspaces > 0) && (id > 0); ++i) {
+    while ((nspaces > 0) && (id > 0)) {
       id /= 10;
       if (id > 0)
         --nspaces;
