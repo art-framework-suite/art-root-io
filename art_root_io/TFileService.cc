@@ -31,7 +31,10 @@ namespace art {
     string const dev_null{"/dev/null"};
   } // unnamed namespace
 
-  TFileService::~TFileService() { closeFile_(); }
+  TFileService::~TFileService()
+  {
+    closeFile_();
+  }
 
   TFileService::TFileService(ServiceTable<Config> const& config,
                              ActivityRegistry& r)

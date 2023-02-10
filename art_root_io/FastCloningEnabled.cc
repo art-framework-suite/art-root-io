@@ -4,7 +4,10 @@
 #include <sstream>
 
 namespace art {
-  FastCloningEnabled::operator bool() const noexcept { return empty(msgs_); }
+  FastCloningEnabled::operator bool() const noexcept
+  {
+    return empty(msgs_);
+  }
 
   void
   FastCloningEnabled::disable(std::string reason)

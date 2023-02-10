@@ -103,8 +103,9 @@ namespace art::detail {
 
     // Also need to check RootFileDB if we have one.
     if (fileFormatVersion_.value_ >= 5) {
-      sqliteDB_ = ServiceHandle<DatabaseConnection> {}
-      ->get<TKeyVFSOpenPolicy>("RootFileDB", file_.get());
+      sqliteDB_ = ServiceHandle<DatabaseConnection>
+      {
+        } -> get<TKeyVFSOpenPolicy>("RootFileDB", file_.get());
       if (readIncomingParameterSets &&
           have_table(sqliteDB_->get(), "ParameterSets", dataset_)) {
         fhicl::ParameterSetRegistry::importFrom(sqliteDB_->get());
@@ -379,7 +380,8 @@ namespace art::detail {
     // Place sampled EventID onto event
     auto sampledEventID = std::make_unique<SampledEventInfo>(
       SampledEventInfo{on_disk_id, dataset_, weight_, probability_});
-    auto wp = std::make_unique<Wrapper<SampledEventInfo>>(std::move(sampledEventID));
+    auto wp =
+      std::make_unique<Wrapper<SampledEventInfo>>(std::move(sampledEventID));
     auto const& pd = sampledEventInfoDesc_;
     ep->put(pd,
             std::make_unique<ProductProvenance const>(pd.productID(),

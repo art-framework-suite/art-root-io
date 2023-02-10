@@ -130,7 +130,7 @@ detail::DataSetBroker::DataSetBroker(
   std::string const spaces(4, ' ');
   std::string const dataset_field{"Dataset"};
   std::size_t width_of_dataset_field{dataset_field.size()};
-  cet::for_all(configs_, [& w = width_of_dataset_field](auto const& pr) {
+  cet::for_all(configs_, [&w = width_of_dataset_field](auto const& pr) {
     w = std::max(w, pr.first.size());
   });
 
@@ -144,7 +144,7 @@ detail::DataSetBroker::DataSetBroker(
 
   std::string const filename_field{"File name"};
   std::size_t width_of_filename_field{filename_field.size()};
-  cet::for_all(configs_, [& w = width_of_filename_field](auto const& pr) {
+  cet::for_all(configs_, [&w = width_of_filename_field](auto const& pr) {
     w = std::max(w, pr.second.fileName.size());
   });
 
@@ -293,13 +293,13 @@ detail::DataSetBroker::countSummary() const
   std::string const spaces(4, ' ');
   std::string const dataset_field{"Dataset"};
   std::size_t width_of_dataset_field{dataset_field.size()};
-  cet::for_all(counts_, [& w = width_of_dataset_field](auto const& pr) {
+  cet::for_all(counts_, [&w = width_of_dataset_field](auto const& pr) {
     w = std::max(w, pr.first.size());
   });
 
   std::string const counts_field{"Counts"};
   std::size_t width_of_counts_field{counts_field.size()};
-  cet::for_all(counts_, [& w = width_of_counts_field](auto const& pr) {
+  cet::for_all(counts_, [&w = width_of_counts_field](auto const& pr) {
     w = std::max(w, std::to_string(pr.second).size());
   });
 

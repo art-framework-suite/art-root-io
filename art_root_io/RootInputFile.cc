@@ -309,7 +309,8 @@ namespace art {
     // To support files that contain BranchIDLists
     BranchIDLists branchIDLists;
     if (detail::readMetadata(metaDataTree, branchIDLists)) {
-      branchIDLists_ = std::make_unique<BranchIDLists>(std::move(branchIDLists));
+      branchIDLists_ =
+        std::make_unique<BranchIDLists>(std::move(branchIDLists));
       configureProductIDStreamer(branchIDLists_.get());
     }
     // Read the ParameterSets if there are any on a branch.

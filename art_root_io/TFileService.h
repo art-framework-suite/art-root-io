@@ -32,7 +32,8 @@ namespace art {
       fhicl::Atom<bool> closeFileFast{fhicl::Name("closeFileFast"), true};
       fhicl::Atom<std::string> fileName{
         fhicl::Name("fileName"),
-        fhicl::Comment(R"(The "fileName" parameter is a pattern used to form the name of
+        fhicl::Comment(
+          R"(The "fileName" parameter is a pattern used to form the name of
 the output file.  It can be a literal string, or it can contain the
 placeholders as described at:
 

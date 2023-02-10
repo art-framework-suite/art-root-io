@@ -119,7 +119,8 @@ namespace {
 } // namespace
 
 int
-main(int argc, char** argv) try {
+main(int argc, char** argv)
+try {
   std::ostringstream descstr;
   descstr << argv[0] << " <options> [<source-file>]+\nOptions";
 
