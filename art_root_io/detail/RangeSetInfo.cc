@@ -5,7 +5,7 @@
 
 art::detail::RangeSetInfo::RangeSetInfo(RunNumber_t const r,
                                         std::vector<EventRange>&& ers)
-  : run{r}, ranges{move(ers)}
+  : run{r}, ranges{std::move(ers)}
 {}
 
 bool

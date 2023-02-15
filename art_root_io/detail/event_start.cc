@@ -66,7 +66,8 @@ namespace {
   template <art::Level L>
   auto
   convert_or_throw(std::string const& field,
-                   std::string const& event_spec) noexcept(false) try {
+                   std::string const& event_spec) noexcept(false)
+  try {
     return safe_conversion<L>(field);
   }
   catch (...) {

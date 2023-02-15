@@ -108,7 +108,7 @@ art::SQLite3Wrapper::initDB(int flags, TFile* tfile)
 {
   int err = 0;
   DBTYPE type = tfile ? SQLITE3_TKEYDB :
-                        key_.size() ?
+                key_.size() ?
                         (key_ == ":memory:" ? SQLITE3_MEMDB : SQLITE3_FILEDB) :
                         SQLITE3_TMPDB;
   switch (type) {

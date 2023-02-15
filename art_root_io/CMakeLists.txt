@@ -252,4 +252,6 @@ cet_make_completions(file_info_dumper)
 install_headers(SUBDIRS detail)
 install_source(SUBDIRS detail)
 
-add_subdirectory(test)
+if (BUILD_TESTING)
+  add_subdirectory(test)
+endif()

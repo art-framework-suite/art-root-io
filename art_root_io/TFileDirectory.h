@@ -39,7 +39,8 @@ namespace art {
 
     // Create a new TFileDirectory, sharing the same TFile as this one, but with
     // an additional dir, and with path being the absolute path of this one.
-    TFileDirectory mkdir(std::string const& dir, std::string const& descr = "") const;
+    TFileDirectory mkdir(std::string const& dir,
+                         std::string const& descr = "") const;
 
   protected:
     using Callback_t = std::function<void()>;
