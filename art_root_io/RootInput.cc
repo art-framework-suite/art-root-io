@@ -215,3 +215,61 @@ RootInput::readEvent(cet::exempt_ptr<SubRunPrincipal const> srp)
   limits_.update(result->eventID());
   return result;
 }
+
+bool
+RootInput::seekToEvent(art::EventID const& eventSpec, bool const exact)
+{
+  if (accessState_.state()) {
+    throw Exception(errors::LogicError)
+      << "Attempted to initiate a random access seek "
+      << "with one already in progress at state = " << accessState_.state()
+      << ".\n";
+  }
+  EventID foundID = primaryFileSequence_.seekToEvent(eventSpec, exact);
+  if (!foundID.isValid()) {
+    return false;
+  }
+  updateAccessState(foundID);
+  return true;
+}
+
+bool
+RootInput::seekToEvent(int const offset)
+{
+  if (accessState_.state()) {
+    throw Exception(errors::LogicError)
+      << "Attempted to initiate a random access seek "
+      << "with one already in progress at state = " << accessState_.state()
+      << ".\n";
+  }
+  EventID foundID = primaryFileSequence_.seekToEvent(offset);
+  if (!foundID.isValid()) {
+    return false;
+  }
+  if (offset == 0 && foundID == accessState_.lastReadEventID()) {
+    // We're supposed to be reading the "next" event but it's a
+    // duplicate of the current one: skip it.
+    mf::LogWarning("DuplicateEvent") << "Duplicate Events found: "
+                                     << "both events were " << foundID << ".\n"
+                                     << "The duplicate will be skipped.\n";
+    foundID = primaryFileSequence_.seekToEvent(1);
+  }
+  updateAccessState(foundID);
+  return true;
+}
+
+void
+RootInput::updateAccessState(art::EventID const& id)
+{
+  accessState_.setWantedEventID(id);
+  if (primaryFileSequence_.rootFile() !=
+      accessState_.rootFileForLastReadEvent()) {
+    accessState_.setState(AccessState::SEEKING_FILE);
+  } else if (id.runID() != accessState_.lastReadEventID().runID()) {
+    accessState_.setState(AccessState::SEEKING_RUN);
+  } else if (id.subRunID() != accessState_.lastReadEventID().subRunID()) {
+    accessState_.setState(AccessState::SEEKING_SUBRUN);
+  } else {
+    accessState_.setState(AccessState::SEEKING_EVENT);
+  }
+}
