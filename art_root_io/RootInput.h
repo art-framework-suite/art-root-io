@@ -50,11 +50,9 @@ namespace art {
     RootInput& operator=(RootInput&&) = delete;
 
     // Find the requested event and set the system up to read run and
-    // subRun records where appropriate. Note the corresponding
-    // seekToEvent function must exist in RootInputFileSequence to
-    // avoid a compile error.
-    template <typename T>
-    bool seekToEvent(T eventSpec, bool exact = false);
+    // subRun records where appropriate.
+    bool seekToEvent(art::EventID const& id, bool exact = false);
+    bool seekToEvent(int offset);
 
   private:
     class AccessState {
@@ -90,6 +88,7 @@ namespace art {
       std::shared_ptr<RootInputFile> rootFileForLastReadEvent_{nullptr};
       EventID wantedEventID_{};
     };
+    void updateAccessState(art::EventID const& id);
 
     using EntryNumber = input::EntryNumber;
 
@@ -113,46 +112,6 @@ namespace art {
     RootInputFileSequence primaryFileSequence_;
     AccessState accessState_{};
   };
-
-  template <typename T>
-  bool
-  RootInput::seekToEvent(T const eventSpec, bool const exact)
-  {
-    if (accessState_.state()) {
-      throw Exception(errors::LogicError)
-        << "Attempted to initiate a random access seek "
-        << "with one already in progress at state = " << accessState_.state()
-        << ".\n";
-    }
-    EventID foundID = primaryFileSequence_.seekToEvent(eventSpec, exact);
-    if (!foundID.isValid()) {
-      return false;
-    }
-    if constexpr (std::is_convertible_v<T, int>) {
-      if (eventSpec == 0 && foundID == accessState_.lastReadEventID()) {
-        // We're supposed to be reading the "next" event but it's a
-        // duplicate of the current one: skip it.
-        mf::LogWarning("DuplicateEvent")
-          << "Duplicate Events found: "
-          << "both events were " << foundID << ".\n"
-          << "The duplicate will be skipped.\n";
-        foundID = primaryFileSequence_.seekToEvent(1);
-      }
-    }
-    accessState_.setWantedEventID(foundID);
-    if (primaryFileSequence_.rootFile() !=
-        accessState_.rootFileForLastReadEvent()) {
-      accessState_.setState(AccessState::SEEKING_FILE);
-    } else if (foundID.runID() != accessState_.lastReadEventID().runID()) {
-      accessState_.setState(AccessState::SEEKING_RUN);
-    } else if (foundID.subRunID() !=
-               accessState_.lastReadEventID().subRunID()) {
-      accessState_.setState(AccessState::SEEKING_SUBRUN);
-    } else {
-      accessState_.setState(AccessState::SEEKING_EVENT);
-    }
-    return true;
-  }
 
 } // namespace art
 
