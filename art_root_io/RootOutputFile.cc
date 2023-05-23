@@ -56,12 +56,15 @@
 #include <vector>
 
 using namespace cet;
-using namespace std;
 using namespace hep::concurrency;
 
 using art::BranchType;
 using art::RootOutputFile;
 using art::rootNames::metaBranchRootName;
+
+using std::map;
+using std::string;
+using std::vector;
 
 namespace {
 
@@ -125,6 +128,7 @@ namespace {
   vector<unsigned>
   getExistingRangeSetIDs(sqlite3* db, art::RangeSet const& rs)
   {
+    using namespace std;
     vector<unsigned> rangeSetIDs;
     cet::transform_all(rs, back_inserter(rangeSetIDs), [db](auto const& range) {
       sqlite::query_result<unsigned> r;
@@ -330,6 +334,7 @@ namespace art {
     , dropMetaDataForDroppedData_{dropMetaDataForDroppedData}
     , filePtr_{TFile::Open(file_.c_str(), "recreate", "", compressionLevel)}
   {
+    using std::make_unique;
     // Don't split metadata tree or event description tree
     metaDataTree_ = RootOutputTree::makeTTree(
       filePtr_.get(), rootNames::metaDataTreeName(), 0);
@@ -376,7 +381,7 @@ namespace art {
     } -> get<TKeyVFSOpenPolicy>("RootFileDB",
                                 filePtr_.get(),
                                 SQLITE_OPEN_CREATE | SQLITE_OPEN_READWRITE));
-    beginTime_ = chrono::steady_clock::now();
+    beginTime_ = std::chrono::steady_clock::now();
     // Check that dictionaries for the auxiliaries exist
     root::DictionaryChecker checker;
     checker.checkDictionaries<EventAuxiliary>();
@@ -513,7 +518,7 @@ namespace art {
   RootOutputFile::requestsToCloseFile()
   {
     std::lock_guard sentry{mutex_};
-    using namespace chrono;
+    using namespace std::chrono;
     unsigned int constexpr oneK{1024u};
     fp_.updateSize(filePtr_->GetSize() / oneK);
     fp_.updateAge(duration_cast<seconds>(steady_clock::now() - beginTime_));
@@ -691,14 +696,14 @@ namespace art {
         return p.first == "art.run_type";
       });
       if (I != md.crend()) {
-        ostringstream buf;
+        std::ostringstream buf;
         buf << "[ ";
         for (auto const& srid : stats.seenSubRuns()) {
           buf << "[ " << srid.run() << ", " << srid.subRun() << ", "
               << cet::canonical_string(I->second) << " ], ";
         }
         // Rewind over last delimiter.
-        buf.seekp(-2, ios_base::cur);
+        buf.seekp(-2, std::ios_base::cur);
         buf << " ]";
         fileCatalogMetadata.insert("runs", buf.str());
       }
@@ -712,13 +717,13 @@ namespace art {
                                std::to_string(stats.highestEventID().event()));
     // File parents.
     if (!stats.parents().empty()) {
-      ostringstream pstring;
+      std::ostringstream pstring;
       pstring << "[ ";
       for (auto const& parent : stats.parents()) {
         pstring << cet::canonical_string(parent) << ", ";
       }
       // Rewind over last delimiter.
-      pstring.seekp(-2, ios_base::cur);
+      pstring.seekp(-2, std::ios_base::cur);
       pstring << " ]";
       fileCatalogMetadata.insert("parents", pstring.str());
     }
@@ -726,7 +731,7 @@ namespace art {
     // The following need to be encapsulated in an art table
     // first_event and last_event.
     auto eidToTuple = [](EventID const& eid) -> string {
-      ostringstream eidStr;
+      std::ostringstream eidStr;
       eidStr << "[ " << eid.run() << ", " << eid.subRun() << ", " << eid.event()
              << " ]";
       return eidStr.str();
@@ -858,7 +863,7 @@ namespace art {
     bool const drop_prior_metadata{dropMetaData_ == DropMetaData::DropPrior};
     bool const drop_all_metadata{dropMetaData_ == DropMetaData::DropAll};
 
-    set<ProductProvenance> keptprv;
+    std::set<ProductProvenance> keptprv;
     for (auto const& [pid, val] : selectedOutputItemList_[BT]) {
       auto const& bd = val.branchDescription;
       descriptionsToPersist_[BT].try_emplace(pid, bd);
