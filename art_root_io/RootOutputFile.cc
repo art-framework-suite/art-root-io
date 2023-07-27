@@ -377,10 +377,10 @@ namespace art {
                                   splitLevel,
                                   treeMaxVirtualSize,
                                   saveMemoryObjectThreshold);
-    rootFileDB_.reset(ServiceHandle<DatabaseConnection> {
+    rootFileDB_ = ServiceHandle<DatabaseConnection> {
     } -> get<TKeyVFSOpenPolicy>("RootFileDB",
                                 filePtr_.get(),
-                                SQLITE_OPEN_CREATE | SQLITE_OPEN_READWRITE));
+                                SQLITE_OPEN_CREATE | SQLITE_OPEN_READWRITE);
     beginTime_ = std::chrono::steady_clock::now();
     // Check that dictionaries for the auxiliaries exist
     root::DictionaryChecker checker;

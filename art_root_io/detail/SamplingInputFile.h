@@ -95,8 +95,7 @@ namespace art {
       double const weight_;
       double const probability_;
       EventID const firstEvent_;
-      cet::sqlite::Connection* sqliteDB_{
-        nullptr}; // Start with invalid connection.
+      std::unique_ptr<cet::sqlite::Connection> sqliteDB_; // start with invalid connection
       int64_t saveMemoryObjectThreshold_;
       FileIndex fileIndex_{};
       FileFormatVersion fileFormatVersion_{};
