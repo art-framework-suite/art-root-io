@@ -15,9 +15,8 @@
 #pragma GCC diagnostic ignored "-Wunused-but-set-variable"
 #endif
 
-extern "C" {
 #include <sqlite3.h>
-}
+
 #define SQLITE_OPEN_WAL 0x00080000 /* VFS only */
 #define SQLITE_FCNTL_SIZE_HINT 5
 #define SQLITE_FCNTL_CHUNK_SIZE 6

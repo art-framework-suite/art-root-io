@@ -1,8 +1,6 @@
 #include "art_root_io/RootDB/tkeyvfs.h"
 
-extern "C" {
-#include <sqlite3.h>
-}
+#include "sqlite3.h"
 
 #include <cstdio>
 #include <cstdlib>

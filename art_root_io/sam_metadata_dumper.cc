@@ -10,9 +10,7 @@
 #include "TError.h"
 #include "TFile.h"
 
-extern "C" {
 #include "sqlite3.h"
-}
 
 #include <algorithm>
 #include <cstdlib>

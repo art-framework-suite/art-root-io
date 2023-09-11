@@ -54,9 +54,7 @@
 #include <string>
 #include <utility>
 
-extern "C" {
 #include "sqlite3.h"
-}
 
 namespace {
 
