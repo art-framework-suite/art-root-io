@@ -87,7 +87,8 @@ namespace {
       cbegin(products)->second->createEmptySampledProduct(tag);
     for (auto&& [dataset, products_per_id] : datasets_with_product) {
       for (auto&& [id, products] : products_per_id) {
-        sampled_product->insertIfSampledProduct(dataset, id, move(products));
+        sampled_product->insertIfSampledProduct(
+          dataset, id, std::move(products));
       }
     }
     return sampled_product;
@@ -398,7 +399,8 @@ art::SamplingInput::nextItemType()
     // Do not return prematurely when moving to the event.
     currentItemType_ = input::IsEvent;
   }
-  default: {} // Handle other transitions below.
+  default: {
+  } // Handle other transitions below.
   }
 
   if (eventsLeft_ == 0u) {
@@ -456,7 +458,8 @@ art::SamplingInput::readRun()
     *rp, std::move(read_products), RangeSet::forRun(runID_));
 
   // Place sampled run info onto the run
-  auto wp = std::make_unique<Wrapper<SampledRunInfo>>(move(sampledRunInfo));
+  auto wp =
+    std::make_unique<Wrapper<SampledRunInfo>>(std::move(sampledRunInfo));
   rp->put(sampledRunInfoDesc_,
           std::make_unique<ProductProvenance const>(
             sampledRunInfoDesc_.productID(), productstatus::present()),
@@ -484,7 +487,7 @@ art::SamplingInput::readSubRun(cet::exempt_ptr<art::RunPrincipal const> rp)
 
   // Place sampled run info onto the run
   auto wp =
-    std::make_unique<Wrapper<SampledSubRunInfo>>(move(sampledSubRunInfo));
+    std::make_unique<Wrapper<SampledSubRunInfo>>(std::move(sampledSubRunInfo));
   srp->put(sampledSubRunInfoDesc_,
            std::make_unique<ProductProvenance const>(
              sampledSubRunInfoDesc_.productID(), productstatus::present()),

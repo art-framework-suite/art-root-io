@@ -9,9 +9,7 @@
 #include "TError.h"
 #include "TFile.h"
 
-extern "C" {
 #include "sqlite3.h"
-}
 
 #include <bitset>
 #include <iostream>
@@ -119,7 +117,8 @@ namespace {
 } // namespace
 
 int
-main(int argc, char** argv) try {
+main(int argc, char** argv)
+try {
   std::ostringstream descstr;
   descstr << argv[0] << " <options> [<source-file>]+\nOptions";
 

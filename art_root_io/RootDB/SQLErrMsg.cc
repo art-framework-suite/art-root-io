@@ -2,9 +2,7 @@
 
 #include "canvas/Utilities/Exception.h"
 
-extern "C" {
 #include "sqlite3.h"
-}
 
 void
 art::SQLErrMsg::throwIfError()

@@ -54,9 +54,7 @@
 #include <string>
 #include <utility>
 
-extern "C" {
 #include "sqlite3.h"
-}
 
 namespace {
 
@@ -253,7 +251,7 @@ namespace art {
     std::shared_ptr<DuplicateChecker> duplicateChecker)
     : fileName_{fileName}
     , processConfiguration_{processConfiguration}
-    , filePtr_{move(filePtr)}
+    , filePtr_{std::move(filePtr)}
     , origEventID_{origEventID}
     , eventsToSkip_{eventsToSkip}
     , compactSubRunRanges_{compactSubRunRanges}
@@ -309,7 +307,8 @@ namespace art {
     // To support files that contain BranchIDLists
     BranchIDLists branchIDLists;
     if (detail::readMetadata(metaDataTree, branchIDLists)) {
-      branchIDLists_ = std::make_unique<BranchIDLists>(move(branchIDLists));
+      branchIDLists_ =
+        std::make_unique<BranchIDLists>(std::move(branchIDLists));
       configureProductIDStreamer(branchIDLists_.get());
     }
     // Read the ParameterSets if there are any on a branch.
@@ -352,9 +351,8 @@ namespace art {
     }
     // Also need to check RootFileDB if we have one.
     if (fileFormatVersion_.value_ >= 5) {
-      sqliteDB_.reset(
-        ServiceHandle<DatabaseConnection>()->get<TKeyVFSOpenPolicy>(
-          "RootFileDB", filePtr_.get()));
+      sqliteDB_ = ServiceHandle<DatabaseConnection>()->get<TKeyVFSOpenPolicy>(
+        "RootFileDB", filePtr_.get());
       if (readIncomingParameterSets &&
           have_table(*sqliteDB_, "ParameterSets", fileName_)) {
         fhicl::ParameterSetRegistry::importFrom(*sqliteDB_);
@@ -935,7 +933,7 @@ namespace art {
   std::unique_ptr<RangeSetHandler>
   RootInputFile::runRangeSetHandler()
   {
-    return move(runRangeSetHandler_);
+    return std::move(runRangeSetHandler_);
   }
 
   std::unique_ptr<RunPrincipal>
@@ -961,7 +959,7 @@ namespace art {
 
     auto const entryNumbers = getEntryNumbers(InRun).first;
     auto&& [orig_auxiliary, rs] = getAuxiliary<RunAuxiliary>(entryNumbers);
-    runRangeSetHandler_ = move(rs);
+    runRangeSetHandler_ = std::move(rs);
     assert(orig_auxiliary.id() == fiIter_->eventID.runID());
 
     auto run_aux = overrideAuxiliary(std::move(orig_auxiliary));
@@ -992,7 +990,7 @@ namespace art {
   std::unique_ptr<RangeSetHandler>
   RootInputFile::subRunRangeSetHandler()
   {
-    return move(subRunRangeSetHandler_);
+    return std::move(subRunRangeSetHandler_);
   }
 
   std::unique_ptr<SubRunPrincipal>
@@ -1018,7 +1016,7 @@ namespace art {
 
     auto const entryNumbers = getEntryNumbers(InSubRun).first;
     auto&& [orig_auxiliary, rs] = getAuxiliary<SubRunAuxiliary>(entryNumbers);
-    subRunRangeSetHandler_ = move(rs);
+    subRunRangeSetHandler_ = std::move(rs);
     assert(orig_auxiliary.id() == fiIter_->eventID.subRunID());
 
     auto subrun_aux = overrideAuxiliary(std::move(orig_auxiliary));

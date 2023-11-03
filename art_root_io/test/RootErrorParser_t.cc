@@ -1,6 +1,6 @@
 #include "art_root_io/detail/RootErrorParser.h"
 
-#include <catch2/catch.hpp>
+#include <catch2/catch_test_macros.hpp>
 
 using art::detail::RootErrorParser;
 

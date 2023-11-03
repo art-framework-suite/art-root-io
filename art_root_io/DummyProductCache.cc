@@ -14,7 +14,7 @@ art::DummyProductCache::product(std::string const& wrappedName)
         << '\n';
     }
     std::unique_ptr<EDProduct> dummy{reinterpret_cast<EDProduct*>(cp->New())};
-    it = dummies_.emplace(wrappedName, move(dummy)).first;
+    it = dummies_.emplace(wrappedName, std::move(dummy)).first;
   }
   return it->second.get();
 }

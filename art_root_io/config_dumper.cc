@@ -17,9 +17,7 @@
 #include "TFile.h"
 #include "TTree.h"
 
-extern "C" {
 #include "sqlite3.h"
-}
 
 #include <cstddef>
 #include <iomanip>
