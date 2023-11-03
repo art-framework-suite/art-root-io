@@ -10,7 +10,7 @@ export CET_PLUGIN_PATH=..${CET_PLUGIN_PATH:+:${CET_PLUGIN_PATH}}
 
 printenv LD_LIBRARY_PATH
 
-art -c "${1}" --rethrow-all
+art_exec=$1
+${art_exec} -c "${2}" --rethrow-all
 
 check_files "out.root"
-

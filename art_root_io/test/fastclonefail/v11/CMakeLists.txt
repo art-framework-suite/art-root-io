@@ -13,7 +13,9 @@ set_target_properties(
 # requires fast-cloning to fail (see comment in
 # v10/test_fastclonefail_w.sh).
 cet_test(test_fastclonefail_r.sh PREBUILT
-  TEST_ARGS test_fastclone_fail_v11.fcl ../../v10/test_fastclonefail_w.sh.d/out.root
+  TEST_ARGS $<TARGET_FILE:art>
+            test_fastclone_fail_v11.fcl
+            ../../v10/test_fastclonefail_w.sh.d/out.root
   TEST_PROPERTIES DEPENDS test_fastclonefail_w.sh
   PASS_REGULAR_EXPRESSION "Unable to fast clone tree"
   DATAFILES test_fastclone_fail_v11.fcl

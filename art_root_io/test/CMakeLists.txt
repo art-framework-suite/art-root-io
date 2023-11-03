@@ -18,6 +18,21 @@ cet_make_library(LIBRARY_NAME art_root_io_test_TH1Data
 
 art_dictionary(DICTIONARY_LIBRARIES art_root_io_test_TH1Data art_test::TestObjects NO_INSTALL)
 
+cet_test_env_prepend(CET_PLUGIN_PATH
+  ${PROJECT_BINARY_DIR}/lib
+  $<TARGET_FILE_DIR:art::Framework_Services_System_FileCatalogMetadata_service>
+  $<TARGET_FILE_DIR:messagefacility::plugins_cerr_mfPlugin>)
+cet_test_env_prepend(LD_LIBRARY_PATH
+  ${PROJECT_BINARY_DIR}/lib
+  $<TARGET_FILE_DIR:canvas_root_io::Dictionaries_canvas_Provenance_dict>)
+cet_test_env_prepend(ROOT_INCLUDE_PATH
+  ${CMAKE_SOURCE_DIR}/art-root-io
+  ${CMAKE_SOURCE_DIR}/art
+  ${CMAKE_SOURCE_DIR}/canvas
+  ${CMAKE_SOURCE_DIR}/fhicl-cpp
+  ${CMAKE_SOURCE_DIR}/cetlib
+  ${CMAKE_SOURCE_DIR}/cetlib-except)
+
 add_subdirectory(bad-assns)
 add_subdirectory(fastclonefail)
 
@@ -235,4 +250,5 @@ cet_test(CheckFileName_disabled_t1 PREBUILT
   TEST_PROPERTIES DEPENDS CheckFileName_disabled_w)
 
 cet_test(CheckFileName_disabled_t2 PREBUILT
+  TEST_ARGS $<TARGET_FILE:count_events>
   TEST_PROPERTIES DEPENDS CheckFileName_disabled_t1)
