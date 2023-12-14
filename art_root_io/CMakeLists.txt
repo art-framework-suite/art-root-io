@@ -119,7 +119,6 @@ cet_build_plugin(TFileService art::service ALLOW_UNDERSCORES LIBRARIES
     art::Framework_IO
     art::Framework_Core
     fhiclcpp::types
-    hep_concurrency::hep_concurrency
   PRIVATE
     art::Framework_IO_detail
     art::Framework_Principal
@@ -157,7 +156,6 @@ cet_build_plugin(RootOutput art::Output ALLOW_UNDERSCORES
     messagefacility::MF_MessageLogger
     fhiclcpp::types
     fhiclcpp::fhiclcpp
-    hep_concurrency::hep_concurrency
   )
 
 cet_build_plugin(SamplingInput art::InputSource ALLOW_UNDERSCORES
