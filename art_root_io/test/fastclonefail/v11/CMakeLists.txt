@@ -13,7 +13,7 @@ set_target_properties(
 # requires fast-cloning to fail (see comment in
 # v10/test_fastclonefail_w.sh).
 cet_test(test_fastclonefail_r.sh PREBUILT
-  TEST_ARGS $<TARGET_FILE:art>
+  TEST_ARGS $<TARGET_FILE:art::art>
             test_fastclone_fail_v11.fcl
             ../../v10/test_fastclonefail_w.sh.d/out.root
   TEST_PROPERTIES DEPENDS test_fastclonefail_w.sh
