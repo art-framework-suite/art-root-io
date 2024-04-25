@@ -2,12 +2,6 @@ cet_enable_asserts()
 
 include(CetTest)
 
-find_package(ROOT COMPONENTS Core Graf Hist RIO REQUIRED)
-find_package(art REQUIRED)
-find_package(canvas REQUIRED)
-find_package(cetlib REQUIRED)
-find_package(fhiclcpp REQUIRED)
-
 # Put everything in a different export set.
 cet_register_export_set(SET_NAME Testing NAMESPACE art_root_io_test SET_DEFAULT)
 
@@ -17,6 +11,13 @@ cet_make_library(LIBRARY_NAME art_root_io_test_TH1Data
   NO_INSTALL)
 
 art_dictionary(DICTIONARY_LIBRARIES art_root_io_test_TH1Data art_test::TestObjects NO_INSTALL)
+
+cet_transitive_paths(LIBRARY_DIR BINARY IN_TREE)
+cet_test_env_prepend(CET_PLUGIN_PATH ${TRANSITIVE_PATHS_WITH_LIBRARY_DIR})
+cet_test_env_prepend(LD_LIBRARY_PATH ${TRANSITIVE_PATHS_WITH_LIBRARY_DIR})
+
+cet_transitive_paths(SOURCE_DIR IN_TREE)
+cet_test_env_prepend(ROOT_INCLUDE_PATH ${TRANSITIVE_PATHS_WITH_SOURCE_DIR})
 
 add_subdirectory(bad-assns)
 add_subdirectory(fastclonefail)
@@ -235,4 +236,5 @@ cet_test(CheckFileName_disabled_t1 PREBUILT
   TEST_PROPERTIES DEPENDS CheckFileName_disabled_w)
 
 cet_test(CheckFileName_disabled_t2 PREBUILT
+  TEST_ARGS $<TARGET_FILE:count_events>
   TEST_PROPERTIES DEPENDS CheckFileName_disabled_t1)
