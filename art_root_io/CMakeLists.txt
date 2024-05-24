@@ -1,5 +1,5 @@
 find_package(Boost COMPONENTS filesystem REQUIRED EXPORT)
-find_package(Boost COMPONENTS date_time headers program_options REQUIRED)
+find_package(Boost COMPONENTS date_time program_options REQUIRED)
 find_package(ROOT COMPONENTS Tree RIO Core REQUIRED EXPORT)
 find_package(ROOT COMPONENTS Hist REQUIRED)
 find_package(SQLite3 REQUIRED)
