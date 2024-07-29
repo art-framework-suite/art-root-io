@@ -175,6 +175,7 @@ cet_build_plugin(SamplingInput art::InputSource ALLOW_UNDERSCORES
     art::Framework_Core
     art::Framework_Principal
     art::Persistency_Provenance
+    art::Utilities
     canvas::canvas
     messagefacility::MF_MessageLogger
     fhiclcpp::types
