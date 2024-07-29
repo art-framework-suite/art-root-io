@@ -35,6 +35,7 @@
 #include "art/Framework/Principal/SubRunPrincipal.h"
 #include "art/Persistency/Provenance/ModuleDescription.h"
 #include "art/Persistency/Provenance/ProcessHistoryRegistry.h"
+#include "art/Utilities/bounded_decrementer.h"
 #include "art_root_io/detail/DataSetBroker.h"
 #include "art_root_io/setup.h"
 #include "canvas/Persistency/Common/Wrapper.h"
@@ -131,7 +132,7 @@ namespace art {
   public:
     struct Config {
       Atom<std::string> module_type{Name{"module_type"}};
-      Atom<unsigned> maxEvents{Name{"maxEvents"}, 1u};
+      Atom<int> maxEvents{Name{"maxEvents"}, bounded_decrementer::unlimited()};
       OptionalAtom<RunNumber_t> run{
         Name{"run"},
         Comment{
@@ -242,7 +243,7 @@ namespace art {
     SubRunID subRunID_;
     EventID nextEventID_;
     input::ItemType currentItemType_{input::IsInvalid};
-    unsigned eventsLeft_;
+    bounded_decrementer eventsLeft_;
     unsigned totalCounts_{};
     detail::DataSetBroker dataSetBroker_;
     bool const summary_;
