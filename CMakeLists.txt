@@ -31,12 +31,7 @@ endif()
 
 cet_report_compiler_flags(REPORT_THRESHOLD VERBOSE)
 
-# source
 add_subdirectory(art_root_io)
-
-# ups - table and config files
-
-# tools - migration scripts
 add_subdirectory(tools)
 
 # packaging utility
