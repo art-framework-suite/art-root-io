@@ -18,5 +18,5 @@ cet_test(test_fastclonefail_r.sh PREBUILT
             ../../v10/test_fastclonefail_w.sh.d/out.root
   TEST_PROPERTIES DEPENDS test_fastclonefail_w.sh
   PASS_REGULAR_EXPRESSION "Unable to fast clone tree"
-  DATAFILES test_fastclone_fail_v11.fcl
+  DATAFILES test_fastclone_fail_v11.fcl ../cet_test_functions.sh
   REQUIRED_FILES ${CMAKE_CURRENT_BINARY_DIR}/../v10/test_fastclonefail_w.sh.d/out.root)

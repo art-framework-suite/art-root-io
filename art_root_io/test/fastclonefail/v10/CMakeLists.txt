@@ -21,4 +21,5 @@ set_target_properties(
 #     a change in the type of the persisted product.
 cet_test(test_fastclonefail_w.sh PREBUILT
   TEST_ARGS $<TARGET_FILE:art::art> test_fastclone_fail_v10.fcl
-  DATAFILES test_fastclone_fail_v10.fcl)
+  DATAFILES test_fastclone_fail_v10.fcl ../cet_test_functions.sh
+)
