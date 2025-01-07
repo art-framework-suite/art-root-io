@@ -35,4 +35,4 @@ add_subdirectory(art_root_io)
 add_subdirectory(tools)
 
 # packaging utility
-cet_cmake_config(CONFIG_POST_TARGET_VARS config/art_root_io-augment-ART_ROOT_IO.cmake)
+cet_cmake_config()
