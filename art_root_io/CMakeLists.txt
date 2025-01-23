@@ -14,6 +14,10 @@ find_package(messagefacility REQUIRED EXPORT)
 
 include(ArtDictionary)
 include(BuildPlugins)
+include(CetMakeLibrary)
+include(CetMake)
+include(InstallHeaders)
+include(InstallSource)
 
 art_dictionary(DICTIONARY_LIBRARIES PRIVATE art::Framework_IO_ProductMix)
 

@@ -1,5 +1,7 @@
 cet_enable_asserts()
 
+include(CetRegisterExportSet)
+include(CetTransitivePaths)
 include(CetTest)
 
 # Put everything in a different export set.
@@ -12,7 +14,7 @@ cet_make_library(LIBRARY_NAME art_root_io_test_TH1Data
 
 art_dictionary(DICTIONARY_LIBRARIES art_root_io_test_TH1Data art_test::TestObjects NO_INSTALL)
 
-cet_transitive_paths(LIBRARY_DIR BINARY IN_TREE)
+cet_transitive_paths(LIBRARY_DIR BINARY_ONLY IN_TREE)
 cet_test_env_prepend(CET_PLUGIN_PATH ${TRANSITIVE_PATHS_WITH_LIBRARY_DIR})
 cet_test_env_prepend(ROOT_LIBRARY_PATH ${TRANSITIVE_PATHS_WITH_LIBRARY_DIR})
 
