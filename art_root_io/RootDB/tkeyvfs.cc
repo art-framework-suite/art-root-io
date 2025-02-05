@@ -353,7 +353,7 @@ namespace {
   unixGetTempname(int nBuf, char* zBuf)
   {
     Trace tr{"unixGetTempname"};
-    static const unsigned char zChars[] = "abcdefghijklmnopqrstuvwxyz"
+    static unsigned char const zChars[] = "abcdefghijklmnopqrstuvwxyz"
                                           "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
                                           "0123456789";
     unsigned int i, j;

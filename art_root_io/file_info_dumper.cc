@@ -77,7 +77,7 @@ namespace {
   // an error occurs, an SQLite error code is returned.
 
   int
-  dbToFile(sqlite3* pInMemory, const char* zFilename)
+  dbToFile(sqlite3* pInMemory, char const* zFilename)
   {
     int rc{0};                        // Function return code
     sqlite3* pFile{nullptr};          // Database connection opened on zFilename

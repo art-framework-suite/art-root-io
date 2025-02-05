@@ -25,7 +25,7 @@ namespace art {
 
   class TFileService : public TFileDirectory {
   public:
-    static constexpr const char* default_tmpDir = "<parent-path-of-filename>";
+    static constexpr char const* default_tmpDir = "<parent-path-of-filename>";
     using Callback_t = TFileDirectory::Callback_t;
 
     struct Config {

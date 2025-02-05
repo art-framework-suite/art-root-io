@@ -102,7 +102,7 @@ struct unixFile {
   i64 fileSize;       /* Current file size in bytes */
   int eFileLock;      /* The type of lock held on this fd */
   int lastErrno;      /* The unix errno from last I/O error */
-  const char* zPath;  /* Name of the file */
+  char const* zPath;  /* Name of the file */
   int szChunk;        /* Configured by FCNTL_CHUNK_SIZE */
   /* The next group of variables are used to track whether or not the
   ** transaction counter in bytes 24-27 of database files are updated
@@ -137,18 +137,18 @@ struct unixFile;
 
 /* Function Directory */
 static int sqlite3CantopenError(int lineno);
-static int sqlite3Strlen30(const char* z);
-static const sqlite3_io_methods* nolockIoFinderImpl(const char* z, unixFile* p);
+static int sqlite3Strlen30(char const* z);
+static sqlite3_io_methods const* nolockIoFinderImpl(char const* z, unixFile* p);
 static int unixLogErrorAtLine(int errcode,
-                              const char* zFunc,
-                              const char* zPath,
+                              char const* zFunc,
+                              char const* zPath,
                               int iLine);
-static int robust_open(const char* z, int f, int m);
+static int robust_open(char const* z, int f, int m);
 static void robust_close(unixFile* pFile, int h, int lineno);
 static int unixGetTempname(int nBuf, char* zBuf);
 static int fcntlSizeHint(unixFile* pFile, i64 nByte);
 static int seekAndRead(unixFile* id, sqlite3_int64 offset, void* pBuf, int cnt);
-static int seekAndWrite(unixFile* id, i64 offset, const void* pBuf, int cnt);
+static int seekAndWrite(unixFile* id, i64 offset, void const* pBuf, int cnt);
 /* IoMethods calls */
 static int nolockClose(sqlite3_file* id);
 static int unixRead(sqlite3_file* id,
@@ -156,7 +156,7 @@ static int unixRead(sqlite3_file* id,
                     int amt,
                     sqlite3_int64 offset);
 static int unixWrite(sqlite3_file* id,
-                     const void* pBuf,
+                     void const* pBuf,
                      int amt,
                      sqlite3_int64 offset);
 static int unixTruncate(sqlite3_file* id, i64 nByte);
@@ -170,22 +170,22 @@ static int unixSectorSize(sqlite3_file* NotUsed);
 static int unixDeviceCharacteristics(sqlite3_file* NotUsed);
 /* VFS calls */
 static int unixOpen(sqlite3_vfs* pVfs,
-                    const char* zPath,
+                    char const* zPath,
                     sqlite3_file* pFile,
                     int flags,
                     int* pOutFlags);
-static int unixDelete(sqlite3_vfs* NotUsed, const char* zPath, int dirSync);
+static int unixDelete(sqlite3_vfs* NotUsed, char const* zPath, int dirSync);
 static int unixAccess(sqlite3_vfs* NotUsed,
-                      const char* zPath,
+                      char const* zPath,
                       int flags,
                       int* pResOut);
 static int unixFullPathname(sqlite3_vfs* pVfs,
-                            const char* zPath,
+                            char const* zPath,
                             int nOut,
                             char* zOut);
-static void* unixDlOpen(sqlite3_vfs* NotUsed, const char* zFilename);
+static void* unixDlOpen(sqlite3_vfs* NotUsed, char const* zFilename);
 static void unixDlError(sqlite3_vfs* NotUsed, int nBuf, char* zBufOut);
-static void (*unixDlSym(sqlite3_vfs* NotUsed, void* p, const char* zSym))(void);
+static void (*unixDlSym(sqlite3_vfs* NotUsed, void* p, char const* zSym))(void);
 static void unixDlClose(sqlite3_vfs* NotUsed, void* pHandle);
 static int unixRandomness(sqlite3_vfs* NotUsed, int nBuf, char* zBuf);
 static int unixSleep(sqlite3_vfs* NotUsed, int microseconds);
@@ -193,11 +193,11 @@ static int unixCurrentTime(sqlite3_vfs* NotUsed, double* prNow);
 static int unixGetLastError(sqlite3_vfs* NotUsed, int NotUsed2, char* NotUsed3);
 static int unixCurrentTimeInt64(sqlite3_vfs* NotUsed, sqlite3_int64* piNow);
 static int unixSetSystemCall(sqlite3_vfs* pNotUsed,
-                             const char* zName,
+                             char const* zName,
                              sqlite3_syscall_ptr pNewFunc);
 static sqlite3_syscall_ptr unixGetSystemCall(sqlite3_vfs* pNotUsed,
-                                             const char* zName);
-static const char* unixNextSystemCall(sqlite3_vfs* p, const char* zName);
+                                             char const* zName);
+static char const* unixNextSystemCall(sqlite3_vfs* p, char const* zName);
 /**/
 static int
 sqlite3CantopenError(int lineno)
@@ -219,9 +219,9 @@ sqlite3CantopenError(int lineno)
 ** than 1GiB) the value returned might be less than the true string length.
 */
 static int
-sqlite3Strlen30(const char* z)
+sqlite3Strlen30(char const* z)
 {
-  const char* z2 = z;
+  char const* z2 = z;
   if (z == 0) {
     return 0;
   }
@@ -238,7 +238,7 @@ sqlite3Strlen30(const char* z)
 ** to all overrideable system calls.
 */
 static struct unix_syscall {
-  const char* zName;            /* Name of the sytem call */
+  char const* zName;            /* Name of the sytem call */
   sqlite3_syscall_ptr pCurrent; /* Current value of the system call */
   sqlite3_syscall_ptr pDefault; /* Default value */
 } aSyscall[] = {
@@ -325,7 +325,7 @@ static struct unix_syscall {
 
 }; /* End of the overrideable system calls */
 
-static const sqlite3_io_methods nolockIoMethods = {
+static sqlite3_io_methods const nolockIoMethods = {
   1,                         /* iVersion */
   nolockClose,               /* xClose */
   unixRead,                  /* xRead */
@@ -347,19 +347,19 @@ static const sqlite3_io_methods nolockIoMethods = {
 #endif // 0
 };
 
-static const sqlite3_io_methods*
-nolockIoFinderImpl(const char* z, unixFile* p)
+static sqlite3_io_methods const*
+nolockIoFinderImpl(char const* z, unixFile* p)
 {
   UNUSED_PARAMETER(z);
   UNUSED_PARAMETER(p);
   return &nolockIoMethods;
 }
 
-static const sqlite3_io_methods* (*const nolockIoFinder)(const char*,
+static sqlite3_io_methods const* (*const nolockIoFinder)(char const*,
                                                          unixFile* p) =
   nolockIoFinderImpl;
 
-using finder_type = const sqlite3_io_methods* (*)(const char*, unixFile*);
+using finder_type = sqlite3_io_methods const* (*)(char const*, unixFile*);
 
 /*
 **
@@ -380,8 +380,8 @@ using finder_type = const sqlite3_io_methods* (*)(const char*, unixFile*);
 #define unixLogError(a, b, c) unixLogErrorAtLine(a, b, c, __LINE__)
 static int
 unixLogErrorAtLine(int errcode,       /* SQLite error code */
-                   const char* zFunc, /* Name of OS function that failed */
-                   const char* zPath, /* File path associated with error */
+                   char const* zFunc, /* Name of OS function that failed */
+                   char const* zPath, /* File path associated with error */
                    int iLine /* Source line number where error occurred */
 )
 {
@@ -405,7 +405,7 @@ unixLogErrorAtLine(int errcode,       /* SQLite error code */
 ** Retry open() calls that fail due to EINTR
 */
 static int
-robust_open(const char* z, int f, int m)
+robust_open(char const* z, int f, int m)
 {
   int rc;
 #if TKEYVFS_TRACE
@@ -542,7 +542,7 @@ closeUnixFile(sqlite3_file* id)
 static int
 unixGetTempname(int nBuf, char* zBuf)
 {
-  static const unsigned char zChars[] = "abcdefghijklmnopqrstuvwxyz"
+  static unsigned char const zChars[] = "abcdefghijklmnopqrstuvwxyz"
                                         "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
                                         "0123456789";
   unsigned int i, j;
@@ -649,7 +649,7 @@ seekAndRead(unixFile* id, sqlite3_int64 offset, void* pBuf, int cnt)
   if ((offset + cnt) > id->fileSize) {
     cnt = (offset + cnt) - id->fileSize;
   }
-  (void*)memcpy(pBuf, (const void*)(id->pBuf + offset), (size_t)cnt);
+  (void*)memcpy(pBuf, (void const*)(id->pBuf + offset), (size_t)cnt);
 #if TKEYVFS_TRACE
   fprintf(stderr, "End   seekAndRead ...\n");
 #endif /* TKEYVFS_TRACE */
@@ -664,7 +664,7 @@ seekAndRead(unixFile* id, sqlite3_int64 offset, void* pBuf, int cnt)
 ** is set before returning.
 */
 static int
-seekAndWrite(unixFile* id, i64 offset, const void* pBuf, int cnt)
+seekAndWrite(unixFile* id, i64 offset, void const* pBuf, int cnt)
 {
   unixFile* pFile = (unixFile*)id;
 #if TKEYVFS_TRACE
@@ -769,7 +769,7 @@ unixRead(sqlite3_file* id, void* pBuf, int amt, sqlite3_int64 offset)
 ** or some other error code on failure.
 */
 static int
-unixWrite(sqlite3_file* id, const void* pBuf, int amt, sqlite3_int64 offset)
+unixWrite(sqlite3_file* id, void const* pBuf, int amt, sqlite3_int64 offset)
 {
   unixFile* pFile = (unixFile*)id;
   int wrote = 0;
@@ -1163,7 +1163,7 @@ unixDeviceCharacteristics(sqlite3_file* NotUsed)
 */
 static int
 unixOpen(sqlite3_vfs* /*pVfs*/, /* The VFS for which this is the xOpen method */
-         const char* zPath,     /* Pathname of file to be opened */
+         char const* zPath,     /* Pathname of file to be opened */
          sqlite3_file* pFile,   /* The file descriptor to be filled in */
          int flags,             /* Input flags to control the opening */
          int* pOutFlags         /* Output flags returned to SQLite core */
@@ -1178,7 +1178,7 @@ unixOpen(sqlite3_vfs* /*pVfs*/, /* The VFS for which this is the xOpen method */
   int isReadonly = (flags & SQLITE_OPEN_READONLY);
   int isReadWrite = (flags & SQLITE_OPEN_READWRITE);
   char zTmpname[MAX_PATHNAME + 1];
-  const char* zName = zPath;
+  char const* zName = zPath;
 #if TKEYVFS_TRACE
   fprintf(stderr, "Begin unixOpen ...\n");
   if (zPath != nullptr) {
@@ -1292,7 +1292,7 @@ unixOpen(sqlite3_vfs* /*pVfs*/, /* The VFS for which this is the xOpen method */
 */
 static int
 unixDelete(sqlite3_vfs* NotUsed, /* VFS containing this as the xDelete method */
-           const char* /*zPath*/, /* Name of file to be deleted */
+           char const* /*zPath*/, /* Name of file to be deleted */
            int /*dirSync*/ /* If true, fsync() directory after deleting file */
 )
 {
@@ -1322,7 +1322,7 @@ unixDelete(sqlite3_vfs* NotUsed, /* VFS containing this as the xDelete method */
 */
 static int
 unixAccess(sqlite3_vfs* NotUsed,  /* The VFS containing this xAccess method */
-           const char* /*zPath*/, /* Path of the file to examine */
+           char const* /*zPath*/, /* Path of the file to examine */
            int flags,   /* What do we want to learn about the zPath file? */
            int* pResOut /* Write result boolean here */
 )
@@ -1377,7 +1377,7 @@ unixAccess(sqlite3_vfs* NotUsed,  /* The VFS containing this xAccess method */
 */
 static int
 unixFullPathname(sqlite3_vfs* pVfs, /* Pointer to vfs object */
-                 const char* zPath, /* Possibly relative input path */
+                 char const* zPath, /* Possibly relative input path */
                  int nOut,          /* Size of output buffer in bytes */
                  char* zOut         /* Output buffer */
 )
@@ -1404,7 +1404,7 @@ unixFullPathname(sqlite3_vfs* pVfs, /* Pointer to vfs object */
 ** within the shared library, and closing the shared library.
 */
 static void*
-unixDlOpen(sqlite3_vfs* NotUsed, const char* zFilename)
+unixDlOpen(sqlite3_vfs* NotUsed, char const* zFilename)
 {
   UNUSED_PARAMETER(NotUsed);
 #if TKEYVFS_TRACE
@@ -1427,7 +1427,7 @@ unixDlOpen(sqlite3_vfs* NotUsed, const char* zFilename)
 static void
 unixDlError(sqlite3_vfs* NotUsed, int nBuf, char* zBufOut)
 {
-  const char* zErr;
+  char const* zErr;
   UNUSED_PARAMETER(NotUsed);
 #if TKEYVFS_TRACE
   fprintf(stderr, "Begin unixDlError ...\n");
@@ -1442,7 +1442,7 @@ unixDlError(sqlite3_vfs* NotUsed, int nBuf, char* zBufOut)
   /**/
 }
 
-static void (*unixDlSym(sqlite3_vfs* NotUsed, void* p, const char* zSym))(void)
+static void (*unixDlSym(sqlite3_vfs* NotUsed, void* p, char const* zSym))(void)
 {
   /*
   ** GCC with -pedantic-errors says that C90 does not allow a void* to be
@@ -1461,12 +1461,12 @@ static void (*unixDlSym(sqlite3_vfs* NotUsed, void* p, const char* zSym))(void)
   ** other hand, dlsym() will not work on such a system either, so we have
   ** not really lost anything.
   */
-  void (*(*x)(void*, const char*))(void);
+  void (*(*x)(void*, char const*))(void);
   UNUSED_PARAMETER(NotUsed);
 #if TKEYVFS_TRACE
   fprintf(stderr, "Begin unixDlSym ...\n");
 #endif /* TKEYVFS_TRACE */
-  x = (void (*(*)(void*, const char*))(void))dlsym;
+  x = (void (*(*)(void*, char const*))(void))dlsym;
   return (*x)(p, zSym);
 }
 
@@ -1607,7 +1607,7 @@ unixGetLastError(sqlite3_vfs* NotUsed, int NotUsed2, char* NotUsed3)
 static int
 unixCurrentTimeInt64(sqlite3_vfs* NotUsed, sqlite3_int64* piNow)
 {
-  static const sqlite3_int64 unixEpoch = 24405875 * (sqlite3_int64)8640000;
+  static sqlite3_int64 const unixEpoch = 24405875 * (sqlite3_int64)8640000;
   struct timeval sNow;
 #if TKEYVFS_TRACE
   fprintf(stderr, "Begin unixCurrentTimeInt64 ...\n");
@@ -1630,7 +1630,7 @@ unixCurrentTimeInt64(sqlite3_vfs* NotUsed, sqlite3_int64* piNow)
 static int
 unixSetSystemCall(
   sqlite3_vfs* pNotUsed,       /* The VFS pointer.  Not used */
-  const char* zName,           /* Name of system call to override */
+  char const* zName,           /* Name of system call to override */
   sqlite3_syscall_ptr pNewFunc /* Pointer to new system call value */
 )
 {
@@ -1680,7 +1680,7 @@ unixSetSystemCall(
 ** is currently undefined.
 */
 static sqlite3_syscall_ptr
-unixGetSystemCall(sqlite3_vfs* pNotUsed, const char* zName)
+unixGetSystemCall(sqlite3_vfs* pNotUsed, char const* zName)
 {
   unsigned int i;
   UNUSED_PARAMETER(pNotUsed);
@@ -1708,8 +1708,8 @@ unixGetSystemCall(sqlite3_vfs* pNotUsed, const char* zName)
 ** is the last system call or if zName is not the name of a valid
 ** system call.
 */
-static const char*
-unixNextSystemCall(sqlite3_vfs* p, const char* zName)
+static char const*
+unixNextSystemCall(sqlite3_vfs* p, char const* zName)
 {
   int i = -1;
   UNUSED_PARAMETER(p);
@@ -1827,7 +1827,7 @@ tkeyvfs_init(void)
 }
 
 int
-tkeyvfs_open_v2(const char* filename, /* Database filename (UTF-8) */
+tkeyvfs_open_v2(char const* filename, /* Database filename (UTF-8) */
                 sqlite3** ppDb,       /* OUT: SQLite db handle */
                 int flags             /* Flags */
 #ifndef TKEYVFS_NO_ROOT

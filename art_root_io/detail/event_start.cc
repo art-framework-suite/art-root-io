@@ -21,7 +21,8 @@ namespace {
   std::string const context{
     "An error was encountered while processing the 'skipToEvent' parameter.\n"};
 
-  constexpr auto article [[gnu::unused]] (art::Level const L)
+  constexpr auto
+  article [[gnu::unused]] (art::Level const L)
   {
     return (L == art::Level::InputFile || L == art::Level::Event) ? "an" : "a";
   }

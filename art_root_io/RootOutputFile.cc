@@ -59,8 +59,8 @@ using namespace cet;
 using namespace hep::concurrency;
 
 using art::BranchType;
-using art::RootOutputFile;
 using art::rootNames::metaBranchRootName;
+using art::RootOutputFile;
 
 using std::map;
 using std::string;
@@ -379,9 +379,9 @@ namespace art {
                                   saveMemoryObjectThreshold);
     rootFileDB_ = ServiceHandle<DatabaseConnection>
     {
-      } -> get<TKeyVFSOpenPolicy>("RootFileDB",
-                                  filePtr_.get(),
-                                  SQLITE_OPEN_CREATE | SQLITE_OPEN_READWRITE);
+    } -> get<TKeyVFSOpenPolicy>("RootFileDB",
+                                filePtr_.get(),
+                                SQLITE_OPEN_CREATE | SQLITE_OPEN_READWRITE);
     beginTime_ = std::chrono::steady_clock::now();
     // Check that dictionaries for the auxiliaries exist
     root::DictionaryChecker checker;

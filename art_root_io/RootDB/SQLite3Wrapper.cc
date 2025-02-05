@@ -35,7 +35,7 @@ namespace {
   }
 
   void
-  traceit(void* string_ptr, const char* zSQL)
+  traceit(void* string_ptr, char const* zSQL)
   {
     assert(string_ptr);
     mf::LogAbsolute("SQLTrace")

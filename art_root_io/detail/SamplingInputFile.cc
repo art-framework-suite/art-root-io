@@ -105,7 +105,7 @@ namespace art::detail {
     if (fileFormatVersion_.value_ >= 5) {
       sqliteDB_ = ServiceHandle<DatabaseConnection>
       {
-        } -> get<TKeyVFSOpenPolicy>("RootFileDB", file_.get());
+      } -> get<TKeyVFSOpenPolicy>("RootFileDB", file_.get());
       if (readIncomingParameterSets &&
           have_table(sqliteDB_->get(), "ParameterSets", dataset_)) {
         fhicl::ParameterSetRegistry::importFrom(sqliteDB_->get());
