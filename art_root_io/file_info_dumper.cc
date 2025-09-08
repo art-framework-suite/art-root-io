@@ -15,6 +15,7 @@
 #include <iostream>
 #include <sstream>
 #include <string>
+#include <utility>
 
 namespace bpo = boost::program_options;
 
@@ -102,15 +103,15 @@ namespace {
 
       pBackup = sqlite3_backup_init(pFile, "main", pInMemory, "main");
       if (pBackup != nullptr) {
-        (void)sqlite3_backup_step(pBackup, -1);
-        (void)sqlite3_backup_finish(pBackup);
+        std::ignore = sqlite3_backup_step(pBackup, -1);
+        std::ignore = sqlite3_backup_finish(pBackup);
       }
       rc = sqlite3_errcode(pFile);
     }
 
     // Close the database connection opened on database file zFilename
     // and return the result of this function.
-    (void)sqlite3_close(pFile);
+    std::ignore = sqlite3_close(pFile);
     return rc;
   }
 
