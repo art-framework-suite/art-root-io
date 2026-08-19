@@ -11,6 +11,8 @@
 #include "TDirectory.h"
 #include "TTree.h"
 
+#include <algorithm>
+
 namespace {
   std::array<cet::exempt_ptr<TTree>, art::NumBranchTypes>
   initDataTrees(TFile& currentFile)
