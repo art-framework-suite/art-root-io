@@ -76,6 +76,7 @@ art::RootIOPolicy::openAndReadMetaData(std::string filename, MixOpList& mixOps)
   nEventsInCurrentFile_ = static_cast<std::size_t>(nevents);
 
   // Read file index
+  fileIndexInCurrentFile_ = FileIndex{};
   FileIndex* fileIndexPtr = &fileIndexInCurrentFile_;
   detail::readFileIndex(
     currentFile_.get(), currentMetaDataTree_.get(), fileIndexPtr);
